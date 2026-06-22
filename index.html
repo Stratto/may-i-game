@@ -7,6 +7,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="May I?">
 <meta name="theme-color" content="#19281A">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.svg">
 <title>May I?</title>
 <style>
   html,body{margin:0;padding:0;height:100%;background:#15171C;overscroll-behavior:none;}
@@ -1560,5 +1562,10 @@ const S = {
 
 ReactDOM.createRoot(document.getElementById('root')).render(ce(MayIApp));
 })();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
+}
 </script>
 </body>

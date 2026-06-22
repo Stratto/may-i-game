@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#19281A"/>
+  <rect x="14" y="14" width="484" height="484" rx="100" fill="none" stroke="#D4AF71" stroke-width="1.5" opacity="0.35"/>
+  <text x="256" y="158" text-anchor="middle" font-family="-apple-system, system-ui, sans-serif" font-size="96" font-weight="700" letter-spacing="-2" fill="#D4AF71">May I?</text>
+  <text x="256" y="360" text-anchor="middle" font-family="-apple-system, system-ui, sans-serif" font-size="200" fill="#D4AF71" opacity="0.9">♠</text>
+  <text x="108" y="420" text-anchor="middle" font-family="-apple-system, system-ui, sans-serif" font-size="96" fill="#C44040" opacity="0.7">♥</text>
+  <text x="404" y="420" text-anchor="middle" font-family="-apple-system, system-ui, sans-serif" font-size="96" fill="#C44040" opacity="0.7">♦</text>
+</svg>
