@@ -1,4 +1,4 @@
-const CACHE = 'mayi-v1';
+const CACHE = 'mayi-v2';
 const FILES = ['./', './index.html', './manifest.json', './icon.svg'];
 
 self.addEventListener('install', e => {
