@@ -399,14 +399,167 @@ const DEFAULT_RULES = {
   twosWild:       false,
 };
 
-const STORAGE_KEY = "mayi:game:v4";
+const STORAGE_KEY  = "mayi:game:v4";
+const HISTORY_KEY  = "mayi:history:v1";
 const display = "system-ui, -apple-system, 'SF Pro Display', sans-serif";
+
+// ── Canvas score-card image generator ────────────────────────────
+function buildShareCanvas(ranked, winner) {
+  const W = 640, H = Math.max(340, 210 + ranked.length * 46);
+  const c = document.createElement("canvas");
+  c.width = W * 2; c.height = H * 2;
+  const ctx = c.getContext("2d");
+  ctx.scale(2, 2);
+
+  // Background
+  ctx.fillStyle = "#19281A";
+  ctx.fillRect(0, 0, W, H);
+  // Gold vignette top
+  const g = ctx.createLinearGradient(0, 0, 0, 110);
+  g.addColorStop(0, "rgba(212,175,113,0.28)"); g.addColorStop(1, "rgba(212,175,113,0)");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  // Gold border
+  ctx.strokeStyle = "rgba(212,175,113,0.45)"; ctx.lineWidth = 1.2;
+  ctx.strokeRect(12, 12, W - 24, H - 24);
+  ctx.strokeStyle = "rgba(212,175,113,0.18)"; ctx.lineWidth = 0.5;
+  ctx.strokeRect(18, 18, W - 36, H - 36);
+
+  // Title
+  ctx.textAlign = "center";
+  ctx.font = "bold 13px system-ui,-apple-system,sans-serif";
+  ctx.fillStyle = "rgba(212,175,113,0.8)";
+  ctx.letterSpacing = "2px";
+  ctx.fillText("MAY  I?", W / 2, 44);
+  ctx.letterSpacing = "0px";
+
+  // Suit watermark
+  ctx.font = "56px system-ui,-apple-system,sans-serif";
+  ctx.fillStyle = "rgba(212,175,113,0.12)";
+  ctx.fillText("♠", W / 2, 98);
+
+  // Winner name
+  ctx.font = "bold 30px system-ui,-apple-system,sans-serif";
+  ctx.fillStyle = "#F5EDD8";
+  ctx.fillText(winner.name, W / 2, 132);
+  ctx.font = "14px system-ui,-apple-system,sans-serif";
+  ctx.fillStyle = "rgba(139,174,139,0.85)";
+  ctx.fillText(winner.total + " pts  ·  lowest score wins", W / 2, 158);
+
+  // Divider
+  ctx.strokeStyle = "rgba(212,175,113,0.22)"; ctx.lineWidth = 0.5;
+  ctx.beginPath(); ctx.moveTo(40, 178); ctx.lineTo(W - 40, 178); ctx.stroke();
+
+  // Standings
+  const medals = ["1st", "2nd", "3rd", "4th", "5th", "6th"];
+  ranked.forEach((p, i) => {
+    const y = 202 + i * 46;
+    if (i === 0) {
+      ctx.fillStyle = "rgba(212,175,113,0.1)";
+      ctx.beginPath();
+      ctx.roundRect(32, y - 16, W - 64, 36, 8);
+      ctx.fill();
+    }
+    ctx.textAlign = "left";
+    ctx.font = (i === 0 ? "bold" : "normal") + " 15px system-ui,-apple-system,sans-serif";
+    ctx.fillStyle = i === 0 ? "#D4AF71" : "#F5EDD8";
+    ctx.fillText(medals[i] + "  " + p.name, 48, y + 10);
+    ctx.textAlign = "right";
+    ctx.font = "bold 15px system-ui,-apple-system,sans-serif";
+    ctx.fillStyle = i === 0 ? "#D4AF71" : "rgba(139,174,139,0.85)";
+    ctx.fillText(p.total + " pts", W - 48, y + 10);
+  });
+
+  // Footer
+  ctx.textAlign = "center";
+  ctx.font = "11px system-ui,-apple-system,sans-serif";
+  ctx.fillStyle = "rgba(212,175,113,0.4)";
+  ctx.fillText("May I? · Contract Rummy Tracker", W / 2, H - 18);
+
+  return c;
+}
+function formatHistoryDate(ts) {
+  return new Date(ts).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
 
 // ── Helpers ──────────────────────────────────────────────────────
 function roundIsComplete(scores, roundIdx, players) {
   if (!players.length) return false;
   const r = scores[roundIdx];
   return !!r && players.every(p => typeof r[p.id] === "number");
+}
+
+// ── Confetti burst ────────────────────────────────────────────────
+function Confetti() {
+  const suits = ["♠","♥","♦","♣"];
+  const colors = [THEME.brass, "#C44040", "#F5EDD8", "#7AAE7A"];
+  const particles = Array.from({ length: 64 }, (_, i) => ({
+    id: i,
+    suit: suits[i % 4],
+    x: 3 + (i * 1.52) % 94,
+    delay: (i * 0.048) % 1.6,
+    dur: 1.9 + (i * 0.04) % 1.1,
+    color: colors[i % 4],
+    size: 11 + (i % 6) * 2.5,
+    rot: ((i * 53) % 720) - 360,
+  }));
+  return ce("div", { style: { position: "fixed", inset: 0, pointerEvents: "none", zIndex: 200, overflow: "hidden" } },
+    particles.map(p =>
+      ce("span", { key: p.id, style: {
+        position: "absolute", top: "-30px", left: p.x + "%",
+        fontSize: p.size, color: p.color, display: "inline-block",
+        animation: `confettiFall ${p.dur}s ${p.delay}s cubic-bezier(.35,.05,.8,1) both`,
+        "--rot": p.rot + "deg",
+        filter: p.color === "#C44040" ? "drop-shadow(0 1px 3px rgba(196,64,64,0.5))" : "drop-shadow(0 1px 3px rgba(212,175,113,0.4))",
+      }}, p.suit)
+    )
+  );
+}
+
+// ── Floating suit parallax ─────────────────────────────────────────
+function FloatingSuits() {
+  const items = [
+    { s:"♣", top:"14%", right:"5%",  size:58, op:0.055, anim:"suitFloat1 7s ease-in-out infinite" },
+    { s:"♦", top:"55%", right:"18%", size:40, op:0.042, anim:"suitFloat2 9s 1.2s ease-in-out infinite" },
+    { s:"♥", top:"8%",  right:"40%", size:28, op:0.038, anim:"suitFloat1 6s 2.5s ease-in-out infinite" },
+    { s:"♠", top:"72%", right:"3%",  size:32, op:0.03,  anim:"suitFloat2 8s 0.5s ease-in-out infinite" },
+  ];
+  return ce("div", { "aria-hidden": "true", style: { position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none" } },
+    items.map((it, i) =>
+      ce("span", { key: i, style: {
+        position: "absolute", top: it.top, right: it.right,
+        fontSize: it.size, color: "#fff", opacity: it.op,
+        animation: it.anim, userSelect: "none", lineHeight: 1,
+      }}, it.s)
+    )
+  );
+}
+
+// ── Game history (setup screen) ────────────────────────────────────
+function GameHistory({ history }) {
+  if (!history.length) return null;
+  return ce("div", { style: { marginBottom: 24 } },
+    ce("div", { style: S.sectionLabel }, "Recent Games"),
+    history.map((g, i) =>
+      ce("div", { key: i, style: { ...S.ruleCard, padding: "13px 15px", marginBottom: 8 } },
+        ce("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 } },
+          ce("span", { style: { fontSize: 14, fontWeight: 700, color: THEME.brass } }, "♠  " + g.winner),
+          ce("span", { style: { fontSize: 11, color: THEME.textDim } }, formatHistoryDate(g.date)),
+        ),
+        ce("div", { style: { display: "flex", gap: 6, flexWrap: "wrap" } },
+          g.players.map((p, pi) =>
+            ce("span", { key: pi, style: {
+              fontSize: 11.5, fontWeight: pi === 0 ? 700 : 500,
+              color: pi === 0 ? THEME.brass : THEME.textDim,
+              background: "rgba(255,255,255,0.05)", border: GLBR,
+              borderRadius: 6, padding: "3px 8px",
+            }},
+              (pi === 0 ? "🥇 " : "") + p.name + "  " + p.total
+            )
+          )
+        )
+      )
+    )
+  );
 }
 
 // ── Main App ─────────────────────────────────────────────────────
@@ -424,7 +577,9 @@ function MayIApp() {
   const [showSummary,  setShowSummary]  = useState(false);
   const [dealer,       setDealer]       = useState(0);
   const [confirmData,  setConfirmData]  = useState(null);
-  const scrollRef = useRef(null);
+  const [gameHistory,  setGameHistory]  = useState([]);
+  const scrollRef      = useRef(null);
+  const savedToHistory = useRef(false);
 
   useEffect(() => {
     let live = true;
@@ -448,6 +603,11 @@ function MayIApp() {
           setShowSummary(!!s.showSummary);
           setDealer(s.dealer || 0);
         }
+        // Load game history
+        try {
+          const h = window.localStorage.getItem(HISTORY_KEY);
+          if (live && h) setGameHistory(JSON.parse(h));
+        } catch(e) {}
       } catch(e) {}
       finally { if (live) setLoaded(true); }
     })();
@@ -516,16 +676,35 @@ function MayIApp() {
     if (count <= 0) return;
     setBuys(b => ({ ...b, [currentRound]: { ...(b[currentRound] || {}), [playerId]: count - 1 } }));
   }
+  function saveGameToHistory() {
+    if (savedToHistory.current) return;
+    savedToHistory.current = true;
+    const entry = { date: Date.now(), winner: ranked[0]?.name ?? "?", players: ranked.map(p => ({ name: p.name, total: p.total })) };
+    try {
+      const raw = window.localStorage.getItem(HISTORY_KEY);
+      const hist = raw ? JSON.parse(raw) : [];
+      hist.unshift(entry);
+      if (hist.length > 3) hist.length = 3;
+      window.localStorage.setItem(HISTORY_KEY, JSON.stringify(hist));
+      setGameHistory(hist);
+    } catch(e) {}
+  }
   function advanceRound() {
     if (currentRound < CONTRACTS.length - 1) {
       setCurrentRound(r => r + 1);
       setDealer(d => (d + 1) % Math.max(players.length, 1));
       setTab("round");
     } else {
+      saveGameToHistory();
       setShowSummary(true);
     }
   }
+  function showSummaryFromScore() {
+    saveGameToHistory();
+    setShowSummary(true);
+  }
   function doReset() {
+    savedToHistory.current = false;
     setScores({}); setBuys({}); setCurrentRound(0); setStarted(false);
     setTab("rules"); setShowSummary(false); setDealer(0); setConfirmData(null);
   }
@@ -551,7 +730,7 @@ function MayIApp() {
       ce(StyleInjector),
       ce("div", { style: { ...S.scroll, paddingTop: "env(safe-area-inset-top, 0px)" } },
         ce(Setup, { players, draftName, setDraftName, addPlayer, removePlayer,
-          houseRules, updateHouseRule, dealer, setDealer,
+          houseRules, updateHouseRule, dealer, setDealer, gameHistory,
           onStart: () => { setStarted(true); setTab("rules"); } })
       )
     );
@@ -560,7 +739,7 @@ function MayIApp() {
   return ce("div", { style: S.app },
     ce(StyleInjector),
     ce("div", { style: S.frame },
-      ce(Header, { contract, currentRound, scores, players, dealerName, onReset: resetGame, allRoundsScored, onSummary: () => setShowSummary(true) }),
+      ce(Header, { contract, currentRound, scores, players, dealerName, onReset: resetGame, allRoundsScored, onSummary: showSummaryFromScore }),
       ce("div", { ref: scrollRef, style: S.scroll },
         ce("div", { key: tab, className: "tab-content", ref: () => { if (scrollRef.current) scrollRef.current.scrollTop = 0; } },
           tab === "rules" && ce(RulesTab, { houseRules, updateHouseRule, effectiveBuyLimit }),
@@ -573,7 +752,7 @@ function MayIApp() {
             setRoundScore }),
           tab === "score" && ce(ScoreTab, { ranked, leaderId, scores, players,
             currentRound, totalRounds: CONTRACTS.length, advanceRound, allRoundsScored,
-            onSummary: () => setShowSummary(true) }),
+            onSummary: showSummaryFromScore }),
         ),
       ),
       ce(TabBar, { tab, setTab }),
@@ -589,8 +768,9 @@ function MayIApp() {
 
 // ── Header ────────────────────────────────────────────────────────
 function Header({ contract, currentRound, scores, players, dealerName, onReset, allRoundsScored, onSummary }) {
-  return ce("header", { style: S.header },
-    ce("div", { style: { flex: 1, minWidth: 0 } },
+  return ce("header", { style: { ...S.header, position: "relative", overflow: "hidden" } },
+    ce(FloatingSuits),
+    ce("div", { style: { flex: 1, minWidth: 0, position: "relative" } },
       ce("div", { style: S.eyebrow }, "Round ", contract.n, " of 7 · ", contract.cards, " cards"),
       ce("div", { style: S.headerTitle }, contract.name),
       ce("div", { style: S.headerMeta },
@@ -598,7 +778,7 @@ function Header({ contract, currentRound, scores, players, dealerName, onReset, 
         dealerName && ce("span", { style: S.dealerPill }, "Dealer: ", dealerName),
       ),
     ),
-    ce("div", { style: { display: "flex", gap: 6, flexShrink: 0, marginLeft: 8 } },
+    ce("div", { style: { display: "flex", gap: 6, flexShrink: 0, marginLeft: 8, position: "relative" } },
       allRoundsScored && ce("button", { style: { ...S.ghostBtn, color: THEME.brass, borderColor: THEME.brass }, onClick: onSummary }, "Results"),
       ce("button", { style: S.ghostBtn, onClick: onReset }, "New"),
     )
@@ -620,30 +800,42 @@ function ProgressPips({ currentRound, scores, players }) {
 function GameSummary({ ranked, players, scores, onPlayAgain, onDismiss }) {
   const winner = ranked[0];
   const medals = ["🥇", "🥈", "🥉"];
+  const [sharing, setSharing] = useState(false);
 
-  function shareResults() {
-    const lines = ["May I? — Final Results", ""];
-    ranked.forEach((p, i) => {
-      lines.push((medals[i] || (i+1) + ".") + " " + p.name + " — " + p.total + " pts");
-    });
-    lines.push("", "Played with May I? · mayi.app");
-    const text = lines.join("\n");
-    if (navigator.share) {
-      navigator.share({ title: "May I? Results", text }).catch(() => {});
-    } else if (navigator.clipboard) {
-      navigator.clipboard.writeText(text).then(() => alert("Results copied!")).catch(() => {});
-    }
+  async function shareResults() {
+    if (sharing) return;
+    setSharing(true);
+    try {
+      const canvas = buildShareCanvas(ranked, winner);
+      const blob   = await new Promise(res => canvas.toBlob(res, "image/png"));
+      const file   = new File([blob], "may-i-results.png", { type: "image/png" });
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ title: "May I? — " + winner.name + " wins!", files: [file] });
+      } else if (navigator.share) {
+        const lines = ["May I? — Final Results", ""];
+        ranked.forEach((p, i) => lines.push((medals[i] || (i+1) + ".") + " " + p.name + " — " + p.total + " pts"));
+        lines.push("", "Played with May I?");
+        await navigator.share({ title: "May I? Results", text: lines.join("\n") });
+      } else {
+        const a = document.createElement("a");
+        a.download = "may-i-results.png";
+        a.href = canvas.toDataURL();
+        a.click();
+      }
+    } catch(e) {}
+    setSharing(false);
   }
 
   return ce("div", { style: S.summaryOverlay },
+    ce(Confetti),
     ce("div", { className: "sheet-slide", style: S.summarySheet },
       ce("div", { style: { display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom: 20 } },
         ce("div", { style: S.summarySectionLabel }, "Final Results"),
-        ce("button", { onClick: shareResults, className: "share-btn", style: S.shareBtn }, "Share"),
+        ce("button", { onClick: shareResults, className: "share-btn", style: { ...S.shareBtn, opacity: sharing ? 0.5 : 1 } }, sharing ? "…" : "Share"),
       ),
 
       ce("div", { style: S.summaryHero },
-        ce("div", { className: "hero-in",  style: S.summaryTrophy }, "♠"),
+        ce("div", { className: "hero-in",  style: { ...S.summaryTrophy, animation: "heroIn .5s .05s cubic-bezier(.34,1.56,.64,1) both, trophySpin 1s .6s cubic-bezier(.34,1.56,.64,1) both" } }, "♠"),
         ce("div", { className: "hero-in2", style: S.summaryWinnerLabel }, "Winner"),
         ce("div", { className: "hero-in2", style: S.summaryWinnerName }, winner?.name || "—"),
         ce("div", { style: S.summaryWinnerScore }, winner?.total ?? 0, " pts · lowest score wins"),
@@ -661,7 +853,7 @@ function GameSummary({ ranked, players, scores, onPlayAgain, onDismiss }) {
       ),
 
       ce("div", { style: { ...S.summarySectionLabel, marginTop: 4 } }, "Round Breakdown"),
-      ce("div", { style: { overflowX: "auto", marginBottom: 24, borderRadius: 12, overflow: "hidden", border: "1px solid " + THEME.line } },
+      ce("div", { style: { overflowX: "auto", marginBottom: 24, borderRadius: 14, overflow: "hidden", border: GLBR } },
         ce("table", { style: S.roundTable },
           ce("thead", null,
             ce("tr", null,
@@ -737,7 +929,7 @@ function HowToPlay() {
 }
 
 // ── Setup ─────────────────────────────────────────────────────────
-function Setup({ players, draftName, setDraftName, addPlayer, removePlayer, houseRules, updateHouseRule, dealer, setDealer, onStart }) {
+function Setup({ players, draftName, setDraftName, addPlayer, removePlayer, houseRules, updateHouseRule, dealer, setDealer, gameHistory, onStart }) {
   return ce("div", { style: S.scrollPad },
     ce("div", { style: { textAlign:"center", marginTop: 16, marginBottom: 24 } },
       ce(FannedSuits),
@@ -745,6 +937,7 @@ function Setup({ players, draftName, setDraftName, addPlayer, removePlayer, hous
       ce("p",  { style: S.sub }, "Contract rummy · score & round tracker"),
     ),
 
+    ce(GameHistory, { history: gameHistory || [] }),
     ce(HowToPlay),
 
     ce(SectionLabel, null, "Players"),
@@ -1484,6 +1677,29 @@ function StyleInjector() {
         50%       { opacity: 0.4; }
       }
       .pip-active { animation: pipPulse 2.4s ease-in-out infinite; }
+
+      @keyframes confettiFall {
+        0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
+        15%  { opacity: 1; }
+        85%  { opacity: 0.7; }
+        100% { transform: translateY(110vh) rotate(var(--rot, 360deg)); opacity: 0; }
+      }
+
+      @keyframes suitFloat1 {
+        0%,100% { transform: translateY(0) rotate(15deg); }
+        50%     { transform: translateY(-10px) rotate(15deg); }
+      }
+      @keyframes suitFloat2 {
+        0%,100% { transform: translateY(-6px) rotate(-22deg); }
+        50%     { transform: translateY(6px) rotate(-22deg); }
+      }
+
+      @keyframes trophySpin {
+        0%   { transform: scale(1) rotate(0deg); }
+        30%  { transform: scale(1.18) rotate(-12deg); }
+        60%  { transform: scale(1.08) rotate(8deg); }
+        100% { transform: scale(1) rotate(0deg); }
+      }
 
       @keyframes tabTap {
         0%   { transform: scale(1); }
