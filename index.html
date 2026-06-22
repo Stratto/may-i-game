@@ -652,7 +652,7 @@ function GameSummary({ ranked, players, scores, onPlayAgain, onDismiss }) {
       ce("div", { style: { ...S.summarySectionLabel, marginTop: 20 } }, "Standings"),
       ce("div", { style: { marginBottom: 20 } },
         ranked.map((p, i) =>
-          ce("div", { key: p.id, style: { ...S.summaryRow, background: i === 0 ? "rgba(212,175,113,0.1)" : THEME.panel, borderColor: i === 0 ? THEME.brass : THEME.line } },
+          ce("div", { key: p.id, style: { ...S.summaryRow, background: i === 0 ? "rgba(212,175,113,0.1)" : GLS, borderColor: i === 0 ? THEME.brass : "rgba(255,255,255,0.12)" } },
             ce("span", { style: S.summaryMedal }, medals[i] || String(i + 1)),
             ce("span", { style: { ...S.summaryPlayerName, color: i === 0 ? THEME.brass : THEME.text } }, p.name),
             ce("span", { style: S.summaryPlayerScore }, p.total, " pts"),
@@ -693,7 +693,7 @@ function GameSummary({ ranked, players, scores, onPlayAgain, onDismiss }) {
 // ── Confirm Modal ─────────────────────────────────────────────────
 function ConfirmModal({ title, message, confirmLabel, onConfirm, onCancel }) {
   return ce("div", { style: { ...S.summaryOverlay, alignItems: "center", padding: "0 20px" }, onClick: onCancel },
-    ce("div", { className: "sheet-slide", style: { background: THEME.panel, border: "1px solid " + THEME.line, borderRadius: 20, width: "100%", padding: "24px 20px", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }, onClick: e => e.stopPropagation() },
+    ce("div", { className: "sheet-slide", style: { background: "rgba(28,44,30,0.96)", backdropFilter: BF, WebkitBackdropFilter: BF, border: GLBR, borderRadius: 22, width: "100%", padding: "24px 20px", boxShadow: "0 24px 80px rgba(0,0,0,0.6)" }, onClick: e => e.stopPropagation() },
       ce("div", { style: { fontSize: 19, fontWeight: 700, color: THEME.text, marginBottom: 8 } }, title),
       ce("div", { style: { fontSize: 14, color: THEME.textDim, lineHeight: 1.6, marginBottom: 24 } }, message),
       ce("button", { style: { ...S.brassBtn, marginBottom: 10 }, onClick: onConfirm }, confirmLabel || "Confirm"),
@@ -713,7 +713,7 @@ function HowToPlay() {
       ce("span", null, "How to play"),
       ce("span", { style: { color: THEME.brass, fontSize: 18, transition: "transform .22s", transform: open ? "rotate(180deg)" : "rotate(0deg)", display: "inline-block" } }, "›"),
     ),
-    open && ce("div", { style: { background: THEME.panel, border: "1px solid rgba(212,175,113,0.22)", borderTop: "none", borderRadius: "0 0 13px 13px", padding: "14px 14px 16px" } },
+    open && ce("div", { style: { background: GLS, backdropFilter: BF, WebkitBackdropFilter: BF, border: "0.5px solid rgba(212,175,113,0.22)", borderTop: "none", borderRadius: "0 0 14px 14px", padding: "14px 14px 16px" } },
       ce("p", { style: { fontSize: 13, color: THEME.textDim, lineHeight: 1.65, margin: "0 0 14px" } },
         "May I? is a contract rummy card game for 2–6 players using two decks. Each of the 7 rounds has a specific objective — lay down sets (matching ranks) and runs (sequences in one suit) to go out. When someone goes out, everyone else counts penalty points still in hand. Lowest total score after all 7 rounds wins."
       ),
@@ -944,8 +944,8 @@ function ScoreTab({ ranked, leaderId, scores, players, currentRound, totalRounds
       const hasScores = CONTRACTS.some((_, idx) => typeof scores[idx]?.[p.id] === "number");
       return ce("div", { key: p.id, style: {
         ...S.standCard,
-        borderColor: isLeader ? THEME.brass : THEME.line,
-        background:  isLeader ? "rgba(212,175,113,0.07)" : THEME.panel,
+        borderColor: isLeader ? THEME.brass : "rgba(255,255,255,0.12)",
+        background:  isLeader ? "rgba(212,175,113,0.07)" : GLS,
       }},
         ce("div", { style: S.standCardTop },
           ce("div", { style: { ...S.standRankBadge, color: isLeader ? THEME.brass : THEME.textDim,
@@ -1011,8 +1011,8 @@ function RoundTab({ currentRound, setCurrentRound, scores, players, dealerName, 
         return ce("button", { key: c.n, ref: active ? activeRef : null, className: "contract-card",
           onClick: () => setCurrentRound(idx), style: {
           ...S.contractCard,
-          borderColor: active ? THEME.brass : complete ? "rgba(212,175,113,0.35)" : THEME.line,
-          background:  active ? "rgba(212,175,113,0.08)" : THEME.panel,
+          borderColor: active ? THEME.brass : complete ? "rgba(212,175,113,0.35)" : "rgba(255,255,255,0.12)",
+          background:  active ? "rgba(212,175,113,0.08)" : GLS,
           opacity:     future ? 0.55 : 1,
           transform:   active ? "translateY(-1px)" : "none",
           boxShadow:   active ? "0 6px 24px rgba(0,0,0,0.5), 0 0 0 1px rgba(212,175,113,0.2)" : "none",
@@ -1034,17 +1034,17 @@ function RoundTab({ currentRound, setCurrentRound, scores, players, dealerName, 
               players.map(p => {
                 const count   = buys[idx]?.[p.id] ?? 0;
                 const atLimit = effectiveBuyLimit !== Infinity && count >= effectiveBuyLimit;
-                return ce("div", { key: p.id, style: { ...S.buyRow, marginBottom: 6, background: "rgba(0,0,0,0.2)", border: "1px solid rgba(120,200,130,0.15)" } },
+                return ce("div", { key: p.id, style: S.buyRow },
                   ce("span", { style: S.buyName }, p.name),
                   ce("div", { style: S.buyControls },
-                    ce("button", { style: { ...S.buyBtn, opacity: count === 0 ? 0.3 : 1, background: "rgba(0,0,0,0.2)" },
-                      onClick: () => removeBuy(p.id), disabled: count === 0 }, "−"),
-                    ce("span", { key: count, className: "buy-pop", style: { ...S.buyCount, fontSize: 20, minWidth: 28, color: atLimit ? THEME.red : THEME.brass } },
+                    ce("button", { className: "buy-btn-press", style: { ...S.buyBtn, opacity: count === 0 ? 0.28 : 1 },
+                      onClick: () => { if (navigator.vibrate) navigator.vibrate(6); removeBuy(p.id); }, disabled: count === 0 }, "−"),
+                    ce("span", { key: count, className: "buy-spring", style: { ...S.buyCount, color: atLimit ? THEME.red : THEME.brass, display: "inline-block" } },
                       count,
                       effectiveBuyLimit !== Infinity && ce("span", { style: { ...S.buyLimitLabel, fontSize: 11 } }, "/" + effectiveBuyLimit),
                     ),
-                    ce("button", { style: { ...S.buyBtn, opacity: atLimit ? 0.3 : 1, background: "rgba(0,0,0,0.2)" },
-                      onClick: () => addBuy(p.id), disabled: atLimit }, "+"),
+                    ce("button", { className: "buy-btn-press", style: { ...S.buyBtn, opacity: atLimit ? 0.28 : 1 },
+                      onClick: () => { if (navigator.vibrate) navigator.vibrate(6); addBuy(p.id); }, disabled: atLimit }, "+"),
                   ),
                 );
               })
@@ -1359,18 +1359,26 @@ function FannedSuits() {
 
 // ── Tab Bar ───────────────────────────────────────────────────────
 function TabBar({ tab, setTab }) {
+  const [tapped, setTapped] = useState(null);
   const items = [
     { id: "rules", label: "Rules",  icon: "♥" },
     { id: "round", label: "Rounds", icon: "♣" },
     { id: "count", label: "Tally",  icon: "♦" },
     { id: "score", label: "Scores", icon: "♠" },
   ];
+  function handleTab(id) {
+    if (navigator.vibrate) navigator.vibrate(8);
+    setTapped(id);
+    setTimeout(() => setTapped(null), 300);
+    setTab(id);
+  }
   return ce("nav", { style: S.tabBar, "aria-label": "Sections" },
     items.map(it => {
       const on = tab === it.id;
-      return ce("button", { key: it.id, type: "button", className: "mayi-tab",
-        onClick: () => setTab(it.id), style: S.tabBtn, "aria-pressed": on },
-        ce("span", { style: { fontSize: 22, color: on ? THEME.brass : THEME.textDim, transition: "color .15s" } }, it.icon),
+      return ce("button", { key: it.id, type: "button",
+        className: "mayi-tab" + (tapped === it.id ? " tab-tap" : ""),
+        onClick: () => handleTab(it.id), style: S.tabBtn, "aria-pressed": on },
+        ce("span", { style: { fontSize: 22, color: on ? THEME.brass : THEME.textDim, transition: "color .15s, transform .15s", transform: on ? "scale(1.1)" : "scale(1)" } }, it.icon),
         ce("span", { style: { fontSize: 10, fontWeight: 700, color: on ? THEME.brass : THEME.textDim, letterSpacing: .5, transition: "color .15s" } }, it.label),
       );
     })
@@ -1411,17 +1419,27 @@ function StyleInjector() {
     el.id = "mayi-styles";
     el.textContent = `
       * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-      button { cursor: pointer; font-family: inherit; transition: transform .1s, opacity .1s; }
-      button:active { transform: scale(0.94); opacity: 0.78; }
+      button { cursor: pointer; font-family: inherit; transition: transform .12s cubic-bezier(.34,1.56,.64,1), opacity .1s; }
+      button:active { transform: scale(0.93); opacity: 0.75; }
       input { font-family: inherit; }
       input::placeholder { color: rgba(255,255,255,0.22); }
-      body { margin: 0; background: #0e1014; }
+      body { margin: 0; background: #19281A; }
 
       @keyframes tabIn {
-        from { opacity: 0; transform: translateY(7px); }
+        from { opacity: 0; transform: translateY(9px); }
         to   { opacity: 1; transform: translateY(0); }
       }
-      .tab-content { animation: tabIn .22s cubic-bezier(.22,1,.36,1) both; }
+      .tab-content { animation: tabIn .24s cubic-bezier(.22,1,.36,1) both; }
+
+      @keyframes buySpring {
+        0%   { transform: scale(1); }
+        30%  { transform: scale(1.22); }
+        55%  { transform: scale(0.9); }
+        75%  { transform: scale(1.06); }
+        90%  { transform: scale(0.97); }
+        100% { transform: scale(1); }
+      }
+      .buy-spring { animation: buySpring .42s cubic-bezier(.34,1.56,.64,1) both; }
 
       @keyframes buyPop {
         0%   { transform: scale(1.5);  opacity: 0.5; }
@@ -1430,10 +1448,17 @@ function StyleInjector() {
       }
       .buy-pop { display: inline-block; animation: buyPop .3s cubic-bezier(.34,1.56,.64,1) both; }
 
+      @keyframes scoreFlash {
+        0%   { box-shadow: 0 0 0 0 rgba(212,175,113,0); }
+        25%  { box-shadow: 0 0 0 8px rgba(212,175,113,0.45); }
+        100% { box-shadow: 0 0 0 0 rgba(212,175,113,0); }
+      }
+      .score-flash { animation: scoreFlash .5s ease-out both; }
+
       @keyframes advancePulse {
-        0%   { box-shadow: 0 4px 20px rgba(212,175,113,0.25); }
-        50%  { box-shadow: 0 4px 36px rgba(212,175,113,0.6), 0 0 0 3px rgba(212,175,113,0.18); }
-        100% { box-shadow: 0 4px 20px rgba(212,175,113,0.25); }
+        0%   { box-shadow: 0 4px 24px rgba(212,175,113,0.3); }
+        50%  { box-shadow: 0 4px 40px rgba(212,175,113,0.65), 0 0 0 4px rgba(212,175,113,0.15); }
+        100% { box-shadow: 0 4px 24px rgba(212,175,113,0.3); }
       }
       @keyframes fadeUp {
         from { opacity: 0; transform: translateY(8px); }
@@ -1442,199 +1467,214 @@ function StyleInjector() {
       .advance-appear { animation: fadeUp .28s cubic-bezier(.22,1,.36,1) both, advancePulse 2s .35s ease-in-out 3; }
 
       @keyframes sheetSlide {
-        from { transform: translateY(100%); opacity: 0.6; }
+        from { transform: translateY(100%); opacity: 0.5; }
         to   { transform: translateY(0);    opacity: 1; }
       }
-      .sheet-slide { animation: sheetSlide .4s cubic-bezier(.22,1,.36,1) both; }
+      .sheet-slide { animation: sheetSlide .38s cubic-bezier(.22,1,.36,1) both; }
 
       @keyframes heroIn {
-        from { opacity: 0; transform: scale(0.8) translateY(12px); }
-        to   { opacity: 1; transform: scale(1)   translateY(0); }
+        from { opacity: 0; transform: scale(0.78) translateY(14px); }
+        to   { opacity: 1; transform: scale(1)    translateY(0); }
       }
-      .hero-in  { animation: heroIn .42s .08s cubic-bezier(.34,1.56,.64,1) both; }
+      .hero-in  { animation: heroIn .44s .08s cubic-bezier(.34,1.56,.64,1) both; }
       .hero-in2 { animation: heroIn .38s .2s  cubic-bezier(.34,1.56,.64,1) both; }
 
       @keyframes pipPulse {
         0%, 100% { opacity: 1; }
-        50%       { opacity: 0.45; }
+        50%       { opacity: 0.4; }
       }
       .pip-active { animation: pipPulse 2.4s ease-in-out infinite; }
 
+      @keyframes tabTap {
+        0%   { transform: scale(1); }
+        40%  { transform: scale(0.82); }
+        100% { transform: scale(1); }
+      }
+      .tab-tap { animation: tabTap .22s cubic-bezier(.34,1.56,.64,1) both; }
+
       .score-input:focus {
-        box-shadow: 0 0 0 2px rgba(212,175,113,0.42) !important;
+        box-shadow: 0 0 0 2px rgba(212,175,113,0.45) !important;
         border-color: #D4AF71 !important;
         outline: none;
       }
-      .mayi-tab:active { transform: scale(0.88) !important; opacity: 0.65 !important; }
+      .mayi-tab { transition: none !important; }
+      .mayi-tab:active { transform: scale(0.84) !important; opacity: 0.6 !important; }
       .contract-card:active { transform: scale(0.97) !important; }
       .share-btn:active { transform: scale(0.92) !important; }
+      .buy-btn-press:active { transform: scale(0.82) !important; }
     `;
     document.head.appendChild(el);
   }, []);
   return null;
 }
 
+// ── Glass helpers ─────────────────────────────────────────────────
+const GLS  = "rgba(255,255,255,0.055)";
+const GLS2 = "rgba(255,255,255,0.09)";
+const GLBR = "0.5px solid rgba(255,255,255,0.13)";
+const BF   = "blur(20px) saturate(160%)";
+
 // ── Styles ────────────────────────────────────────────────────────
 const S = {
   // Layout
   app:   { fontFamily: display, background: THEME.table, color: THEME.text, height: "100dvh", display: "flex", flexDirection: "column", overflow: "hidden",
-           backgroundImage: "radial-gradient(ellipse at 50% -10%, rgba(212,175,113,0.18) 0%, transparent 55%), radial-gradient(ellipse at 85% 40%, rgba(50,100,55,0.35) 0%, transparent 50%), radial-gradient(ellipse at 15% 70%, rgba(30,70,35,0.45) 0%, transparent 50%), radial-gradient(ellipse at 50% 110%, rgba(0,0,0,0.55) 0%, transparent 65%)" },
+           backgroundImage: "radial-gradient(ellipse at 50% -8%, rgba(212,175,113,0.22) 0%, transparent 50%), radial-gradient(ellipse at 82% 32%, rgba(48,100,52,0.42) 0%, transparent 46%), radial-gradient(ellipse at 14% 68%, rgba(22,60,26,0.55) 0%, transparent 46%), radial-gradient(ellipse at 50% 108%, rgba(0,0,0,0.65) 0%, transparent 58%)" },
   frame: { display: "flex", flexDirection: "column", flex: 1, minHeight: 0 },
   scroll:{ flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch" },
   scrollPad: { padding: "16px 16px 48px" },
 
   // Header
-  header:     { display: "flex", alignItems: "flex-start", gap: 10, padding: "14px 16px 12px", paddingTop: "calc(14px + env(safe-area-inset-top,0px))", borderBottom: "1px solid " + THEME.line, background: "rgba(18,30,19,0.94)", backdropFilter: "saturate(180%) blur(24px)", WebkitBackdropFilter: "saturate(180%) blur(24px)", flexShrink: 0 },
-  eyebrow:    { fontSize: 11, fontWeight: 600, letterSpacing: 1.2, textTransform: "uppercase", color: THEME.textDim, marginBottom: 3 },
-  headerTitle:{ fontFamily: display, fontSize: 24, fontWeight: 800, color: THEME.text, marginBottom: 6, letterSpacing: -0.5 },
+  header:     { display: "flex", alignItems: "flex-start", gap: 10, padding: "14px 16px 13px", paddingTop: "calc(14px + env(safe-area-inset-top,0px))", borderBottom: "0.5px solid rgba(255,255,255,0.09)", background: "rgba(12,22,13,0.88)", backdropFilter: "saturate(220%) blur(30px)", WebkitBackdropFilter: "saturate(220%) blur(30px)", flexShrink: 0 },
+  eyebrow:    { fontSize: 11, fontWeight: 600, letterSpacing: 1.1, textTransform: "uppercase", color: THEME.textDim, marginBottom: 3 },
+  headerTitle:{ fontFamily: display, fontSize: 27, fontWeight: 800, color: THEME.text, marginBottom: 6, letterSpacing: -0.6 },
   headerMeta: { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" },
   pipsRow:    { display: "flex", gap: 4, alignItems: "center" },
-  pip:        { width: 6, height: 6, borderRadius: 999, background: THEME.line, transition: "background .3s, transform .3s" },
-  dealerPill: { fontSize: 11, fontWeight: 600, color: THEME.brass, background: "rgba(212,175,113,0.12)", border: "1px solid rgba(212,175,113,0.25)", borderRadius: 999, padding: "2px 8px", letterSpacing: 0.3 },
-  ghostBtn:   { background: "transparent", border: "1px solid " + THEME.line, color: THEME.textDim, borderRadius: 999, padding: "7px 14px", fontSize: 13, fontWeight: 500, flexShrink: 0 },
+  pip:        { width: 6, height: 6, borderRadius: 999, background: "rgba(255,255,255,0.2)", transition: "background .3s, transform .3s" },
+  dealerPill: { fontSize: 11, fontWeight: 600, color: THEME.brass, background: "rgba(212,175,113,0.12)", border: "0.5px solid rgba(212,175,113,0.28)", borderRadius: 999, padding: "2px 8px", letterSpacing: 0.3 },
+  ghostBtn:   { background: "rgba(255,255,255,0.06)", border: GLBR, color: THEME.textDim, borderRadius: 999, padding: "7px 14px", fontSize: 13, fontWeight: 500, flexShrink: 0 },
 
   // Setup
-  bigTitle: { fontFamily: display, fontSize: 42, fontWeight: 800, color: THEME.text, margin: "6px 0 8px", letterSpacing: -1, textShadow: "0 2px 20px rgba(212,175,113,0.2)" },
+  bigTitle: { fontFamily: display, fontSize: 46, fontWeight: 800, color: THEME.text, margin: "6px 0 8px", letterSpacing: -1.5, textShadow: "0 2px 28px rgba(212,175,113,0.3)" },
   sub:      { fontSize: 14, color: THEME.textDim, margin: 0, letterSpacing: 0.2 },
   inputRow: { display: "flex", gap: 8 },
-  input:    { flex: 1, background: THEME.panel, border: "1px solid " + THEME.line, color: THEME.text, borderRadius: 13, padding: "13px 15px", fontSize: 16, outline: "none", WebkitAppearance: "none" },
-  addBtn:   { background: THEME.brass, color: THEME.table, border: "none", borderRadius: 13, width: 52, height: 52, fontSize: 26, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
-  brassBtn: { background: THEME.brass, color: THEME.table, border: "none", borderRadius: 14, padding: "15px 20px", fontSize: 16, fontWeight: 700, width: "100%", textAlign: "center", letterSpacing: 0.3 },
-  playerRow:{ display: "flex", alignItems: "center", gap: 10, padding: "11px 13px", background: THEME.panel, border: "1px solid " + THEME.line, borderRadius: 13, marginBottom: 7 },
-  playerDot:{ width: 28, height: 28, borderRadius: 999, background: "rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: THEME.textDim, flexShrink: 0, border: "1px solid " + THEME.line },
+  input:    { flex: 1, background: GLS, backdropFilter: BF, WebkitBackdropFilter: BF, border: GLBR, color: THEME.text, borderRadius: 15, padding: "13px 15px", fontSize: 16, outline: "none", WebkitAppearance: "none" },
+  addBtn:   { background: THEME.brass, color: THEME.table, border: "none", borderRadius: 15, width: 52, height: 52, fontSize: 26, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: "0 3px 14px rgba(212,175,113,0.3)" },
+  brassBtn: { background: THEME.brass, color: THEME.table, border: "none", borderRadius: 15, padding: "15px 20px", fontSize: 16, fontWeight: 700, width: "100%", textAlign: "center", letterSpacing: 0.3 },
+  playerRow:{ display: "flex", alignItems: "center", gap: 10, padding: "13px 15px", background: GLS, backdropFilter: BF, WebkitBackdropFilter: BF, border: GLBR, borderRadius: 16, marginBottom: 8 },
+  playerDot:{ width: 28, height: 28, borderRadius: 999, background: "rgba(255,255,255,0.07)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: THEME.textDim, flexShrink: 0, border: GLBR },
   playerName:{ flex: 1, fontSize: 16, fontWeight: 500 },
   removeBtn:{ background: "transparent", border: "none", color: THEME.textDim, fontSize: 16, padding: "4px 8px" },
-  startBtn: { width: "100%", background: THEME.brass, color: THEME.table, border: "none", borderRadius: 15, padding: "17px", fontSize: 17, fontWeight: 700, marginTop: 20, marginBottom: 8, letterSpacing: 0.3, boxShadow: "0 4px 20px rgba(212,175,113,0.3)" },
+  startBtn: { width: "100%", background: THEME.brass, color: THEME.table, border: "none", borderRadius: 16, padding: "17px", fontSize: 17, fontWeight: 700, marginTop: 20, marginBottom: 8, letterSpacing: 0.3, boxShadow: "0 4px 26px rgba(212,175,113,0.38)" },
   fineprint:{ fontSize: 12, color: THEME.textDim, lineHeight: 1.5, textAlign: "center", margin: "4px 0 0" },
   hint:     { fontSize: 13, color: THEME.textDim, lineHeight: 1.55, marginBottom: 12, marginTop: 0 },
   empty:    { fontSize: 13, color: THEME.textDim, fontStyle: "italic" },
-  dealInfoBox:   { background: THEME.panel, border: "1px solid " + THEME.line, borderRadius: 13, padding: "12px 14px", marginTop: 16, marginBottom: 4 },
+  dealInfoBox:   { background: "rgba(212,175,113,0.07)", backdropFilter: BF, WebkitBackdropFilter: BF, border: "0.5px solid rgba(212,175,113,0.2)", borderRadius: 14, padding: "13px 15px", marginTop: 16, marginBottom: 4 },
   dealInfoRow:   { display: "flex", alignItems: "center", gap: 10 },
   dealInfoIcon:  { fontSize: 22, flexShrink: 0 },
   dealInfoTitle: { fontSize: 13, fontWeight: 600, color: THEME.text, lineHeight: 1.7 },
 
   // Standings
-  sectionLabel: { fontSize: 11, fontWeight: 700, letterSpacing: 1.3, textTransform: "uppercase", color: THEME.textDim, marginBottom: 10, marginTop: 20 },
-  standRow:  { display: "flex", alignItems: "center", gap: 10, padding: "11px 13px", background: THEME.panel, border: "1px solid", borderRadius: 13, marginBottom: 7 },
-  standCard: { border: "1px solid", borderRadius: 16, padding: "14px 15px", marginBottom: 10 },
+  sectionLabel: { fontSize: 11, fontWeight: 700, letterSpacing: 1.1, textTransform: "uppercase", color: THEME.textDim, marginBottom: 10, marginTop: 20 },
+  standRow:  { display: "flex", alignItems: "center", gap: 10, padding: "13px 15px", background: GLS, backdropFilter: BF, WebkitBackdropFilter: BF, border: "0.5px solid", borderRadius: 16, marginBottom: 8 },
+  standCard: { backdropFilter: BF, WebkitBackdropFilter: BF, border: "0.5px solid", borderRadius: 18, padding: "16px 17px", marginBottom: 10 },
   standCardTop: { display: "flex", alignItems: "center", gap: 12 },
-  standRankBadge: { width: 36, height: 36, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 700, flexShrink: 0 },
+  standRankBadge: { width: 38, height: 38, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 700, flexShrink: 0 },
   rank:      { fontSize: 15, fontWeight: 700, width: 26, textAlign: "center", flexShrink: 0 },
-  standName: { fontSize: 15, fontWeight: 600, color: THEME.text },
-  total:     { fontFamily: display, fontSize: 22, fontWeight: 700, color: THEME.brass, fontVariantNumeric: "tabular-nums", flexShrink: 0 },
+  standName: { fontSize: 16, fontWeight: 600, color: THEME.text },
+  total:     { fontFamily: display, fontSize: 24, fontWeight: 700, color: THEME.brass, fontVariantNumeric: "tabular-nums", flexShrink: 0 },
   chipRow:   { display: "flex", flexWrap: "wrap", gap: 4, marginTop: 4 },
   chipRowEmpty: { fontSize: 11, color: THEME.textDim, marginTop: 3 },
-  chip:      { fontSize: 11, background: "rgba(255,255,255,0.05)", border: "1px solid " + THEME.line, borderRadius: 6, padding: "2px 7px", color: THEME.textDim },
+  chip:      { fontSize: 11, background: "rgba(255,255,255,0.05)", border: GLBR, borderRadius: 6, padding: "2px 7px", color: THEME.textDim },
 
   // Buys
-  buyRow:     { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "11px 13px", background: THEME.panel, border: "1px solid " + THEME.line, borderRadius: 13, marginBottom: 7 },
+  buyRow:     { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "13px 15px", background: GLS, backdropFilter: BF, WebkitBackdropFilter: BF, border: GLBR, borderRadius: 16, marginBottom: 8 },
   buyName:    { fontSize: 15, fontWeight: 500, flex: 1, color: THEME.text },
   buyControls:{ display: "flex", alignItems: "center", gap: 12 },
-  buyBtn:     { background: THEME.panel2, border: "1px solid " + THEME.line, color: THEME.text, borderRadius: 11, width: 40, height: 40, fontSize: 22, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" },
-  buyCount:   { fontFamily: display, fontSize: 26, fontWeight: 700, fontVariantNumeric: "tabular-nums", minWidth: 38, textAlign: "center" },
+  buyBtn:     { background: GLS2, border: GLBR, color: THEME.text, borderRadius: 12, width: 44, height: 44, fontSize: 24, fontWeight: 300, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
+  buyCount:   { fontFamily: display, fontSize: 28, fontWeight: 700, fontVariantNumeric: "tabular-nums", minWidth: 38, textAlign: "center" },
   buyLimitLabel: { fontSize: 12, fontWeight: 500, color: THEME.textDim },
 
   // Score entry
-  entryRow:   { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "11px 13px", background: THEME.panel, border: "1px solid " + THEME.line, borderRadius: 13, marginBottom: 7 },
+  entryRow:   { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "13px 15px", background: GLS, backdropFilter: BF, WebkitBackdropFilter: BF, border: GLBR, borderRadius: 16, marginBottom: 8 },
   entryName:  { fontSize: 15, fontWeight: 500 },
-  scoreInput: { width: 80, background: THEME.panel2, border: "1px solid " + THEME.line, color: THEME.text, borderRadius: 11, padding: "10px 12px", fontSize: 18, textAlign: "center", outline: "none", fontVariantNumeric: "tabular-nums", fontWeight: 600 },
-  advanceBtn: { width: "100%", background: THEME.brass, color: THEME.table, border: "none", borderRadius: 14, padding: "17px", fontSize: 16, fontWeight: 700, boxShadow: "0 4px 20px rgba(212,175,113,0.3)", letterSpacing: 0.2 },
+  scoreInput: { width: 80, background: GLS2, border: GLBR, color: THEME.text, borderRadius: 12, padding: "10px 12px", fontSize: 18, textAlign: "center", outline: "none", fontVariantNumeric: "tabular-nums", fontWeight: 600 },
+  advanceBtn: { width: "100%", background: THEME.brass, color: THEME.table, border: "none", borderRadius: 15, padding: "17px", fontSize: 16, fontWeight: 700, boxShadow: "0 4px 24px rgba(212,175,113,0.38)", letterSpacing: 0.2 },
 
   // Contracts
-  contractCard:{ width: "100%", textAlign: "left", border: "1px solid", borderRadius: 16, padding: "14px 15px", marginBottom: 10, transition: "all .18s ease", display: "block" },
+  contractCard:{ width: "100%", textAlign: "left", border: "0.5px solid", borderRadius: 18, padding: "16px 17px", marginBottom: 10, transition: "all .2s ease", display: "block", backdropFilter: BF, WebkitBackdropFilter: BF },
   contractTop: { display: "flex", alignItems: "center", gap: 8, marginBottom: 12 },
   contractNum: { fontFamily: display, fontSize: 17, fontWeight: 700, fontVariantNumeric: "tabular-nums", flexShrink: 0 },
-  contractName:{ fontSize: 16, fontWeight: 600, color: THEME.text, flex: 1 },
-  contractDesc:{ fontSize: 12.5, color: THEME.textDim, lineHeight: 1.5, margin: "8px 0 4px" },
-  dealBadge:   { fontSize: 11, color: THEME.textDim, background: "rgba(255,255,255,0.06)", border: "1px solid " + THEME.line, borderRadius: 999, padding: "3px 9px", fontWeight: 600, flexShrink: 0 },
-  goOutTag:    { fontSize: 10, letterSpacing: 0.8, textTransform: "uppercase", color: THEME.red, border: "1px solid rgba(200,60,60,0.4)", borderRadius: 999, padding: "3px 8px", fontWeight: 700, flexShrink: 0 },
-  contractSummaryRow: { display: "flex", alignItems: "flex-start", gap: 10, padding: "12px 14px", background: THEME.panel, border: "1px solid " + THEME.line, borderRadius: 13, marginBottom: 7 },
+  contractName:{ fontSize: 17, fontWeight: 600, color: THEME.text, flex: 1 },
+  contractDesc:{ fontSize: 13, color: THEME.textDim, lineHeight: 1.55, margin: "8px 0 4px" },
+  dealBadge:   { fontSize: 11, color: THEME.textDim, background: GLS, border: GLBR, borderRadius: 999, padding: "3px 9px", fontWeight: 600, flexShrink: 0 },
+  goOutTag:    { fontSize: 10, letterSpacing: 0.8, textTransform: "uppercase", color: THEME.red, border: "0.5px solid rgba(200,60,60,0.5)", borderRadius: 999, padding: "3px 8px", fontWeight: 700, flexShrink: 0 },
+  contractSummaryRow: { display: "flex", alignItems: "flex-start", gap: 10, padding: "13px 15px", background: GLS, backdropFilter: BF, WebkitBackdropFilter: BF, border: GLBR, borderRadius: 16, marginBottom: 8 },
   comboWrap:   { display: "flex", flexWrap: "wrap", gap: 10 },
-  group:       { display: "inline-flex", gap: 3, padding: "6px 8px", background: "rgba(0,0,0,0.22)", borderRadius: 8 },
-  miniCard:    { width: 22, height: 30, background: THEME.paper, borderRadius: 5, border: "1px solid " + THEME.paperEdge, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 1, boxShadow: "0 1px 3px rgba(0,0,0,0.2)" },
+  group:       { display: "inline-flex", gap: 3, padding: "6px 8px", background: "rgba(0,0,0,0.28)", borderRadius: 9 },
+  miniCard:    { width: 22, height: 30, background: THEME.paper, borderRadius: 5, border: "1px solid " + THEME.paperEdge, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 1, boxShadow: "0 2px 5px rgba(0,0,0,0.25)" },
 
   // Count tab
-  countContext:     { background: "rgba(212,175,113,0.08)", border: "1px solid rgba(212,175,113,0.2)", borderRadius: 11, padding: "10px 14px", marginBottom: 4, display: "flex", alignItems: "center", gap: 6 },
+  countContext:     { background: "rgba(212,175,113,0.08)", border: "0.5px solid rgba(212,175,113,0.22)", borderRadius: 12, padding: "10px 14px", marginBottom: 4, display: "flex", alignItems: "center", gap: 6 },
   countContextRound:{ fontSize: 13, fontWeight: 700, color: THEME.brass },
   countContextSep:  { fontSize: 13, color: THEME.textDim },
   countContextName: { fontSize: 13, color: THEME.text, fontWeight: 500 },
-  counterTotal:    { display: "flex", alignItems: "baseline", gap: 10, justifyContent: "center", background: THEME.panel, border: "1px solid " + THEME.line, borderRadius: 16, padding: "20px 16px", marginBottom: 16 },
-  counterTotalNum: { fontFamily: display, fontSize: 56, fontWeight: 700, color: THEME.brass, fontVariantNumeric: "tabular-nums", lineHeight: 1 },
+  counterTotal:    { display: "flex", alignItems: "baseline", gap: 10, justifyContent: "center", background: GLS, backdropFilter: BF, WebkitBackdropFilter: BF, border: GLBR, borderRadius: 20, padding: "24px 16px", marginBottom: 16 },
+  counterTotalNum: { fontFamily: display, fontSize: 60, fontWeight: 700, color: THEME.brass, fontVariantNumeric: "tabular-nums", lineHeight: 1 },
   counterTotalLabel:{ fontSize: 13, color: THEME.textDim },
   padGrid:     { display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 },
-  padBtn:      { background: THEME.paper, border: "1px solid " + THEME.paperEdge, borderRadius: 12, padding: "12px 4px", display: "flex", flexDirection: "column", alignItems: "center", gap: 2, color: THEME.ink, boxShadow: "0 1px 4px rgba(0,0,0,0.18)" },
-  padRank:     { fontSize: 18, fontWeight: 700, fontFamily: display, color: THEME.ink },
+  padBtn:      { background: THEME.paper, border: "1px solid " + THEME.paperEdge, borderRadius: 14, padding: "13px 4px", display: "flex", flexDirection: "column", alignItems: "center", gap: 2, color: THEME.ink, boxShadow: "0 2px 8px rgba(0,0,0,0.25)" },
+  padRank:     { fontSize: 19, fontWeight: 700, fontFamily: display, color: THEME.ink },
   padVal:      { fontSize: 11, fontWeight: 600 },
   counterActions: { display: "flex", gap: 8, marginTop: 12 },
   toggleRow:   { display: "flex", gap: 8, marginTop: 16 },
-  toggle:      { flex: 1, border: "1px solid", borderRadius: 10, padding: "10px", fontSize: 13, fontWeight: 600 },
+  toggle:      { flex: 1, border: "0.5px solid", borderRadius: 12, padding: "11px", fontSize: 13, fontWeight: 600 },
   applyGrid:   { display: "flex", flexDirection: "column", gap: 10, marginTop: 4 },
-  applyBtn:    { background: THEME.panel, border: "1px solid " + THEME.line, color: THEME.text, borderRadius: 13, padding: "13px 14px", fontSize: 14, fontWeight: 500, display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 3 },
-  wentOutBtn:  { background: "rgba(212,175,113,0.07)", border: "1px solid rgba(212,175,113,0.25)", color: THEME.brass, borderRadius: 10, padding: "9px 12px", fontSize: 12.5, fontWeight: 600, width: "100%", textAlign: "center" },
-  wentOutPill: { background: "rgba(212,175,113,0.1)", border: "1px solid rgba(212,175,113,0.3)", color: THEME.brass, borderRadius: 8, padding: "8px 12px", fontSize: 12.5, fontWeight: 700, whiteSpace: "nowrap", flexShrink: 0 },
-  smallGhost:  { flex: 1, background: "transparent", border: "1px solid " + THEME.line, color: THEME.textDim, borderRadius: 11, padding: "11px", fontSize: 13, fontWeight: 500 },
-  tallyRow:    { display: "flex", alignItems: "center", gap: 10, padding: "12px 13px", background: THEME.panel, border: "1px solid", borderRadius: 13, marginBottom: 7 },
-  lastPlayerBanner: { background: "rgba(212,175,113,0.09)", border: "1px solid rgba(212,175,113,0.28)", borderRadius: 12, padding: "10px 14px", marginBottom: 10, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 },
+  applyBtn:    { background: GLS, backdropFilter: BF, WebkitBackdropFilter: BF, border: GLBR, color: THEME.text, borderRadius: 15, padding: "14px 16px", fontSize: 14, fontWeight: 500, display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 3 },
+  wentOutBtn:  { background: "rgba(212,175,113,0.07)", border: "0.5px solid rgba(212,175,113,0.25)", color: THEME.brass, borderRadius: 11, padding: "9px 12px", fontSize: 12.5, fontWeight: 600, width: "100%", textAlign: "center" },
+  wentOutPill: { background: "rgba(212,175,113,0.1)", border: "0.5px solid rgba(212,175,113,0.3)", color: THEME.brass, borderRadius: 9, padding: "8px 12px", fontSize: 12.5, fontWeight: 700, whiteSpace: "nowrap", flexShrink: 0 },
+  smallGhost:  { flex: 1, background: "transparent", border: GLBR, color: THEME.textDim, borderRadius: 12, padding: "11px", fontSize: 13, fontWeight: 500 },
+  tallyRow:    { display: "flex", alignItems: "center", gap: 10, padding: "13px 14px", background: GLS, backdropFilter: BF, WebkitBackdropFilter: BF, border: "0.5px solid", borderRadius: 16, marginBottom: 8 },
+  lastPlayerBanner: { background: "rgba(212,175,113,0.09)", border: "0.5px solid rgba(212,175,113,0.28)", borderRadius: 14, padding: "11px 15px", marginBottom: 10, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 },
   counterDivider: { display: "flex", alignItems: "center", gap: 10, margin: "20px 0 10px" },
   counterDividerLabel: { fontSize: 11, fontWeight: 700, letterSpacing: 1.1, textTransform: "uppercase", color: THEME.textDim, whiteSpace: "nowrap" },
-  assignBtn:   { background: THEME.panel2, border: "1px solid " + THEME.line, color: THEME.text, borderRadius: 10, padding: "10px 16px", fontSize: 14, fontWeight: 600 },
+  assignBtn:   { background: GLS2, border: GLBR, color: THEME.text, borderRadius: 11, padding: "10px 16px", fontSize: 14, fontWeight: 600 },
 
   // Rules
-  ruleCard:  { background: THEME.panel, border: "1px solid " + THEME.line, borderRadius: 14, padding: "14px 16px", marginBottom: 10 },
+  ruleCard:  { background: GLS, backdropFilter: BF, WebkitBackdropFilter: BF, border: GLBR, borderRadius: 16, padding: "15px 17px", marginBottom: 10 },
   ruleTitle: { fontFamily: display, fontSize: 15, fontWeight: 700, color: THEME.brass, marginBottom: 6 },
   ruleBody:  { fontSize: 13.5, lineHeight: 1.65, color: THEME.text },
-  valTable:  { border: "1px solid " + THEME.line, borderRadius: 13, overflow: "hidden", marginBottom: 4 },
-  valRow:    { display: "flex", justifyContent: "space-between", padding: "12px 15px", borderBottom: "1px solid " + THEME.line, background: THEME.panel },
+  valTable:  { border: GLBR, borderRadius: 14, overflow: "hidden", marginBottom: 4 },
+  valRow:    { display: "flex", justifyContent: "space-between", padding: "12px 15px", borderBottom: "0.5px solid rgba(255,255,255,0.08)", background: GLS },
   valK:      { fontSize: 14, fontWeight: 600 },
   valV:      { fontSize: 13.5, color: THEME.textDim },
 
   // House rules
-  rulesSection:    { background: THEME.panel, border: "1px solid " + THEME.line, borderRadius: 16, overflow: "hidden", marginBottom: 4 },
+  rulesSection:    { background: GLS, backdropFilter: BF, WebkitBackdropFilter: BF, border: GLBR, borderRadius: 18, overflow: "hidden", marginBottom: 4 },
   ruleOption:      { padding: "15px 16px" },
   ruleOptionRow:   { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 },
   ruleOptionLabel: { fontSize: 14, fontWeight: 600, color: THEME.text },
   ruleHint:        { fontSize: 12.5, color: THEME.textDim, lineHeight: 1.5, marginTop: 6 },
-  ruleDivider:     { height: 1, background: THEME.line, margin: "0" },
+  ruleDivider:     { height: "0.5px", background: "rgba(255,255,255,0.1)", margin: "0" },
   segRow:    { display: "flex", gap: 6, marginTop: 8 },
-  seg:       { flex: 1, background: "transparent", border: "1px solid " + THEME.line, color: THEME.textDim, borderRadius: 10, padding: "9px 4px", fontSize: 12.5, fontWeight: 600, textAlign: "center" },
-  segOn:     { background: THEME.brass, borderColor: THEME.brass, color: THEME.table },
+  seg:       { flex: 1, background: "transparent", border: GLBR, color: THEME.textDim, borderRadius: 11, padding: "9px 4px", fontSize: 12.5, fontWeight: 600, textAlign: "center" },
+  segOn:     { background: THEME.brass, border: "0.5px solid " + THEME.brass, color: THEME.table },
   stepperRow:{ display: "flex", alignItems: "center", gap: 10, marginTop: 10 },
-  stepBtn:   { background: "rgba(255,255,255,0.06)", border: "1px solid " + THEME.line, color: THEME.text, borderRadius: 10, width: 38, height: 38, fontSize: 20, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
+  stepBtn:   { background: GLS, border: GLBR, color: THEME.text, borderRadius: 10, width: 38, height: 38, fontSize: 20, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
   stepVal:   { fontSize: 14, fontWeight: 600, color: THEME.text, flex: 1 },
   whyBtn:    { background: "transparent", border: "none", color: THEME.textDim, fontSize: 15, padding: "0 4px", lineHeight: 1, cursor: "pointer", flexShrink: 0 },
-  whyPanel:  { fontSize: 12.5, color: THEME.textDim, lineHeight: 1.6, background: "rgba(212,175,113,0.07)", border: "1px solid rgba(212,175,113,0.18)", borderRadius: 9, padding: "10px 12px", marginBottom: 8, marginTop: 2 },
+  whyPanel:  { fontSize: 12.5, color: THEME.textDim, lineHeight: 1.6, background: "rgba(212,175,113,0.07)", border: "0.5px solid rgba(212,175,113,0.2)", borderRadius: 10, padding: "10px 12px", marginBottom: 8, marginTop: 2 },
 
   // Explainer
-  explainerCard:      { background: THEME.panel, border: "1px solid " + THEME.line, borderRadius: 15, padding: "16px", marginBottom: 10 },
+  explainerCard:      { background: GLS, backdropFilter: BF, WebkitBackdropFilter: BF, border: GLBR, borderRadius: 16, padding: "17px", marginBottom: 10 },
   explainerTitle:     { fontFamily: display, fontSize: 15, fontWeight: 700, color: THEME.brass, marginBottom: 16 },
   explainerStep:      { display: "flex", gap: 12, marginBottom: 2 },
   explainerStepLeft:  { display: "flex", flexDirection: "column", alignItems: "center", width: 36, flexShrink: 0 },
-  explainerIconBox:   { width: 30, height: 30, borderRadius: 9, background: "rgba(212,175,113,0.12)", border: "1px solid rgba(212,175,113,0.22)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800, color: THEME.brass, flexShrink: 0 },
-  explainerLine:      { width: 2, flex: 1, background: THEME.line, minHeight: 14, marginTop: 4, marginBottom: 2, borderRadius: 1 },
+  explainerIconBox:   { width: 30, height: 30, borderRadius: 9, background: "rgba(212,175,113,0.12)", border: "0.5px solid rgba(212,175,113,0.22)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800, color: THEME.brass, flexShrink: 0 },
+  explainerLine:      { width: 2, flex: 1, background: "rgba(255,255,255,0.08)", minHeight: 14, marginTop: 4, marginBottom: 2, borderRadius: 1 },
   explainerStepRight: { paddingBottom: 14, flex: 1 },
   explainerStepLabel: { fontSize: 13.5, fontWeight: 700, color: THEME.text, marginBottom: 3 },
   explainerStepDetail:{ fontSize: 12.5, color: THEME.textDim, lineHeight: 1.55 },
 
   // Summary
-  summaryOverlay:    { position: "fixed", inset: 0, background: "rgba(8,10,14,0.92)", zIndex: 100, display: "flex", alignItems: "flex-end" },
-  summarySheet:      { background: THEME.table, backgroundImage: "radial-gradient(ellipse at 50% 0%, rgba(212,175,113,0.08) 0%, transparent 60%)", border: "1px solid " + THEME.line, borderRadius: "22px 22px 0 0", width: "100%", maxHeight: "92vh", overflowY: "auto", WebkitOverflowScrolling: "touch", padding: "24px 20px", paddingBottom: "max(32px, env(safe-area-inset-bottom,24px))" },
-  summaryHero:       { textAlign: "center", background: "rgba(212,175,113,0.07)", border: "1px solid rgba(212,175,113,0.18)", borderRadius: 18, padding: "28px 16px", marginBottom: 4 },
-  summaryTrophy:     { fontSize: 48, marginBottom: 6, display: "block" },
+  summaryOverlay:    { position: "fixed", inset: 0, background: "rgba(4,7,4,0.92)", zIndex: 100, display: "flex", alignItems: "flex-end" },
+  summarySheet:      { background: THEME.table, backgroundImage: "radial-gradient(ellipse at 50% 0%, rgba(212,175,113,0.12) 0%, transparent 52%)", border: "0.5px solid rgba(255,255,255,0.12)", borderRadius: "26px 26px 0 0", width: "100%", maxHeight: "92vh", overflowY: "auto", WebkitOverflowScrolling: "touch", padding: "24px 20px", paddingBottom: "max(32px, env(safe-area-inset-bottom,24px))" },
+  summaryHero:       { textAlign: "center", background: "rgba(212,175,113,0.08)", border: "0.5px solid rgba(212,175,113,0.22)", borderRadius: 22, padding: "30px 16px", marginBottom: 4 },
+  summaryTrophy:     { fontSize: 52, marginBottom: 6, display: "block" },
   summaryWinnerLabel:{ fontSize: 11, fontWeight: 700, letterSpacing: 1.3, textTransform: "uppercase", color: THEME.brass, marginBottom: 8 },
   summaryWinnerName: { fontSize: 30, fontWeight: 800, color: THEME.text, marginBottom: 4, letterSpacing: -0.5 },
   summaryWinnerScore:{ fontSize: 15, color: THEME.textDim },
   summarySectionLabel:{ fontSize: 11, fontWeight: 700, letterSpacing: 1.3, textTransform: "uppercase", color: THEME.textDim },
-  summaryRow:        { display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", border: "1px solid", borderRadius: 13, marginBottom: 7 },
+  summaryRow:        { display: "flex", alignItems: "center", gap: 10, padding: "13px 15px", border: "0.5px solid", borderRadius: 16, marginBottom: 8 },
   summaryMedal:      { fontSize: 20, width: 28, textAlign: "center", flexShrink: 0 },
   summaryPlayerName: { flex: 1, fontSize: 15, fontWeight: 600 },
   summaryPlayerScore:{ fontFamily: display, fontSize: 20, fontWeight: 700, fontVariantNumeric: "tabular-nums", color: THEME.brass },
   roundTable:        { width: "100%", borderCollapse: "collapse", minWidth: 340 },
-  rtHead:            { fontSize: 11, fontWeight: 700, color: THEME.textDim, padding: "8px 8px", borderBottom: "1px solid " + THEME.line, textAlign: "center", background: THEME.panel, whiteSpace: "nowrap" },
-  rtCell:            { fontSize: 13, color: THEME.text, padding: "9px 8px", borderBottom: "1px solid " + THEME.line, background: THEME.table, whiteSpace: "nowrap" },
-  shareBtn:          { background: "rgba(212,175,113,0.12)", border: "1px solid rgba(212,175,113,0.3)", color: THEME.brass, borderRadius: 999, padding: "7px 16px", fontSize: 13, fontWeight: 600 },
+  rtHead:            { fontSize: 11, fontWeight: 700, color: THEME.textDim, padding: "8px 8px", borderBottom: "0.5px solid rgba(255,255,255,0.1)", textAlign: "center", background: "rgba(255,255,255,0.04)", whiteSpace: "nowrap" },
+  rtCell:            { fontSize: 13, color: THEME.text, padding: "9px 8px", borderBottom: "0.5px solid rgba(255,255,255,0.06)", background: "transparent", whiteSpace: "nowrap" },
+  shareBtn:          { background: "rgba(212,175,113,0.12)", border: "0.5px solid rgba(212,175,113,0.3)", color: THEME.brass, borderRadius: 999, padding: "7px 16px", fontSize: 13, fontWeight: 600 },
 
   // Tab bar
-  tabBar: { display: "flex", flexShrink: 0, borderTop: "1px solid rgba(120,200,130,0.18)", background: "rgba(15,22,16,0.97)", backdropFilter: "saturate(160%) blur(20px)", WebkitBackdropFilter: "saturate(160%) blur(20px)", boxShadow: "0 -1px 0 rgba(120,200,130,0.06)", paddingBottom: "env(safe-area-inset-bottom,6px)" },
+  tabBar: { display: "flex", flexShrink: 0, borderTop: "0.5px solid rgba(255,255,255,0.09)", background: "rgba(8,16,9,0.84)", backdropFilter: "saturate(240%) blur(34px)", WebkitBackdropFilter: "saturate(240%) blur(34px)", boxShadow: "0 -0.5px 0 rgba(212,175,113,0.07)", paddingBottom: "env(safe-area-inset-bottom,6px)" },
   tabBtn: { flex: 1, background: "transparent", border: "none", minHeight: 58, padding: "11px 0 9px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 3 },
 };
 
