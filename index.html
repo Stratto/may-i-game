@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="May I?">
 <meta name="theme-color" content="#19281A">
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon.svg">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>May I?</title>
 <style>
   html,body{margin:0;padding:0;height:100%;background:#15171C;overscroll-behavior:none;}
@@ -401,6 +401,9 @@ const DEFAULT_RULES = {
 
 const STORAGE_KEY  = "mayi:game:v4";
 const HISTORY_KEY  = "mayi:history:v1";
+// Optional tip-jar link. Set to your Ko-fi / Buy Me a Coffee / PayPal.me URL,
+// or leave as "" to hide every support element in the app.
+const SUPPORT_URL  = "https://ko-fi.com/mayigame";
 const display = "system-ui, -apple-system, 'SF Pro Display', sans-serif";
 
 // ── Canvas score-card image generator ────────────────────────────
@@ -451,18 +454,21 @@ function buildShareCanvas(ranked, winner) {
 
   // Standings
   const medals = ["1st", "2nd", "3rd", "4th", "5th", "6th"];
+  const place = i => medals[i] || (i + 1) + "th";
   ranked.forEach((p, i) => {
     const y = 202 + i * 46;
     if (i === 0) {
       ctx.fillStyle = "rgba(212,175,113,0.1)";
       ctx.beginPath();
-      ctx.roundRect(32, y - 16, W - 64, 36, 8);
+      if (ctx.roundRect) ctx.roundRect(32, y - 16, W - 64, 36, 8);
+      else ctx.rect(32, y - 16, W - 64, 36); // roundRect is missing on iOS ≤ 15
       ctx.fill();
     }
     ctx.textAlign = "left";
     ctx.font = (i === 0 ? "bold" : "normal") + " 15px system-ui,-apple-system,sans-serif";
     ctx.fillStyle = i === 0 ? "#D4AF71" : "#F5EDD8";
-    ctx.fillText(medals[i] + "  " + p.name, 48, y + 10);
+    const name = p.name.length > 22 ? p.name.slice(0, 21) + "…" : p.name;
+    ctx.fillText(place(i) + "  " + name, 48, y + 10);
     ctx.textAlign = "right";
     ctx.font = "bold 15px system-ui,-apple-system,sans-serif";
     ctx.fillStyle = i === 0 ? "#D4AF71" : "rgba(139,174,139,0.85)";
@@ -534,6 +540,27 @@ function FloatingSuits() {
   );
 }
 
+// ── Tip jar (never blocks anything — just a warm thank-you link) ──
+function SupportCard({ compact }) {
+  if (!SUPPORT_URL) return null;
+  if (compact) {
+    return ce("a", { href: SUPPORT_URL, target: "_blank", rel: "noopener",
+      style: { display: "block", textAlign: "center", fontSize: 12.5, color: THEME.textDim, textDecoration: "none", marginTop: 14, padding: "6px" } },
+      "Enjoying May I? ", ce("span", { style: { color: THEME.brass } }, "♥ Tip the dealer"));
+  }
+  return ce("a", { href: SUPPORT_URL, target: "_blank", rel: "noopener",
+    style: { display: "flex", alignItems: "center", gap: 12, textDecoration: "none",
+      background: "rgba(212,175,113,0.06)", border: "0.5px solid rgba(212,175,113,0.18)",
+      borderRadius: 16, padding: "13px 15px", marginTop: 18 } },
+    ce("span", { style: { fontSize: 22, flexShrink: 0 } }, "☕"),
+    ce("div", null,
+      ce("div", { style: { fontSize: 13.5, fontWeight: 600, color: THEME.text } }, "Tip the dealer"),
+      ce("div", { style: { fontSize: 12, color: THEME.textDim, marginTop: 2, lineHeight: 1.45 } },
+        "May I? is free, with every feature included. If it makes game night better, a small tip keeps it that way."),
+    ),
+  );
+}
+
 // ── Game history (setup screen) ────────────────────────────────────
 function GameHistory({ history }) {
   if (!history.length) return null;
@@ -581,6 +608,11 @@ function MayIApp() {
   const scrollRef      = useRef(null);
   const savedToHistory = useRef(false);
 
+  // Reset scroll only when the visible tab changes — never on score/buy updates.
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = 0;
+  }, [tab]);
+
   useEffect(() => {
     let live = true;
     (async () => {
@@ -602,6 +634,7 @@ function MayIApp() {
           setAceHigh(!!s.aceHigh);
           setShowSummary(!!s.showSummary);
           setDealer(s.dealer || 0);
+          savedToHistory.current = !!s.historySaved;
         }
         // Load game history
         try {
@@ -617,7 +650,7 @@ function MayIApp() {
   useEffect(() => {
     if (!loaded) return;
     (async () => {
-      const payload = JSON.stringify({ players, started, currentRound, scores, buys, houseRules, aceHigh, showSummary, dealer });
+      const payload = JSON.stringify({ players, started, currentRound, scores, buys, houseRules, aceHigh, showSummary, dealer, historySaved: savedToHistory.current });
       try { window.localStorage.setItem(STORAGE_KEY, payload); } catch(e) {}
       try { if (window.storage?.set) await window.storage.set(STORAGE_KEY, payload); } catch(e) {}
     })();
@@ -648,16 +681,24 @@ function MayIApp() {
   const allRoundsScored = players.length > 0 && CONTRACTS.every((_, idx) =>
     roundIsComplete(scores, idx, players)
   );
-  const dealerName = players[dealer % Math.max(players.length, 1)]?.name ?? "";
+  // Dealer rotates one seat per round, derived from the first dealer + round —
+  // browsing back to an earlier round can never desync the rotation.
+  const dealerName = players[(dealer + currentRound) % Math.max(players.length, 1)]?.name ?? "";
 
   function updateHouseRule(key, val) { setHouseRules(r => ({ ...r, [key]: val })); }
   function addPlayer() {
-    const name = draftName.trim();
-    if (!name) return;
+    const name = draftName.trim().slice(0, 24);
+    if (!name || players.length >= 8) return;
     setPlayers(p => [...p, { id: Date.now() + "-" + Math.random().toString(36).slice(2,6), name }]);
     setDraftName("");
   }
-  function removePlayer(id) { setPlayers(p => p.filter(x => x.id !== id)); }
+  function removePlayer(id) {
+    setPlayers(p => {
+      const next = p.filter(x => x.id !== id);
+      setDealer(d => Math.min(d, Math.max(next.length - 1, 0)));
+      return next;
+    });
+  }
   function setRoundScore(roundIdx, playerId, val) {
     setScores(s => {
       const next = { ...s, [roundIdx]: { ...(s[roundIdx] || {}) } };
@@ -679,7 +720,12 @@ function MayIApp() {
   function saveGameToHistory() {
     if (savedToHistory.current) return;
     savedToHistory.current = true;
-    const entry = { date: Date.now(), winner: ranked[0]?.name ?? "?", players: ranked.map(p => ({ name: p.name, total: p.total })) };
+    const tiedTop = ranked.filter(p => p.total === ranked[0]?.total);
+    const entry = {
+      date: Date.now(),
+      winner: tiedTop.length > 1 ? tiedTop.map(p => p.name).join(" & ") : (ranked[0]?.name ?? "?"),
+      players: ranked.map(p => ({ name: p.name, total: p.total })),
+    };
     try {
       const raw = window.localStorage.getItem(HISTORY_KEY);
       const hist = raw ? JSON.parse(raw) : [];
@@ -692,11 +738,14 @@ function MayIApp() {
   function advanceRound() {
     if (currentRound < CONTRACTS.length - 1) {
       setCurrentRound(r => r + 1);
-      setDealer(d => (d + 1) % Math.max(players.length, 1));
       setTab("round");
-    } else {
+    } else if (allRoundsScored) {
       saveGameToHistory();
       setShowSummary(true);
+    } else {
+      // On the last round but earlier rounds are unscored — jump to the first gap.
+      const firstUnscored = CONTRACTS.findIndex((_, idx) => !roundIsComplete(scores, idx, players));
+      if (firstUnscored >= 0) { setCurrentRound(firstUnscored); setTab("count"); }
     }
   }
   function showSummaryFromScore() {
@@ -741,13 +790,13 @@ function MayIApp() {
     ce("div", { style: S.frame },
       ce(Header, { contract, currentRound, scores, players, dealerName, onReset: resetGame, allRoundsScored, onSummary: showSummaryFromScore }),
       ce("div", { ref: scrollRef, style: S.scroll },
-        ce("div", { key: tab, className: "tab-content", ref: () => { if (scrollRef.current) scrollRef.current.scrollTop = 0; } },
+        ce("div", { key: tab, className: "tab-content" },
           tab === "rules" && ce(RulesTab, { houseRules, updateHouseRule, effectiveBuyLimit }),
           tab === "round" && ce(RoundTab, { currentRound, setCurrentRound, scores, players, dealerName, scrollRef,
             buys, addBuy, removeBuy, effectiveBuyLimit }),
           tab === "count" && ce(CountTab, { players, houseRules, aceHigh, setAceHigh,
             roundIdx: currentRound, contract, scores,
-            advanceRound, isLastRound: currentRound === CONTRACTS.length - 1,
+            advanceRound, isLastRound: currentRound === CONTRACTS.length - 1, allRoundsScored,
             applyToPlayer: (pid, total) => setRoundScore(currentRound, pid, total),
             setRoundScore }),
           tab === "score" && ce(ScoreTab, { ranked, leaderId, scores, players,
@@ -798,29 +847,52 @@ function ProgressPips({ currentRound, scores, players }) {
 
 // ── Game Summary ──────────────────────────────────────────────────
 function GameSummary({ ranked, players, scores, onPlayAgain, onDismiss }) {
-  const winner = ranked[0];
-  const medals = ["🥇", "🥈", "🥉"];
+  const winner  = ranked[0];
+  const tied    = ranked.filter(p => p.total === winner?.total);
+  const isTie   = tied.length > 1;
+  const winnerName = isTie ? tied.map(p => p.name).join(" & ") : (winner?.name || "—");
+  const medals  = ["🥇", "🥈", "🥉"];
   const [sharing, setSharing] = useState(false);
+
+  function resultsText() {
+    const lines = ["May I? — Final Results", ""];
+    ranked.forEach((p, i) => lines.push((medals[i] || (i+1) + ".") + " " + p.name + " — " + p.total + " pts"));
+    lines.push("", "Played with May I?");
+    return lines.join("\n");
+  }
 
   async function shareResults() {
     if (sharing) return;
     setSharing(true);
     try {
-      const canvas = buildShareCanvas(ranked, winner);
-      const blob   = await new Promise(res => canvas.toBlob(res, "image/png"));
-      const file   = new File([blob], "may-i-results.png", { type: "image/png" });
-      if (navigator.share && navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ title: "May I? — " + winner.name + " wins!", files: [file] });
-      } else if (navigator.share) {
-        const lines = ["May I? — Final Results", ""];
-        ranked.forEach((p, i) => lines.push((medals[i] || (i+1) + ".") + " " + p.name + " — " + p.total + " pts"));
-        lines.push("", "Played with May I?");
-        await navigator.share({ title: "May I? Results", text: lines.join("\n") });
-      } else {
+      // Build the image synchronously and keep the async hop short — Safari can
+      // revoke the share gesture if too much async work happens first.
+      let file = null, canvas = null;
+      try {
+        canvas = buildShareCanvas(ranked, { name: winnerName, total: winner?.total ?? 0 });
+        const blob = await new Promise(res => canvas.toBlob(res, "image/png"));
+        if (blob) file = new File([blob], "may-i-results.png", { type: "image/png" });
+      } catch(e) {}
+
+      if (file && navigator.share && navigator.canShare?.({ files: [file] })) {
+        try {
+          await navigator.share({ title: "May I? — " + winnerName + (isTie ? " tie!" : " wins!"), files: [file] });
+          setSharing(false); return;
+        } catch(e) {
+          if (e && e.name === "AbortError") { setSharing(false); return; } // user cancelled
+          // fall through to the text share below
+        }
+      }
+      if (navigator.share) {
+        try { await navigator.share({ title: "May I? Results", text: resultsText() }); }
+        catch(e) {}
+      } else if (canvas) {
         const a = document.createElement("a");
         a.download = "may-i-results.png";
         a.href = canvas.toDataURL();
         a.click();
+      } else if (navigator.clipboard) {
+        try { await navigator.clipboard.writeText(resultsText()); alert("Results copied!"); } catch(e) {}
       }
     } catch(e) {}
     setSharing(false);
@@ -836,20 +908,21 @@ function GameSummary({ ranked, players, scores, onPlayAgain, onDismiss }) {
 
       ce("div", { style: S.summaryHero },
         ce("div", { className: "hero-in",  style: { ...S.summaryTrophy, animation: "heroIn .5s .05s cubic-bezier(.34,1.56,.64,1) both, trophySpin 1s .6s cubic-bezier(.34,1.56,.64,1) both" } }, "♠"),
-        ce("div", { className: "hero-in2", style: S.summaryWinnerLabel }, "Winner"),
-        ce("div", { className: "hero-in2", style: S.summaryWinnerName }, winner?.name || "—"),
+        ce("div", { className: "hero-in2", style: S.summaryWinnerLabel }, isTie ? "It's a Tie" : "Winner"),
+        ce("div", { className: "hero-in2", style: { ...S.summaryWinnerName, fontSize: isTie ? 24 : 30 } }, winnerName),
         ce("div", { style: S.summaryWinnerScore }, winner?.total ?? 0, " pts · lowest score wins"),
       ),
 
       ce("div", { style: { ...S.summarySectionLabel, marginTop: 20 } }, "Standings"),
       ce("div", { style: { marginBottom: 20 } },
-        ranked.map((p, i) =>
-          ce("div", { key: p.id, style: { ...S.summaryRow, background: i === 0 ? "rgba(212,175,113,0.1)" : GLS, borderColor: i === 0 ? THEME.brass : "rgba(255,255,255,0.12)" } },
-            ce("span", { style: S.summaryMedal }, medals[i] || String(i + 1)),
-            ce("span", { style: { ...S.summaryPlayerName, color: i === 0 ? THEME.brass : THEME.text } }, p.name),
+        ranked.map((p, i) => {
+          const isTop = p.total === winner?.total;
+          return ce("div", { key: p.id, style: { ...S.summaryRow, background: isTop ? "rgba(212,175,113,0.1)" : GLS, borderColor: isTop ? THEME.brass : "rgba(255,255,255,0.12)" } },
+            ce("span", { style: S.summaryMedal }, isTop ? "🥇" : medals[i] || String(i + 1)),
+            ce("span", { style: { ...S.summaryPlayerName, color: isTop ? THEME.brass : THEME.text } }, p.name),
             ce("span", { style: S.summaryPlayerScore }, p.total, " pts"),
-          )
-        )
+          );
+        })
       ),
 
       ce("div", { style: { ...S.summarySectionLabel, marginTop: 4 } }, "Round Breakdown"),
@@ -878,6 +951,7 @@ function GameSummary({ ranked, players, scores, onPlayAgain, onDismiss }) {
 
       ce("button", { style: S.brassBtn, onClick: onPlayAgain }, "Play Again"),
       ce("button", { style: { ...S.ghostBtn, width: "100%", marginTop: 10, padding: "14px", textAlign: "center", display: "block" }, onClick: onDismiss }, "Back to Game"),
+      ce(SupportCard, { compact: true }),
     )
   );
 }
@@ -996,7 +1070,8 @@ function Setup({ players, draftName, setDraftName, addPlayer, removePlayer, hous
       disabled: players.length < 2,
       onClick: onStart,
     }, "Deal In"),
-    ce("p", { style: S.fineprint }, "House rules can be changed mid-game from the Rules tab.")
+    ce("p", { style: S.fineprint }, "House rules can be changed mid-game from the Rules tab."),
+    ce(SupportCard)
   );
 }
 
@@ -1123,8 +1198,8 @@ function ScoreTab({ ranked, leaderId, scores, players, currentRound, totalRounds
   return ce("div", { style: S.scrollPad },
 
     roundComplete && ce("div", { key: "advance", className: "advance-appear", style: { marginBottom: 4 } },
-      ce("button", { style: S.advanceBtn, onClick: isLastRound ? onSummary : advanceRound },
-        isLastRound ? "View Final Results →" : "Next Round →"
+      ce("button", { style: S.advanceBtn, onClick: allRoundsScored ? onSummary : advanceRound },
+        allRoundsScored ? "View Final Results →" : "Next Round →"
       ),
     ),
 
@@ -1251,7 +1326,7 @@ function RoundTab({ currentRound, setCurrentRound, scores, players, dealerName, 
 }
 
 // ── Count Tab (Tally) ─────────────────────────────────────────────
-function CountTab({ players, houseRules, aceHigh, setAceHigh, roundIdx, contract, applyToPlayer, setRoundScore, scores, advanceRound, isLastRound }) {
+function CountTab({ players, houseRules, aceHigh, setAceHigh, roundIdx, contract, applyToPlayer, setRoundScore, scores, advanceRound, isLastRound, allRoundsScored }) {
   const [hand, setHand] = useState([]);
   const [pending, setPending] = useState({});   // pid → string while typing
   const [editing, setEditing] = useState(null); // pid being re-edited after scored
@@ -1265,7 +1340,11 @@ function CountTab({ players, houseRules, aceHigh, setAceHigh, roundIdx, contract
   const unscoredCount  = players.filter(p => typeof scores[roundIdx]?.[p.id] !== "number").length;
   const unscoredPlayers = players.filter(p => typeof scores[roundIdx]?.[p.id] !== "number");
 
+  // Players marked "went out" in the same tap that blurs their input — the ref
+  // survives stale closures, so a late blur-commit can't overwrite the 0.
+  const justWentOut = useRef({});
   function commitScore(pid) {
+    if (justWentOut.current[pid]) { delete justWentOut.current[pid]; return; }
     const v = parseInt(pending[pid] ?? "");
     if (!isNaN(v) && v >= 0) {
       applyToPlayer(pid, v);
@@ -1278,6 +1357,8 @@ function CountTab({ players, houseRules, aceHigh, setAceHigh, roundIdx, contract
     setHand([]);
   }
   function markWentOut(pid) {
+    justWentOut.current[pid] = true;
+    setTimeout(() => { delete justWentOut.current[pid]; }, 500);
     applyToPlayer(pid, 0);
     setHand([]);
     setPending(ps => { const n = {...ps}; delete n[pid]; return n; });
@@ -1301,7 +1382,7 @@ function CountTab({ players, houseRules, aceHigh, setAceHigh, roundIdx, contract
           ce("b", null, last.name), " is the last player — did they go out?"),
         ce("button", {
           style: { ...S.wentOutBtn, width: "auto", padding: "7px 14px", borderRadius: 10, flexShrink: 0 },
-          onClick: () => markWentOut(last.id),
+          onPointerDown: e => { e.preventDefault(); markWentOut(last.id); },
         }, "Yes — 0 pts"),
       );
     })(),
@@ -1311,8 +1392,6 @@ function CountTab({ players, houseRules, aceHigh, setAceHigh, roundIdx, contract
       players.map(p => {
         const scored  = typeof scores[roundIdx]?.[p.id] === "number";
         const wentOut = scored && scores[roundIdx][p.id] === 0;
-        const isEditing = editing === p.id || (!scored && true);
-        const showInput = !scored || editing === p.id;
         return ce("div", { key: p.id, style: { ...S.tallyRow, borderColor: wentOut ? THEME.brass : scored && editing !== p.id ? "rgba(120,200,130,0.1)" : THEME.line } },
           ce("div", { style: { flex: 1 } },
             ce("span", { style: { fontSize: 15, fontWeight: 600, color: wentOut ? THEME.brass : THEME.text } },
@@ -1335,7 +1414,7 @@ function CountTab({ players, houseRules, aceHigh, setAceHigh, roundIdx, contract
                   style: { ...S.scoreInput, width: 70 },
                   inputMode: "numeric",
                   value: pending[p.id] ?? "",
-                  onChange: e => { const v = e.target.value.replace(/[^0-9]/g, ""); setPending(ps => ({...ps, [p.id]: v})); },
+                  onChange: e => { const v = e.target.value.replace(/[^0-9]/g, "").slice(0, 3); setPending(ps => ({...ps, [p.id]: v})); },
                   onBlur: () => commitScore(p.id),
                   onKeyDown: e => { if (e.key === "Enter") { e.target.blur(); } if (e.key === "Escape") { setPending(ps => { const n={...ps}; delete n[p.id]; return n; }); setEditing(null); } },
                   onFocus: e => e.target.select(),
@@ -1343,7 +1422,9 @@ function CountTab({ players, houseRules, aceHigh, setAceHigh, roundIdx, contract
                   placeholder: "pts",
                   "aria-label": "Points for " + p.name,
                 }),
-                ce("button", { style: S.wentOutPill, onClick: () => markWentOut(p.id) }, "Out"),
+                // pointerdown + preventDefault: fires before the input's blur so a
+                // half-typed score can never be committed over the "went out" 0.
+                ce("button", { style: S.wentOutPill, onPointerDown: e => { e.preventDefault(); markWentOut(p.id); } }, "Out"),
               ),
         );
       })
@@ -1351,7 +1432,7 @@ function CountTab({ players, houseRules, aceHigh, setAceHigh, roundIdx, contract
 
     roundComplete && ce("div", { key: "adv", className: "advance-appear", style: { marginTop: 12, marginBottom: 8 } },
       ce("button", { style: S.advanceBtn, onClick: advanceRound },
-        isLastRound ? "View Final Results →" : "Next Round →"
+        isLastRound && allRoundsScored ? "View Final Results →" : "Next Round →"
       ),
     ),
 
@@ -1394,7 +1475,7 @@ function CountTab({ players, houseRules, aceHigh, setAceHigh, roundIdx, contract
       ce("div", { style: { fontSize: 11, fontWeight: 700, letterSpacing: 1.1, textTransform: "uppercase", color: THEME.textDim, marginBottom: 8 } }, "Assign ", total, " pts to →"),
       ce("div", { style: { display: "flex", flexWrap: "wrap", gap: 8 } },
         unscoredPlayers.map(p =>
-          ce("button", { key: p.id, style: S.assignBtn, onClick: () => assignCounter(p.id) }, p.name)
+          ce("button", { key: p.id, style: S.assignBtn, onPointerDown: e => { e.preventDefault(); assignCounter(p.id); } }, p.name)
         )
       ),
     ),
@@ -1729,6 +1810,9 @@ const GLS  = "rgba(255,255,255,0.055)";
 const GLS2 = "rgba(255,255,255,0.09)";
 const GLBR = "0.5px solid rgba(255,255,255,0.13)";
 const BF   = "blur(20px) saturate(160%)";
+// Brushed-gold treatment for primary actions
+const BRASS_GRAD   = "linear-gradient(180deg, #E7C98D 0%, #D4AF71 52%, #BE9754 100%)";
+const BRASS_SHADOW = "inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -1px 0 rgba(0,0,0,0.15), 0 4px 24px rgba(212,175,113,0.35)";
 
 // ── Styles ────────────────────────────────────────────────────────
 const S = {
@@ -1750,17 +1834,19 @@ const S = {
   ghostBtn:   { background: "rgba(255,255,255,0.06)", border: GLBR, color: THEME.textDim, borderRadius: 999, padding: "7px 14px", fontSize: 13, fontWeight: 500, flexShrink: 0 },
 
   // Setup
-  bigTitle: { fontFamily: display, fontSize: 46, fontWeight: 800, color: THEME.text, margin: "6px 0 8px", letterSpacing: -1.5, textShadow: "0 2px 28px rgba(212,175,113,0.3)" },
+  bigTitle: { fontFamily: display, fontSize: 46, fontWeight: 800, margin: "6px 0 8px", letterSpacing: -1.5,
+              backgroundImage: "linear-gradient(180deg, #FBF4E2 30%, #E3CD9E 70%, #D4AF71 100%)",
+              WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent", color: THEME.text },
   sub:      { fontSize: 14, color: THEME.textDim, margin: 0, letterSpacing: 0.2 },
   inputRow: { display: "flex", gap: 8 },
   input:    { flex: 1, background: GLS, backdropFilter: BF, WebkitBackdropFilter: BF, border: GLBR, color: THEME.text, borderRadius: 15, padding: "13px 15px", fontSize: 16, outline: "none", WebkitAppearance: "none" },
-  addBtn:   { background: THEME.brass, color: THEME.table, border: "none", borderRadius: 15, width: 52, height: 52, fontSize: 26, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: "0 3px 14px rgba(212,175,113,0.3)" },
-  brassBtn: { background: THEME.brass, color: THEME.table, border: "none", borderRadius: 15, padding: "15px 20px", fontSize: 16, fontWeight: 700, width: "100%", textAlign: "center", letterSpacing: 0.3 },
+  addBtn:   { background: BRASS_GRAD, color: THEME.table, border: "none", borderRadius: 15, width: 52, height: 52, fontSize: 26, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: BRASS_SHADOW },
+  brassBtn: { background: BRASS_GRAD, color: THEME.table, border: "none", borderRadius: 15, padding: "15px 20px", fontSize: 16, fontWeight: 700, width: "100%", textAlign: "center", letterSpacing: 0.3, boxShadow: BRASS_SHADOW },
   playerRow:{ display: "flex", alignItems: "center", gap: 10, padding: "13px 15px", background: GLS, backdropFilter: BF, WebkitBackdropFilter: BF, border: GLBR, borderRadius: 16, marginBottom: 8 },
   playerDot:{ width: 28, height: 28, borderRadius: 999, background: "rgba(255,255,255,0.07)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: THEME.textDim, flexShrink: 0, border: GLBR },
   playerName:{ flex: 1, fontSize: 16, fontWeight: 500 },
   removeBtn:{ background: "transparent", border: "none", color: THEME.textDim, fontSize: 16, padding: "4px 8px" },
-  startBtn: { width: "100%", background: THEME.brass, color: THEME.table, border: "none", borderRadius: 16, padding: "17px", fontSize: 17, fontWeight: 700, marginTop: 20, marginBottom: 8, letterSpacing: 0.3, boxShadow: "0 4px 26px rgba(212,175,113,0.38)" },
+  startBtn: { width: "100%", background: BRASS_GRAD, color: THEME.table, border: "none", borderRadius: 16, padding: "17px", fontSize: 17, fontWeight: 700, marginTop: 20, marginBottom: 8, letterSpacing: 0.3, boxShadow: BRASS_SHADOW },
   fineprint:{ fontSize: 12, color: THEME.textDim, lineHeight: 1.5, textAlign: "center", margin: "4px 0 0" },
   hint:     { fontSize: 13, color: THEME.textDim, lineHeight: 1.55, marginBottom: 12, marginTop: 0 },
   empty:    { fontSize: 13, color: THEME.textDim, fontStyle: "italic" },
@@ -1794,7 +1880,7 @@ const S = {
   entryRow:   { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "13px 15px", background: GLS, backdropFilter: BF, WebkitBackdropFilter: BF, border: GLBR, borderRadius: 16, marginBottom: 8 },
   entryName:  { fontSize: 15, fontWeight: 500 },
   scoreInput: { width: 80, background: GLS2, border: GLBR, color: THEME.text, borderRadius: 12, padding: "10px 12px", fontSize: 18, textAlign: "center", outline: "none", fontVariantNumeric: "tabular-nums", fontWeight: 600 },
-  advanceBtn: { width: "100%", background: THEME.brass, color: THEME.table, border: "none", borderRadius: 15, padding: "17px", fontSize: 16, fontWeight: 700, boxShadow: "0 4px 24px rgba(212,175,113,0.38)", letterSpacing: 0.2 },
+  advanceBtn: { width: "100%", background: BRASS_GRAD, color: THEME.table, border: "none", borderRadius: 15, padding: "17px", fontSize: 16, fontWeight: 700, boxShadow: BRASS_SHADOW, letterSpacing: 0.2 },
 
   // Contracts
   contractCard:{ width: "100%", textAlign: "left", border: "0.5px solid", borderRadius: 18, padding: "16px 17px", marginBottom: 10, transition: "all .2s ease", display: "block", backdropFilter: BF, WebkitBackdropFilter: BF },
@@ -1874,7 +1960,7 @@ const S = {
   // Summary
   summaryOverlay:    { position: "fixed", inset: 0, background: "rgba(4,7,4,0.92)", zIndex: 100, display: "flex", alignItems: "flex-end" },
   summarySheet:      { background: THEME.table, backgroundImage: "radial-gradient(ellipse at 50% 0%, rgba(212,175,113,0.12) 0%, transparent 52%)", border: "0.5px solid rgba(255,255,255,0.12)", borderRadius: "26px 26px 0 0", width: "100%", maxHeight: "92vh", overflowY: "auto", WebkitOverflowScrolling: "touch", padding: "24px 20px", paddingBottom: "max(32px, env(safe-area-inset-bottom,24px))" },
-  summaryHero:       { textAlign: "center", background: "rgba(212,175,113,0.08)", border: "0.5px solid rgba(212,175,113,0.22)", borderRadius: 22, padding: "30px 16px", marginBottom: 4 },
+  summaryHero:       { textAlign: "center", background: "radial-gradient(ellipse at 50% 0%, rgba(212,175,113,0.16) 0%, rgba(212,175,113,0.06) 70%)", border: "0.5px solid rgba(212,175,113,0.28)", borderRadius: 22, padding: "30px 16px", marginBottom: 4, boxShadow: "0 0 44px rgba(212,175,113,0.1), inset 0 1px 0 rgba(255,255,255,0.06)" },
   summaryTrophy:     { fontSize: 52, marginBottom: 6, display: "block" },
   summaryWinnerLabel:{ fontSize: 11, fontWeight: 700, letterSpacing: 1.3, textTransform: "uppercase", color: THEME.brass, marginBottom: 8 },
   summaryWinnerName: { fontSize: 30, fontWeight: 800, color: THEME.text, marginBottom: 4, letterSpacing: -0.5 },

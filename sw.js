@@ -1,5 +1,5 @@
-const CACHE = 'mayi-v4';
-const FILES = ['./', './index.html', './manifest.json', './icon.svg'];
+const CACHE = 'mayi-v5';
+const FILES = ['./', './index.html', './manifest.json', './icon.svg', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)));
