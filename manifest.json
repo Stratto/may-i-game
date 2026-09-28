@@ -4,9 +4,9 @@
   "description": "Score tracker and companion for the May I? card game",
   "start_url": "./index.html",
   "display": "standalone",
-  "orientation": "portrait",
-  "background_color": "#19281A",
-  "theme_color": "#19281A",
+  "orientation": "any",
+  "background_color": "#F5F0E6",
+  "theme_color": "#F5F0E6",
   "icons": [
     {
       "src": "icon-192.png",

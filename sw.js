@@ -1,4 +1,4 @@
-const CACHE = 'mayi-v5';
+const CACHE = 'mayi-v6';
 const FILES = ['./', './index.html', './manifest.json', './icon.svg', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
@@ -16,7 +16,18 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  e.respondWith(
-    caches.match(e.request).then(cached => cached || fetch(e.request))
-  );
+  const req = e.request;
+  if (req.method !== 'GET' || new URL(req.url).origin !== self.location.origin) return;
+  // Pages: network first so updates arrive; fall back to cache when offline.
+  if (req.mode === 'navigate') {
+    e.respondWith(
+      fetch(req).then(res => {
+        const copy = res.clone();
+        caches.open(CACHE).then(c => c.put('./index.html', copy));
+        return res;
+      }).catch(() => caches.match('./index.html'))
+    );
+    return;
+  }
+  e.respondWith(caches.match(req).then(cached => cached || fetch(req)));
 });
