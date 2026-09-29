@@ -12,7 +12,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;700;800;900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;700;800;900&family=Alegreya:wght@700;800;900&family=Alegreya+Sans:wght@500;700;800&family=Cinzel:wght@700;900&display=swap">
 <title>May I?</title>
 <style>
   html,body{margin:0;padding:0;height:100%;background:#F5F0E6;overscroll-behavior:none;}
@@ -443,8 +443,26 @@ const THEMES = {
     panelBase: "rgba(20,110,130,0.28)", tabA: "#FFE27A", tabB: "#F5A91C", tabBase: "#B06A0A", tabText: "#5A2A00", tabLabel: "#1E6F86",
     onBg: "#FFFFFF", onBgShadow: "0 2px 0 rgba(12,90,110,0.45)",
   },
+  salon: {
+    scheme: "dark", pageBg: "radial-gradient(120% 60% at 50% 22%, #1E7444 0%, #0F4A2A 50%, #06291A 100%)", sheetBg: "#F3E8CF",
+    bg: "#0F4A2A", bg2: "#0A3520", bgGlass: "rgba(8,40,22,0.93)",
+    surface: "#5A2A10", surface2: "#4A1F0A", fill: "#2A1206", fill2: "#3A1707", segOn: "#FFE9A8",
+    line: "rgba(217,169,78,0.25)", line2: "rgba(217,169,78,0.4)",
+    border: "#D9A94E", ctlBorder: "rgba(217,169,78,0.35)", inputBorder: "#D9A94E", switchOff: "#2A1206",
+    ink: "#FFF4DA", ink2: "#F0DDB8", ink3: "#D8BF92",
+    felt: "#86D9A1", feltPress: "#1D6E3C", feltInk: "#FFF6E0", feltSoft: "rgba(63,174,99,0.22)", feltLine: "rgba(134,217,161,0.5)",
+    gold: "#F2C76A", goldSoft: "rgba(242,199,106,0.16)", red: "#FF9A9F", redSoft: "rgba(224,66,79,0.22)",
+    paper: "#FFFEF8", paperEdge: "rgba(169,116,31,0.75)", paperInk: "#1A1A24", paperRed: "#C21F33",
+    cardShadow: "0 2px 0 rgba(0,0,0,.35)", float: "0 12px 30px rgba(0,0,0,.55)", sheetShadow: "0 -10px 40px rgba(0,0,0,.55)",
+    knob: "0 2px 4px rgba(0,0,0,.5)", segShadow: "none", scrim: "rgba(2,16,8,0.62)",
+    btnA: "#46B86C", btnB: "#1D6E3C", btnBase: "#0A2A16", btnInk: "#FFF6E0",
+    btn2A: "#8C4620", btn2B: "#4A1F0A", btn2Base: "#241004",
+    chipA: "#E0424F", chipB: "#9A1622", chipBase: "#4A0810",
+    panelBase: "#241004", tabA: "#FFE9A8", tabB: "#D9A441", tabBase: "#7A5214", tabText: "#3A2008", tabLabel: "#F7D27A",
+    onBg: "#FFF4DA", onBgShadow: "0 2px 0 rgba(0,0,0,0.5)",
+  },
 };
-const GAME_SKINS = ["candy", "lagoon"];
+const GAME_SKINS = ["candy", "lagoon", "salon"];
 function resolveTheme(pref) {
   if (pref === "dark" || pref === "light" || GAME_SKINS.includes(pref)) return pref;
   return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
@@ -456,7 +474,8 @@ function applyTheme(pref) {
   if (!t.pageBg) root.style.setProperty("--page-bg", t.bg);
   if (!t.sheetBg) root.style.setProperty("--sheet-bg", t.bg);
   root.style.colorScheme = t.scheme || name;
-  if (GAME_SKINS.includes(name)) root.dataset.skin = "game"; else delete root.dataset.skin;
+  if (GAME_SKINS.includes(name)) { root.dataset.skin = "game"; root.dataset.variant = name; }
+  else { delete root.dataset.skin; delete root.dataset.variant; }
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.setAttribute("content", t.bg);
 }
@@ -1799,7 +1818,7 @@ function SettingsSheet({ settings, updateSetting, onClose, onNewGame, started, w
     ce(Seg, { label: "Appearance", value: settings.theme, onChange: v => updateSetting("theme", v), options: [["light", "Light"], ["dark", "Dark"], ["auto", "Auto"]] }),
     ce("p", { className: "hint" }, "Light is easiest to read outdoors and in bright rooms."),
     ce(SectionLabel, null, "Game styles"),
-    ce(Seg, { label: "Game style", value: settings.theme, onChange: v => updateSetting("theme", v), options: [["candy", "Candy"], ["lagoon", "Lagoon"]] }),
+    ce(Seg, { label: "Game style", value: settings.theme, onChange: v => updateSetting("theme", v), options: [["candy", "Candy"], ["lagoon", "Lagoon"], ["salon", "Grand Salon"]] }),
     ce("p", { className: "hint" }, "Playful looks with chunky buttons. Tap Light, Dark or Auto above to go back."),
     ce(SectionLabel, null, "Rules detail"),
     ce(Seg, { label: "Experience level", value: settings.level, onChange: v => updateSetting("level", v), options: [["new", "I'm new"], ["pro", "Seasoned"]] }),
@@ -2214,7 +2233,7 @@ ul, ol, dl, dd { margin: 0; padding: 0; list-style: none; }
 .hand-card b { font-size: 19px; font-weight: 700; line-height: 1; }
 .hand-card small { font-size: 10.5px; font-weight: 700; color: var(--gold); margin-top: 4px; letter-spacing: .02em; }
 .hand-card.red { color: var(--paper-red); }
-.hand-card-x { position: absolute; top: -6px; right: -6px; width: 18px; height: 18px; border-radius: 999px; background: var(--ink2); color: var(--bg);
+.hand-card-x { position: absolute; top: -6px; right: -6px; width: 18px; height: 18px; border-radius: 999px; background: var(--ink2); color: var(--surface);
   display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 2px var(--bg); }
 @keyframes cardIn { from { opacity: 0; transform: translateY(6px) scale(.95); } }
 .hand-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 10px; border-radius: 999px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--ctl-border);
@@ -2354,7 +2373,12 @@ ul, ol, dl, dd { margin: 0; padding: 0; list-style: none; }
 [data-skin="game"] .cta-dock .btn-primary:not(:disabled) { box-shadow: 0 4px 0 var(--btn-base), 0 10px 20px rgba(0,0,0,.25), inset 0 2px 0 rgba(255,255,255,.45); }
 [data-skin="game"] .cta-dock { background: none; }
 [data-skin="game"] .btn-tonal { background: var(--fill); color: var(--felt); box-shadow: 0 3px 0 var(--panel-base); }
-[data-skin="game"] .icon-btn:not(.ghost) { background: var(--fill); color: var(--ink); box-shadow: 0 3px 0 var(--panel-base); }
+[data-skin="game"] .icon-btn:not(.ghost) { background: linear-gradient(var(--surface), var(--surface2)); color: var(--ink); border: 2px solid var(--border); box-shadow: 0 3px 0 var(--panel-base); }
+[data-skin="game"] .icon-btn:not(.ghost):active { transform: translateY(2px); box-shadow: 0 1px 0 var(--panel-base); }
+/* Disabled 3D controls sit flat: no ghost drop shadow or gloss */
+[data-skin="game"] .btn-primary:disabled, [data-skin="game"] .btn-secondary:disabled, [data-skin="game"] .step:disabled,
+[data-skin="game"] .chip-btn:disabled, [data-skin="game"] .cta-dock .btn-primary:disabled { box-shadow: none; transform: translateY(3px); filter: saturate(.4); opacity: .45; }
+[data-skin="game"] .btn-primary:disabled::before, [data-skin="game"] .btn-secondary:disabled::before { display: none; }
 [data-skin="game"] .step { border-radius: 12px; background: linear-gradient(var(--btn2-a), var(--btn2-b)); color: #fff;
   box-shadow: 0 3px 0 var(--btn2-base), inset 0 1.5px 0 rgba(255,255,255,.45); }
 [data-skin="game"] .step:active:not(:disabled) { background: linear-gradient(var(--btn2-a), var(--btn2-b)); transform: translateY(2px); box-shadow: 0 1px 0 var(--btn2-base); }
@@ -2372,7 +2396,7 @@ ul, ol, dl, dd { margin: 0; padding: 0; list-style: none; }
 [data-skin="game"] .switch.on { background: linear-gradient(var(--btn-a), var(--btn-b)); }
 [data-skin="game"] .text-input, [data-skin="game"] .score-input { background: var(--fill); border: 2px solid transparent; box-shadow: inset 0 2px 0 rgba(0,0,0,.1); }
 [data-skin="game"] .text-input:focus, [data-skin="game"] .score-input:focus { border-color: var(--felt); }
-[data-skin="game"] .score-input.has { color: var(--felt); background: var(--felt-soft); border-color: var(--felt-line); }
+[data-skin="game"] .score-input.has { color: var(--felt); background: var(--fill); border-color: var(--felt); }
 [data-skin="game"] .tab { font-family: var(--display); font-weight: 400; letter-spacing: .03em; }
 [data-skin="game"] .tab.on { color: var(--tab-label); }
 [data-skin="game"] .tab.on .tab-ico { color: var(--tab-text); }
@@ -2382,6 +2406,72 @@ ul, ol, dl, dd { margin: 0; padding: 0; list-style: none; }
 [data-skin="game"] .pcard, [data-skin="game"] .pad-card, [data-skin="game"] .hand-card { box-shadow: 0 0 0 1.5px var(--paper-edge), var(--card-shadow); }
 [data-skin="game"] .pad-card:active:not(:disabled) { box-shadow: 0 0 0 1.5px var(--paper-edge); transform: translateY(2px) scale(.94); }
 [data-skin="game"] .big-num { color: var(--gold); }
+
+/* ── Grand Salon: felt, mahogany, gold and parchment ─────────── */
+[data-variant="salon"] *, [data-variant="salon"] body { font-feature-settings: "lnum" 1, "kern" 1; }
+[data-variant="salon"] { --font: "Alegreya Sans", system-ui, sans-serif; --display: "Alegreya", Georgia, serif; --num: "Alegreya", Georgia, serif; --stamp: "Cinzel", Georgia, serif; }
+[data-variant="salon"] .display, [data-variant="salon"] .hero-title, [data-variant="salon"] .topbar-title, [data-variant="salon"] .sheet-head h2,
+[data-variant="salon"] .winner-name, [data-variant="salon"] .rail-round-name, [data-variant="salon"] .wordmark,
+[data-variant="salon"] .big-num, [data-variant="salon"] .total, [data-variant="salon"] .step-val, [data-variant="salon"] .score-input { font-weight: 900; }
+[data-variant="salon"] .app::before { content: ""; position: fixed; inset: 0; pointer-events: none; opacity: .07; background-size: 64px 64px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cg fill='%23ffffff'%3E%3Cpath d='M16 6c-3 4-8 6-8 10a4 4 0 0 0 6.6 3L13 24h6l-1.6-5A4 4 0 0 0 24 16c0-4-5-6-8-10z'/%3E%3Cpath d='M48 38c-2-4-8-3-8 1 0 4 8 9 8 9s8-5 8-9c0-4-6-5-8-1z'/%3E%3C/g%3E%3C/svg%3E"); }
+[data-variant="salon"] .main, [data-variant="salon"] .topbar, [data-variant="salon"] .tabbar, [data-variant="salon"] .rail { position: relative; z-index: 1; }
+/* Polished mahogany panels with a gold rim */
+[data-variant="salon"] .page .card, [data-variant="salon"] .page .list, [data-variant="salon"] .page .award {
+  background: repeating-linear-gradient(94deg, rgba(0,0,0,.07) 0 2px, transparent 2px 7px, rgba(255,210,160,.03) 7px 8px, transparent 8px 15px), linear-gradient(180deg, #7E3F1C, #5A2A10 55%, #3A1707);
+  border: 2px solid #D9A94E; box-shadow: 0 0 0 1px #241004, 0 5px 0 #241004, 0 8px 14px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,220,150,.3); }
+[data-variant="salon"] .page .facts, [data-variant="salon"] .page .meld { background: rgba(25,8,0,.5); box-shadow: inset 0 1px 3px rgba(0,0,0,.6); }
+[data-variant="salon"] .page .eyebrow { color: #F0CE86; font-family: var(--stamp); letter-spacing: .14em; font-weight: 700; }
+[data-variant="salon"] .page .hero-title, [data-variant="salon"] .page .total, [data-variant="salon"] .topbar-title {
+  background: linear-gradient(180deg, #FFF6D2 0%, #FFD97A 40%, #D9A441 62%, #F7D27A 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+/* Buttons: green felt (primary) and mahogany (secondary), gold rim, Cinzel caps */
+[data-variant="salon"] .btn-primary, [data-variant="salon"] .btn-secondary { border: 2px solid #D9A94E; font-family: var(--stamp); font-weight: 700; font-size: 15px; letter-spacing: .08em; text-transform: uppercase; text-shadow: 0 1px 0 rgba(0,0,0,.5); }
+[data-variant="salon"] .btn-lg { font-size: 16px; }
+[data-variant="salon"] .btn-sm { font-size: 12.5px; }
+[data-variant="salon"] .hero .btn-row > .btn, [data-variant="salon"] .sheet-foot .btn-row > .btn-secondary { font-size: 13px; letter-spacing: .03em; padding: 0 8px; }
+[data-variant="salon"] .btn-primary { background: radial-gradient(120% 100% at 50% 0%, #46B86C, #1D6E3C 60%, #124A28); color: #FFF6E0;
+  box-shadow: 0 0 0 1px #241004, 0 4px 0 #0A2A16, 0 7px 12px rgba(0,0,0,.35), inset 0 1px 0 rgba(200,255,210,.45); }
+[data-variant="salon"] .btn-secondary { background: repeating-linear-gradient(94deg, rgba(0,0,0,.07) 0 2px, transparent 2px 8px), linear-gradient(180deg, #8C4620, #5C2A0F 60%, #4A1F0A); color: #F7D27A;
+  box-shadow: 0 0 0 1px #241004, 0 4px 0 #241004, 0 7px 12px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,220,150,.45); }
+[data-variant="salon"] .btn-primary::before, [data-variant="salon"] .btn-secondary::before { background: linear-gradient(rgba(255,235,200,.2), transparent); }
+[data-variant="salon"] .btn-primary:active:not(:disabled), [data-variant="salon"] .cta-dock .btn-primary:active:not(:disabled) {
+  background: radial-gradient(120% 100% at 50% 0%, #46B86C, #1D6E3C 60%, #124A28); box-shadow: 0 0 0 1px #241004, 0 1px 0 #0A2A16, inset 0 2px 4px rgba(0,0,0,.35); }
+[data-variant="salon"] .btn-secondary:active:not(:disabled) { background: linear-gradient(180deg, #8C4620, #4A1F0A); box-shadow: 0 0 0 1px #241004, 0 1px 0 #241004, inset 0 2px 4px rgba(0,0,0,.4); }
+[data-variant="salon"] .cta-dock .btn-primary:not(:disabled) { box-shadow: 0 0 0 1px #241004, 0 4px 0 #0A2A16, 0 10px 20px rgba(0,0,0,.45), inset 0 1px 0 rgba(200,255,210,.45); }
+[data-variant="salon"] .step, [data-variant="salon"] .icon-btn:not(.ghost) { background: linear-gradient(180deg, #8C4620, #4A1F0A); color: #F7D27A; border: 1.5px solid #D9A94E;
+  box-shadow: 0 0 0 1px #241004, 0 3px 0 #241004, inset 0 1px 0 rgba(255,220,150,.4); }
+[data-variant="salon"] .step:disabled, [data-variant="salon"] .chip-btn:disabled { box-shadow: none; transform: translateY(3px); }
+[data-variant="salon"] .step:active:not(:disabled) { background: linear-gradient(180deg, #8C4620, #4A1F0A); box-shadow: 0 0 0 1px #241004, 0 1px 0 #241004; }
+[data-variant="salon"] .chip-btn { border: 1.5px solid rgba(233,196,120,.85); font-family: var(--display); font-weight: 800; }
+[data-variant="salon"] .chip-btn.on { background: radial-gradient(120% 100% at 50% 0%, #46B86C, #1D6E3C); box-shadow: 0 3px 0 #0A2A16; }
+[data-variant="salon"] .round-badge { background: linear-gradient(180deg, #2E8B55, #145C33); border: 2px solid #D9A94E; box-shadow: 0 0 0 1px #241004, 0 3px 0 #062014; color: #FFE9A8; }
+[data-variant="salon"] .rs-pill { background: linear-gradient(180deg, #7E3F1C, #4A1F0A); color: #F0DDB8; border: 1.5px solid rgba(217,169,78,.7); box-shadow: 0 3px 0 #241004; }
+[data-variant="salon"] .rs-pill.done { color: #86D9A1; }
+[data-variant="salon"] .rs-pill.future { background: rgba(4,30,16,.55); border-color: rgba(217,169,78,.35); color: #D8BF92; box-shadow: none; }
+[data-variant="salon"] .rs-pill.on { background: linear-gradient(180deg, #FFE9A8, #D9A441); border-color: #FFE9A8; color: #3A2008; box-shadow: 0 3px 0 #7A5214; }
+[data-variant="salon"] .text-input, [data-variant="salon"] .page .score-input { background: linear-gradient(180deg, #1C0B02, #2E1406); color: #F7D27A; border: 1.5px solid rgba(217,169,78,.55); box-shadow: inset 0 2px 5px rgba(0,0,0,.8); }
+[data-variant="salon"] .page .score-input.has { color: #86D9A1; border-color: #3FAE63; background: linear-gradient(180deg, #0E2A16, #16391F); }
+[data-variant="salon"] .seg { background: linear-gradient(180deg, #1C0B02, #2E1406); box-shadow: inset 0 2px 5px rgba(0,0,0,.8), 0 0 0 1px rgba(217,169,78,.45); border-radius: 12px; }
+[data-variant="salon"] .seg button { border-radius: 9px; font-family: var(--display); font-weight: 800; color: #C9A76A; }
+[data-variant="salon"] .topbar { border-bottom: 2px solid #D9A94E; }
+[data-variant="salon"] .tabbar { background: linear-gradient(180deg, #0E4526, #05200F); border-top: 2px solid #D9A94E; }
+[data-variant="salon"] .avatar { box-shadow: 0 0 0 2px #E3B45C, 0 0 0 3.5px #5A3310; }
+[data-variant="salon"] .pcard, [data-variant="salon"] .pad-card, [data-variant="salon"] .hand-card { box-shadow: 0 0 0 1.5px var(--paper-edge), 0 3px 0 #B58A3A; }
+/* Sheets become parchment with their own dark-ink palette */
+[data-variant="salon"] .sheet { --surface: #FFFDF6; --surface2: #F4EAD4; --fill: #EFE3C8; --fill2: #E3D3AE; --ink: #3A2410; --ink2: #5C3E1E; --ink3: #7A5A32;
+  --line: rgba(122,82,20,.2); --line2: rgba(122,82,20,.35); --border: #D9A94E; --felt: #1D6E3C; --felt-soft: rgba(29,110,60,.12); --felt-line: rgba(29,110,60,.35);
+  --gold: #A8741F; --gold-soft: rgba(217,169,78,.2); --red: #B8202F; --red-soft: rgba(184,32,47,.1); --panel-base: #B58A3A; --on-bg: #3A2410; --on-bg-shadow: none;
+  background: linear-gradient(180deg, #F7EEDB, #E9DCBE); color: var(--ink); border: 2px solid #D9A94E; box-shadow: 0 0 0 1px #7A5214, var(--sheet-shadow); }
+[data-variant="salon"] .sheet .card, [data-variant="salon"] .sheet .list, [data-variant="salon"] .sheet .award, [data-variant="salon"] .sheet .photo-box { background: #FFFDF6; border: 1.5px solid rgba(217,169,78,.7); box-shadow: 0 3px 0 #C9A55E; }
+[data-variant="salon"] .sheet .big-num { background: linear-gradient(180deg, #F2C76A, #A8741F); -webkit-background-clip: text; background-clip: text; color: transparent; }
+[data-variant="salon"] .sheet .text-input, [data-variant="salon"] .sheet .score-input { background: #FFFDF6; color: var(--ink); border: 1.5px solid rgba(169,116,31,.5); box-shadow: inset 0 1px 2px rgba(90,60,20,.15); }
+[data-variant="salon"] .sheet .seg { background: #EFE3C8; box-shadow: inset 0 1px 3px rgba(90,60,20,.25), 0 0 0 1px rgba(217,169,78,.6); }
+[data-variant="salon"] .sheet .seg button { color: #7A5A32; }
+[data-variant="salon"] .sheet .icon-btn:not(.ghost) { background: linear-gradient(180deg, #FFFCF2, #EBDDBF); color: #B8202F; border: 1.5px solid #D9A94E; box-shadow: 0 2px 0 #9C7430; }
+[data-variant="salon"] .sheet .btn-secondary { background: linear-gradient(180deg, #FFFCF2, #EBDDBF); color: #6A4410; text-shadow: none; box-shadow: 0 0 0 1px #7A5214, 0 4px 0 #9C7430, inset 0 1px 0 #fff; }
+[data-variant="salon"] .sheet .btn-secondary:active:not(:disabled) { background: linear-gradient(180deg, #FFFCF2, #EBDDBF); box-shadow: 0 0 0 1px #7A5214, 0 1px 0 #9C7430; }
+[data-variant="salon"] .sheet-foot { border-top-color: rgba(122,82,20,.25); }
+[data-variant="salon"] .grab { background: rgba(122,82,20,.35); }
 
 /* ── Motion ──────────────────────────────────────────────────── */
 .view-enter { animation: viewIn .45s var(--ease) both; }
