@@ -473,7 +473,15 @@ function Art({ k, size, fallback, className }) {
   return fallback === undefined ? null : fallback;
 }
 const TAB_ART = { play: "play", scores: "scores", rules: "rules" };
+const ALL_THEMES = ["light", "dark", "candy", "lagoon", "salon"];
+let surprisePick = null;
+function rollSurprise() {
+  const pool = ALL_THEMES.filter(t => t !== surprisePick);
+  surprisePick = pool[Math.floor(Math.random() * pool.length)];
+  return surprisePick;
+}
 function resolveTheme(pref) {
+  if (pref === "surprise") return surprisePick || rollSurprise();
   if (pref === "dark" || pref === "light" || GAME_SKINS.includes(pref)) return pref;
   return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
@@ -600,7 +608,13 @@ const RANKS = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
 const SUIT = { S:{ ch:"♠", red:false, name:"spades" }, H:{ ch:"♥", red:true, name:"hearts" }, D:{ ch:"♦", red:true, name:"diamonds" }, C:{ ch:"♣", red:false, name:"clubs" } };
 
 const DEFAULT_RULES = { buyLimit: "3", customBuyLimit: 3, jokersWild: true, acesPosition: "low", twosWild: false };
-const DEFAULT_SETTINGS = { theme: "light", level: "new", apiKey: "" };
+const DEFAULT_SETTINGS = { theme: "surprise", level: "new", apiKey: "" };
+// First launch (and a one-time move for existing players): start on "Surprise me".
+function loadSettings() {
+  const s = { ...DEFAULT_SETTINGS, ...loadJSON(SETTINGS_KEY, {}) };
+  if (!s.themeV2) { s.theme = "surprise"; s.themeV2 = true; }
+  return s;
+}
 
 // Hand codes: "7", "K", "JOKER", "A" (value from house rules), "A1"/"A15" when aces play both ends.
 function cardValue(code, rules) {
@@ -921,7 +935,7 @@ function MayIApp() {
   const [showSummary, setShowSummary] = useState(false);
   const [dealer,      setDealer]      = useState(0);
   const [tab,         setTab]         = useState("play");
-  const [settings,    setSettings]    = useState(() => ({ ...DEFAULT_SETTINGS, ...loadJSON(SETTINGS_KEY, {}) }));
+  const [settings,    setSettings]    = useState(loadSettings);
   const [history,     setHistory]     = useState([]);
   const [sheet,       setSheet]       = useState(null);   // { type, ...props }
   const [confirm,     setConfirm]     = useState(null);
@@ -931,13 +945,14 @@ function MayIApp() {
   const wide = useMedia("(min-width: 900px)");
 
   // Theme
+  artVariant = resolveTheme(settings.theme);
   useEffect(() => {
     applyTheme(settings.theme);
     if (settings.theme !== "auto") return;
     const mq = window.matchMedia("(prefers-color-scheme: dark)"), h = () => applyTheme("auto");
     mq.addEventListener ? mq.addEventListener("change", h) : mq.addListener(h);
     return () => { mq.removeEventListener ? mq.removeEventListener("change", h) : mq.removeListener(h); };
-  }, [settings.theme]);
+  }, [settings.theme, settings.roll]);
   useEffect(() => { saveJSON(SETTINGS_KEY, settings); }, [settings]);
 
   // Load saved game
@@ -1074,12 +1089,17 @@ function MayIApp() {
     if (settings.level === "new") setTimeout(() => openSheet("guide", { round: 0 }), 450);
   }
 
+  function pickTheme(t) {
+    haptic(10);
+    if (t === "surprise") { rollSurprise(); setSettings(s => ({ ...s, theme: "surprise", roll: Date.now() })); }
+    else setSettings(s => ({ ...s, theme: t }));
+  }
   const common = { players, scores, buys, houseRules, settings, wide, currentRound, ranked, allRoundsScored, limit, dealerOf, openSheet };
 
   // ── Views ──
   let view;
   if (!started) {
-    view = ce(Setup, { ...common, history, dealer, setDealer, addPlayer, removePlayer, updateRule, onStart: startGame });
+    view = ce(Setup, { ...common, history, dealer, setDealer, addPlayer, removePlayer, updateRule, onStart: startGame, pickTheme });
   } else if (tab === "scores") {
     view = ce(ScoresView, { ...common, hands, onFinish: finishGame });
   } else if (tab === "rules") {
@@ -1177,7 +1197,7 @@ function Rail({ tab, setTab, currentRound, scores, players, dealerOf, allRoundsS
 }
 
 // ── Setup ─────────────────────────────────────────────────────────
-function Setup({ players, history, dealer, setDealer, addPlayer, removePlayer, houseRules, updateRule, onStart, openSheet, wide, settings }) {
+function Setup({ players, history, dealer, setDealer, addPlayer, removePlayer, houseRules, updateRule, onStart, openSheet, wide, settings, pickTheme }) {
   const [draft, setDraft] = useState("");
   const [rulesOpen, setRulesOpen] = useState(false);
   const inputRef = useRef(null);
@@ -1190,6 +1210,7 @@ function Setup({ players, history, dealer, setDealer, addPlayer, removePlayer, h
       ["AS","KH","QD","JC"].map((c, i) => ce("span", { key: c, style: { transform: "rotate(" + (-18 + i * 12) + "deg) translateY(" + [6, 0, 0, 6][i] + "px)" } }, ce(PlayingCard, { code: c, big: true })))),
     ce("h1", { className: "display" }, "May I?"),
     ce("p", { className: "lead" }, "The scorekeeper and rulebook for contract rummy."),
+    ce(ThemePicker, { value: settings.theme, onPick: pickTheme }),
     ce("button", { className: "btn btn-tonal", onClick: () => openSheet("learn") }, ce(Icon, { n: "bulb", size: 20 }), "New to May I? Learn in 60 seconds"));
 
   const playersCard = ce("section", null,
@@ -1246,6 +1267,26 @@ function Setup({ players, history, dealer, setDealer, addPlayer, removePlayer, h
       ce("div", null, playersCard, rulesCard, startBtn));
   }
   return ce(Fragment, null, hero, playersCard, rulesCard, startBtn, historyEl, ce(SupportCard));
+}
+
+// ── Theme picker (start screen) ───────────────────────────────────
+const THEME_CHOICES = [
+  ["light", "Light", "linear-gradient(135deg,#FFFFFF 50%,#0E6B45 50%)"],
+  ["dark", "Dark", "linear-gradient(135deg,#1A1D1B 50%,#3DB27B 50%)"],
+  ["candy", "Candy", "linear-gradient(135deg,#6A45E0 50%,#B8F07A 50%)"],
+  ["lagoon", "Lagoon", "linear-gradient(135deg,#3CC7B6 50%,#FFF9EE 50%)"],
+  ["salon", "Salon", "linear-gradient(135deg,#0F4A2A 50%,#E3B45C 50%)"],
+];
+function ThemePicker({ value, onPick }) {
+  const [spin, setSpin] = useState(0);
+  const current = value === "surprise" ? surprisePick : value;
+  return ce("div", { className: "theme-picker", role: "radiogroup", "aria-label": "Choose a look" },
+    THEME_CHOICES.map(([k, label, bg]) => ce("button", { key: k, type: "button", role: "radio", "aria-checked": value === k,
+        className: "tp-chip" + (value === k ? " on" : "") + (value === "surprise" && current === k ? " lucky" : ""), onClick: () => onPick(k) },
+      ce("span", { className: "tp-dot", style: { background: bg } }), label)),
+    ce("button", { type: "button", role: "radio", "aria-checked": value === "surprise", className: "tp-chip tp-dice" + (value === "surprise" ? " on" : ""),
+        onClick: () => { setSpin(n => n + 1); onPick("surprise"); }, title: "A different look every time you open the app" },
+      ce("span", { key: spin, className: "tp-die" }, ce(Icon, { n: "dice", size: 18 })), "Surprise me"));
 }
 
 // ── House rules editor ────────────────────────────────────────────
@@ -1832,7 +1873,7 @@ function SettingsSheet({ settings, updateSetting, onClose, onNewGame, started, w
     ce(Seg, { label: "Appearance", value: settings.theme, onChange: v => updateSetting("theme", v), options: [["light", "Light"], ["dark", "Dark"], ["auto", "Auto"]] }),
     ce("p", { className: "hint" }, "Light is easiest to read outdoors and in bright rooms."),
     ce(SectionLabel, null, "Game styles"),
-    ce(Seg, { label: "Game style", value: settings.theme, onChange: v => updateSetting("theme", v), options: [["candy", "Candy"], ["lagoon", "Lagoon"], ["salon", "Grand Salon"]] }),
+    ce(Seg, { label: "Game style", value: settings.theme, onChange: v => updateSetting("theme", v), options: [["candy", "Candy"], ["lagoon", "Lagoon"], ["salon", "Salon"], ["surprise", "Surprise"]] }),
     ce("p", { className: "hint" }, "Playful looks with chunky buttons. Tap Light, Dark or Auto above to go back."),
     ce(SectionLabel, null, "Rules detail"),
     ce(Seg, { label: "Experience level", value: settings.level, onChange: v => updateSetting("level", v), options: [["new", "I'm new"], ["pro", "Seasoned"]] }),
@@ -2501,6 +2542,18 @@ ul, ol, dl, dd { margin: 0; padding: 0; list-style: none; }
 [data-variant="salon"] .award-icon { background: transparent; border: 0; }
 [data-variant="salon"] .icon-btn:not(.ghost) .art { width: 28px; height: 28px; }
 
+/* Theme picker on the start screen */
+.theme-picker { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 0 auto 18px; max-width: 420px; }
+.setup-wide .theme-picker { justify-content: flex-start; margin-left: 0; }
+.tp-chip { display: inline-flex; align-items: center; gap: 7px; min-height: 38px; padding: 0 12px 0 6px; border-radius: 999px; font-size: 14px; font-weight: 600;
+  background: var(--surface); color: var(--ink); box-shadow: inset 0 0 0 1px var(--ctl-border, var(--line2)); }
+.tp-chip.on { box-shadow: inset 0 0 0 2px var(--felt); color: var(--felt); }
+.tp-chip.lucky { box-shadow: inset 0 0 0 2px var(--gold); }
+.tp-dot { width: 26px; height: 26px; border-radius: 999px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.15); }
+.tp-dice { padding-left: 10px; }
+.tp-die { display: inline-flex; animation: dieRoll .7s var(--ease-out) both; }
+@keyframes dieRoll { from { transform: rotate(-540deg) scale(.6); } to { transform: none; } }
+
 /* ── Motion ──────────────────────────────────────────────────── */
 .view-enter { animation: viewIn .45s var(--ease) both; }
 .view-enter .list > *, .view-enter .awards > * { animation: rowIn .5s var(--ease) both; }
@@ -2548,7 +2601,7 @@ function StyleInjector() {
 
 // Styles and saved theme go in before first paint to avoid a flash.
 (function () { const el = document.createElement("style"); el.id = "mayi-styles"; el.textContent = CSS; document.head.appendChild(el); })();
-applyTheme(({ ...DEFAULT_SETTINGS, ...loadJSON(SETTINGS_KEY, {}) }).theme);
+applyTheme(loadSettings().theme);
 ReactDOM.createRoot(document.getElementById("root")).render(ce(MayIApp));
 })();
 </script>
