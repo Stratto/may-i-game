@@ -11,6 +11,8 @@
 <meta name="description" content="Scorekeeper, rulebook and card counter for May I?, the contract rummy card game.">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;700;800;900&display=swap">
 <title>May I?</title>
 <style>
   html,body{margin:0;padding:0;height:100%;background:#F5F0E6;overscroll-behavior:none;}
@@ -403,19 +405,62 @@ const THEMES = {
     border: "rgba(255,255,255,0.06)", ctlBorder: "rgba(255,255,255,0.10)", inputBorder: "rgba(255,255,255,0.30)", switchOff: "#4A504C",
     feltLine: "rgba(61,178,123,0.45)",
   },
+  // ── Game skins (from the Candy Poker and Lagoon + Candy explorations) ──
+  candy: {
+    scheme: "dark", pageBg: "radial-gradient(110% 70% at 50% 0%, #6A45E0 0%, #3A1E9A 55%, #22106A 100%)", sheetBg: "#3A2290",
+    bg: "#2A1578", bg2: "#241066", bgGlass: "rgba(34,16,106,0.92)",
+    surface: "#4A2DB5", surface2: "#3E24A0", fill: "#2A1473", fill2: "#34198A", segOn: "#FFE27A",
+    line: "rgba(255,255,255,0.12)", line2: "rgba(255,255,255,0.22)",
+    border: "#8467F2", ctlBorder: "rgba(255,255,255,0.14)", inputBorder: "#6C4FE0", switchOff: "#1E0E5A",
+    ink: "#FFFFFF", ink2: "#DCD3FF", ink3: "#B8AAF0",
+    felt: "#9BE15D", feltPress: "#5BBF22", feltInk: "#173F05", feltSoft: "rgba(155,225,93,0.18)", feltLine: "rgba(155,225,93,0.45)",
+    gold: "#FFD34E", goldSoft: "rgba(255,211,78,0.16)", red: "#FF8FB8", redSoft: "rgba(255,111,166,0.18)",
+    paper: "#FFFDF7", paperEdge: "rgba(0,0,0,0.22)", paperInk: "#1F2430", paperRed: "#D6293E",
+    cardShadow: "0 2px 0 rgba(0,0,0,.28)", float: "0 12px 30px rgba(10,4,40,.5)", sheetShadow: "0 -10px 40px rgba(10,4,40,.5)",
+    knob: "0 2px 4px rgba(0,0,0,.35)", segShadow: "none", scrim: "rgba(10,4,40,0.62)",
+    btnA: "#B8F07A", btnB: "#56B81C", btnBase: "#2C7410", btnInk: "#FFFFFF",
+    btn2A: "#6FD0FF", btn2B: "#2275D8", btn2Base: "#1B4FA0",
+    chipA: "#FF6FA6", chipB: "#E0336F", chipBase: "#8E1440",
+    panelBase: "#1E0E55", tabA: "#FFE27A", tabB: "#F5A91C", tabBase: "#A8620A", tabText: "#5A2A00", tabLabel: "#FFE27A",
+    onBg: "#FFFFFF", onBgShadow: "0 2px 0 rgba(20,8,70,0.55)",
+  },
+  lagoon: {
+    scheme: "light", pageBg: "radial-gradient(90% 60% at 50% 38%, #7BF0CC 0%, #3CC7B6 45%, #1C8FAA 100%)", sheetBg: "#F3E9D6",
+    bg: "#2FB5B2", bg2: "#DDF3EE", bgGlass: "rgba(255,249,238,0.94)",
+    surface: "#FFF9EE", surface2: "#F7EEDD", fill: "#F1E7D4", fill2: "#E6D8BF", segOn: "#FFE27A",
+    line: "#EEE3CF", line2: "#E0D2B8",
+    border: "#FFFFFF", ctlBorder: "rgba(23,58,74,0.12)", inputBorder: "rgba(23,58,74,0.2)", switchOff: "#CFC2AA",
+    ink: "#173A4A", ink2: "#3F6470", ink3: "#55747E",
+    felt: "#157A64", feltPress: "#0F5E4D", feltInk: "#FFFFFF", feltSoft: "rgba(21,122,100,0.12)", feltLine: "rgba(21,122,100,0.35)",
+    gold: "#A86400", goldSoft: "rgba(255,181,71,0.22)", red: "#C23A60", redSoft: "rgba(217,74,110,0.12)",
+    // Stronger card edges so white cards read clearly on the cream sheet
+    paper: "#FFFFFF", paperEdge: "rgba(23,58,74,0.38)", paperInk: "#173A4A", paperRed: "#D6293E",
+    cardShadow: "0 3px 0 rgba(23,58,74,.22)", float: "0 12px 30px rgba(10,80,100,.25)", sheetShadow: "0 -10px 40px rgba(10,80,100,.25)",
+    knob: "0 2px 4px rgba(0,0,0,.2)", segShadow: "none", scrim: "rgba(10,60,80,0.45)",
+    btnA: "#B8F07A", btnB: "#56B81C", btnBase: "#2C7410", btnInk: "#FFFFFF",
+    btn2A: "#6FD0FF", btn2B: "#2275D8", btn2Base: "#1B4FA0",
+    chipA: "#FFB0C8", chipB: "#FF6F9E", chipBase: "#C23A68",
+    panelBase: "rgba(20,110,130,0.28)", tabA: "#FFE27A", tabB: "#F5A91C", tabBase: "#B06A0A", tabText: "#5A2A00", tabLabel: "#1E6F86",
+    onBg: "#FFFFFF", onBgShadow: "0 2px 0 rgba(12,90,110,0.45)",
+  },
 };
+const GAME_SKINS = ["candy", "lagoon"];
 function resolveTheme(pref) {
-  if (pref === "dark" || pref === "light") return pref;
+  if (pref === "dark" || pref === "light" || GAME_SKINS.includes(pref)) return pref;
   return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 function applyTheme(pref) {
   const name = resolveTheme(pref);
   const t = THEMES[name], root = document.documentElement;
   Object.keys(t).forEach(k => root.style.setProperty("--" + k.replace(/[A-Z]/g, m => "-" + m.toLowerCase()), t[k]));
-  root.style.colorScheme = name;
+  if (!t.pageBg) root.style.setProperty("--page-bg", t.bg);
+  if (!t.sheetBg) root.style.setProperty("--sheet-bg", t.bg);
+  root.style.colorScheme = t.scheme || name;
+  if (GAME_SKINS.includes(name)) root.dataset.skin = "game"; else delete root.dataset.skin;
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.setAttribute("content", t.bg);
 }
+
 
 // ── Game data ─────────────────────────────────────────────────────
 const ROUNDS = [
@@ -1753,6 +1798,9 @@ function SettingsSheet({ settings, updateSetting, onClose, onNewGame, started, w
     ce(SectionLabel, null, "Appearance"),
     ce(Seg, { label: "Appearance", value: settings.theme, onChange: v => updateSetting("theme", v), options: [["light", "Light"], ["dark", "Dark"], ["auto", "Auto"]] }),
     ce("p", { className: "hint" }, "Light is easiest to read outdoors and in bright rooms."),
+    ce(SectionLabel, null, "Game styles"),
+    ce(Seg, { label: "Game style", value: settings.theme, onChange: v => updateSetting("theme", v), options: [["candy", "Candy"], ["lagoon", "Lagoon"]] }),
+    ce("p", { className: "hint" }, "Playful looks with chunky buttons. Tap Light, Dark or Auto above to go back."),
     ce(SectionLabel, null, "Rules detail"),
     ce(Seg, { label: "Experience level", value: settings.level, onChange: v => updateSetting("level", v), options: [["new", "I'm new"], ["pro", "Seasoned"]] }),
     ce("p", { className: "hint" }, settings.level === "new" ? "Shows a guide at the start of each round, with beginner tips." : "Skips the round-start guide and adds strategy tips."),
@@ -1942,7 +1990,7 @@ ul, ol, dl, dd { margin: 0; padding: 0; list-style: none; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* ── Layout ──────────────────────────────────────────────────── */
-.app { height: 100vh; height: 100dvh; display: flex; flex-direction: column; background: var(--bg); overflow: hidden; }
+.app { height: 100vh; height: 100dvh; display: flex; flex-direction: column; background: var(--page-bg, var(--bg)); overflow: hidden; }
 .app.wide { flex-direction: row; }
 .main { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
 .scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; scroll-padding-bottom: 96px; }
@@ -2234,7 +2282,7 @@ ul, ol, dl, dd { margin: 0; padding: 0; list-style: none; }
 .scrim { position: fixed; inset: 0; z-index: 100; background: var(--scrim); display: flex; align-items: flex-end; justify-content: center; animation: fadeIn .3s var(--ease) both; }
 .scrim.centered { align-items: center; padding: 24px; }
 .scrim.out { animation: fadeOut .22s var(--ease) both; }
-.sheet { width: 100%; max-width: 640px; max-height: 94dvh; display: flex; flex-direction: column; background: var(--bg); border-radius: 22px 22px 0 0;
+.sheet { width: 100%; max-width: 640px; max-height: 94dvh; display: flex; flex-direction: column; background: var(--sheet-bg, var(--bg)); border-radius: 22px 22px 0 0;
   box-shadow: var(--sheet-shadow); animation: sheetUp .5s var(--ease-out) both; padding-bottom: env(safe-area-inset-bottom); }
 .sheet.out { animation: sheetDown .24s var(--ease-in) both; }
 .sheet.center { border-radius: 22px; max-width: 560px; max-height: 88dvh; box-shadow: var(--float); animation: popIn .42s var(--ease-out) both; padding-bottom: 0; }
@@ -2244,7 +2292,7 @@ ul, ol, dl, dd { margin: 0; padding: 0; list-style: none; }
 .sheet-head h2 { flex: 1; margin: 0; font-family: var(--display); font-size: 21px; font-weight: 700; letter-spacing: -.025em; }
 .sheet-body { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 6px 20px 22px; overscroll-behavior: contain; }
 .sheet-body > .section-label:first-child { margin-top: 8px; }
-.sheet-foot { padding: 10px 20px 14px; border-top: var(--hair) solid var(--line); }
+.sheet-foot { padding: 12px 20px 16px; border-top: var(--hair) solid var(--line); }
 .toast { position: fixed; left: 50%; top: calc(12px + env(safe-area-inset-top)); z-index: 160; display: flex; align-items: center; gap: 8px; max-width: calc(100% - 32px);
   background: var(--ink); color: var(--bg); padding: 11px 18px; border-radius: 999px; font-size: 14.5px; font-weight: 600; box-shadow: var(--float);
   animation: toastIn 2.8s var(--ease) both; transform: translateX(-50%); }
@@ -2269,6 +2317,71 @@ ul, ol, dl, dd { margin: 0; padding: 0; list-style: none; }
 @keyframes podiumWho { from { opacity: 0; transform: translateY(10px) scale(.94); } to { opacity: 1; transform: none; } }
 @keyframes bob { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-3px) rotate(4deg); } }
 .confetti span { position: absolute; top: -30px; display: inline-block; }
+
+
+/* ── Game skins: Candy and Lagoon ────────────────────────────── */
+[data-skin="game"] { --font: "Nunito", ui-rounded, system-ui, sans-serif; --display: "Lilita One", "Arial Rounded MT Bold", ui-rounded, system-ui, sans-serif;
+  --num: "Lilita One", ui-rounded, system-ui, sans-serif; font-synthesis: none; }
+[data-skin="game"] .display, [data-skin="game"] .hero-title, [data-skin="game"] .topbar-title, [data-skin="game"] .sheet-head h2,
+[data-skin="game"] .winner-name, [data-skin="game"] .rail-round-name, [data-skin="game"] .wordmark { font-weight: 400; letter-spacing: .01em; }
+[data-skin="game"] .big-num, [data-skin="game"] .total, [data-skin="game"] .step-val, [data-skin="game"] .score-input { font-weight: 400; letter-spacing: 0; }
+[data-skin="game"] .name, [data-skin="game"] .strong { font-weight: 800; }
+[data-skin="game"] .eyebrow { font-weight: 900; }
+/* Text that sits directly on the patterned background */
+[data-skin="game"] .page .section-label, [data-skin="game"] .page .section-aside, [data-skin="game"] .page .hint,
+[data-skin="game"] .page .display, [data-skin="game"] .page .lead { color: var(--on-bg); text-shadow: var(--on-bg-shadow); }
+[data-skin="game"] .page .section-label .link { color: var(--on-bg); text-decoration: underline; }
+/* Panels: thick rim and a solid 3D base */
+[data-skin="game"] .card, [data-skin="game"] .list, [data-skin="game"] .award, [data-skin="game"] .photo-box {
+  border: 2px solid var(--border); border-radius: 20px; box-shadow: 0 5px 0 var(--panel-base); }
+[data-skin="game"] .facts { background: var(--fill); box-shadow: none; }
+[data-skin="game"] .meld { background: var(--fill); }
+/* Chunky glossy buttons, a little smaller, keeping the 3D drop */
+[data-skin="game"] .btn-primary, [data-skin="game"] .btn-secondary { position: relative; isolation: isolate; min-height: 44px; padding: 0 16px; border-radius: 14px;
+  font-family: var(--display); font-weight: 400; font-size: 17px; letter-spacing: .02em; text-shadow: 0 1px 0 rgba(0,0,0,.22); }
+[data-skin="game"] .btn-primary { background: linear-gradient(var(--btn-a), var(--btn-b)); color: var(--btn-ink);
+  box-shadow: 0 4px 0 var(--btn-base), 0 7px 12px rgba(0,0,0,.18), inset 0 2px 0 rgba(255,255,255,.45); }
+[data-skin="game"] .btn-secondary { background: linear-gradient(var(--btn2-a), var(--btn2-b)); color: #fff;
+  box-shadow: 0 4px 0 var(--btn2-base), 0 7px 12px rgba(0,0,0,.18), inset 0 2px 0 rgba(255,255,255,.45); }
+[data-skin="game"] .btn-primary::before, [data-skin="game"] .btn-secondary::before { content: ""; position: absolute; z-index: -1; left: 6px; right: 6px; top: 3px; height: 45%;
+  border-radius: 11px 11px 22px 22px; background: linear-gradient(rgba(255,255,255,.5), rgba(255,255,255,0)); pointer-events: none; }
+[data-skin="game"] .btn-lg { min-height: 50px; font-size: 18px; border-radius: 15px; }
+[data-skin="game"] .btn-sm { min-height: 34px; font-size: 14.5px; border-radius: 11px; padding: 0 12px; }
+[data-skin="game"] .btn-primary:active:not(:disabled), [data-skin="game"] .cta-dock .btn-primary:active:not(:disabled) { background: linear-gradient(var(--btn-a), var(--btn-b));
+  transform: translateY(3px); box-shadow: 0 1px 0 var(--btn-base), 0 2px 5px rgba(0,0,0,.18), inset 0 2px 0 rgba(255,255,255,.35); }
+[data-skin="game"] .btn-secondary:active:not(:disabled) { background: linear-gradient(var(--btn2-a), var(--btn2-b));
+  transform: translateY(3px); box-shadow: 0 1px 0 var(--btn2-base), 0 2px 5px rgba(0,0,0,.18), inset 0 2px 0 rgba(255,255,255,.35); }
+[data-skin="game"] .cta-dock .btn-primary:not(:disabled) { box-shadow: 0 4px 0 var(--btn-base), 0 10px 20px rgba(0,0,0,.25), inset 0 2px 0 rgba(255,255,255,.45); }
+[data-skin="game"] .cta-dock { background: none; }
+[data-skin="game"] .btn-tonal { background: var(--fill); color: var(--felt); box-shadow: 0 3px 0 var(--panel-base); }
+[data-skin="game"] .icon-btn:not(.ghost) { background: var(--fill); color: var(--ink); box-shadow: 0 3px 0 var(--panel-base); }
+[data-skin="game"] .step { border-radius: 12px; background: linear-gradient(var(--btn2-a), var(--btn2-b)); color: #fff;
+  box-shadow: 0 3px 0 var(--btn2-base), inset 0 1.5px 0 rgba(255,255,255,.45); }
+[data-skin="game"] .step:active:not(:disabled) { background: linear-gradient(var(--btn2-a), var(--btn2-b)); transform: translateY(2px); box-shadow: 0 1px 0 var(--btn2-base); }
+[data-skin="game"] .chip-btn { border-radius: 10px; font-family: var(--display); font-weight: 400; font-size: 14px; letter-spacing: .02em; color: #fff;
+  background: linear-gradient(var(--chip-a), var(--chip-b)); box-shadow: 0 3px 0 var(--chip-base); text-shadow: 0 1px 0 rgba(0,0,0,.2); }
+[data-skin="game"] .chip-btn.on { background: linear-gradient(var(--btn-a), var(--btn-b)); box-shadow: 0 3px 0 var(--btn-base); }
+[data-skin="game"] .chip-btn:active:not(:disabled) { transform: translateY(2px); }
+[data-skin="game"] .round-badge { background: linear-gradient(var(--btn2-a), var(--btn2-b)); color: #fff; box-shadow: 0 3px 0 var(--btn2-base), inset 0 2px 0 rgba(255,255,255,.4); text-shadow: 0 1px 0 rgba(0,0,0,.2); }
+[data-skin="game"] .rs-pill { background: var(--surface); box-shadow: 0 3px 0 var(--panel-base); font-family: var(--display); font-weight: 400; }
+[data-skin="game"] .rs-pill.future { background: rgba(255,255,255,.18); color: var(--on-bg); box-shadow: none; }
+[data-skin="game"] .rs-pill.on { background: linear-gradient(var(--tab-a), var(--tab-b)); color: var(--tab-text); box-shadow: 0 3px 0 var(--tab-base); }
+[data-skin="game"] .seg { background: var(--fill); border-radius: 999px; box-shadow: inset 0 2px 0 rgba(0,0,0,.12); }
+[data-skin="game"] .seg button { border-radius: 999px; font-family: var(--display); font-weight: 400; letter-spacing: .02em; }
+[data-skin="game"] .seg button.on { background: linear-gradient(var(--tab-a), var(--tab-b)); color: var(--tab-text); box-shadow: 0 2px 0 var(--tab-base); }
+[data-skin="game"] .switch.on { background: linear-gradient(var(--btn-a), var(--btn-b)); }
+[data-skin="game"] .text-input, [data-skin="game"] .score-input { background: var(--fill); border: 2px solid transparent; box-shadow: inset 0 2px 0 rgba(0,0,0,.1); }
+[data-skin="game"] .text-input:focus, [data-skin="game"] .score-input:focus { border-color: var(--felt); }
+[data-skin="game"] .score-input.has { color: var(--felt); background: var(--felt-soft); border-color: var(--felt-line); }
+[data-skin="game"] .tab { font-family: var(--display); font-weight: 400; letter-spacing: .03em; }
+[data-skin="game"] .tab.on { color: var(--tab-label); }
+[data-skin="game"] .tab.on .tab-ico { color: var(--tab-text); }
+[data-skin="game"] .tab-ico::before { background: linear-gradient(var(--tab-a), var(--tab-b)); box-shadow: 0 3px 0 var(--tab-base); border-radius: 12px; }
+[data-skin="game"] .rail-item.on { background: linear-gradient(var(--tab-a), var(--tab-b)); color: var(--tab-text); box-shadow: 0 3px 0 var(--tab-base); }
+/* Playing cards get a firm edge so they read on light sheets */
+[data-skin="game"] .pcard, [data-skin="game"] .pad-card, [data-skin="game"] .hand-card { box-shadow: 0 0 0 1.5px var(--paper-edge), var(--card-shadow); }
+[data-skin="game"] .pad-card:active:not(:disabled) { box-shadow: 0 0 0 1.5px var(--paper-edge); transform: translateY(2px) scale(.94); }
+[data-skin="game"] .big-num { color: var(--gold); }
 
 /* ── Motion ──────────────────────────────────────────────────── */
 .view-enter { animation: viewIn .45s var(--ease) both; }

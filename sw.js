@@ -1,4 +1,4 @@
-const CACHE = 'mayi-v10';
+const CACHE = 'mayi-v11';
 const FILES = ['./', './index.html', './manifest.json', './icon.svg', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
