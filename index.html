@@ -463,6 +463,16 @@ const THEMES = {
   },
 };
 const GAME_SKINS = ["candy", "lagoon", "salon"];
+// Rendered artwork for Grand Salon (generated in Weavy, 192px transparent PNGs).
+const SALON_ART = { play: 1, scores: 1, rules: 1, settings: 1, crown: 1, trophy: 1, medal1: 1, medal2: 1, medal3: 1,
+  out: 1, camera: 1, count: 1, mayi: 1, star: 1, emblem: 1 };
+let artVariant = null;
+function Art({ k, size, fallback, className }) {
+  if (artVariant === "salon" && SALON_ART[k])
+    return ce("img", { src: "assets/salon/" + k + ".png", width: size, height: size, alt: "", "aria-hidden": true, draggable: false, className: "art" + (className ? " " + className : "") });
+  return fallback === undefined ? null : fallback;
+}
+const TAB_ART = { play: "play", scores: "scores", rules: "rules" };
 function resolveTheme(pref) {
   if (pref === "dark" || pref === "light" || GAME_SKINS.includes(pref)) return pref;
   return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
@@ -474,6 +484,7 @@ function applyTheme(pref) {
   if (!t.pageBg) root.style.setProperty("--page-bg", t.bg);
   if (!t.sheetBg) root.style.setProperty("--sheet-bg", t.bg);
   root.style.colorScheme = t.scheme || name;
+  artVariant = name;
   if (GAME_SKINS.includes(name)) { root.dataset.skin = "game"; root.dataset.variant = name; }
   else { delete root.dataset.skin; delete root.dataset.variant; }
   const meta = document.querySelector('meta[name="theme-color"]');
@@ -1134,7 +1145,7 @@ function TopBar({ currentRound, scores, players, dealerOf, onSettings }) {
     ce("div", { className: "grow" },
       ce("div", { className: "topbar-title" }, r.name),
       ce("div", { className: "topbar-meta" }, ce(Pips, { currentRound, scores, players }), d && ce("span", null, "Dealer · " + d.name))),
-    ce("button", { className: "icon-btn", onClick: onSettings, "aria-label": "Settings" }, ce(Icon, { n: "gear", size: 20 })));
+    ce("button", { className: "icon-btn", onClick: onSettings, "aria-label": "Settings" }, ce(Art, { k: "settings", size: 28, fallback: ce(Icon, { n: "gear", size: 20 }) })));
 }
 const NAV = [
   { id: "play",   label: "Play",   icon: "play" },
@@ -1145,7 +1156,7 @@ function TabBar({ tab, setTab }) {
   return ce("nav", { className: "tabbar", "aria-label": "Sections" },
     NAV.map(it => ce("button", { key: it.id, className: "tab" + (tab === it.id ? " on" : ""), "aria-current": tab === it.id ? "page" : undefined,
       onClick: () => { haptic(6); setTab(it.id); } },
-      ce("span", { className: "tab-ico" }, ce(Icon, { n: it.icon, size: 22 })), it.label)));
+      ce("span", { className: "tab-ico" }, ce(Art, { k: TAB_ART[it.id], size: 34, fallback: ce(Icon, { n: it.icon, size: 22 }) })), it.label)));
 }
 function Rail({ tab, setTab, currentRound, scores, players, dealerOf, allRoundsScored, onSettings, onNewGame, onResults }) {
   const r = ROUNDS[currentRound], d = dealerOf(currentRound);
@@ -1158,7 +1169,7 @@ function Rail({ tab, setTab, currentRound, scores, players, dealerOf, allRoundsS
       d && ce("div", { className: "small muted", style: { marginTop: 8 } }, "Dealer · " + d.name)),
     ce("nav", { className: "rail-nav", "aria-label": "Sections" },
       NAV.map(it => ce("button", { key: it.id, className: "rail-item" + (tab === it.id ? " on" : ""), "aria-current": tab === it.id ? "page" : undefined,
-        onClick: () => { haptic(6); setTab(it.id); } }, ce(Icon, { n: it.icon, size: 22 }), it.label))),
+        onClick: () => { haptic(6); setTab(it.id); } }, ce(Art, { k: TAB_ART[it.id], size: 30, fallback: ce(Icon, { n: it.icon, size: 22 }) }), it.label))),
     ce("div", { className: "grow" }),
     allRoundsScored && ce("button", { className: "btn btn-primary btn-block", onClick: onResults }, ce(Icon, { n: "trophy", size: 20 }), "Final results"),
     ce("button", { className: "rail-item", onClick: onSettings }, ce(Icon, { n: "gear", size: 22 }), "Settings"),
@@ -1174,6 +1185,7 @@ function Setup({ players, history, dealer, setDealer, addPlayer, removePlayer, h
   function submit() { if (addPlayer(draft)) { setDraft(""); inputRef.current && inputRef.current.focus(); } }
 
   const hero = ce("div", { className: "setup-hero" },
+    artVariant === "salon" ? ce("div", { className: "hero-art" }, ce(Art, { k: "emblem", size: 150 })) :
     ce("div", { className: "fan", "aria-hidden": true },
       ["AS","KH","QD","JC"].map((c, i) => ce("span", { key: c, style: { transform: "rotate(" + (-18 + i * 12) + "deg) translateY(" + [6, 0, 0, 6][i] + "px)" } }, ce(PlayingCard, { code: c, big: true })))),
     ce("h1", { className: "display" }, "May I?"),
@@ -1410,7 +1422,7 @@ function ScorePanel({ players, scores, round, setRoundScore, onCount }) {
             onPointerDown: e => { e.preventDefault(); if (!(outPlayer && !out)) toggleOut(p.id); },
             "aria-label": out ? p.name + " went out. Tap to undo" : outPlayer ? outPlayer.name + " already went out" : p.name + " went out" }, "Out"),
           ce("button", { className: "icon-btn", onPointerDown: e => e.preventDefault(), onClick: () => onCount(p), "aria-label": "Count " + p.name + "'s hand" },
-            ce(Icon, { n: "calc", size: 20 })),
+            ce(Art, { k: "count", size: 28, fallback: ce(Icon, { n: "calc", size: 20 }) })),
           ce("input", { className: "score-input" + (has ? " has" : ""), inputMode: "numeric", pattern: "[0-9]*", value: val, placeholder: "–",
             "aria-label": "Points for " + p.name, enterKeyHint: "next",
             onFocus: e => e.target.select(),
@@ -1466,7 +1478,7 @@ function HandCounter({ player, round, houseRules, apiKey, openSettings, onApply,
             : ce("div", { className: "photo-empty" }, ce(Icon, { n: "camera", size: 28 }),
                 ce("span", null, "Snap the cards to count along, or let AI read them.")),
       ce("div", { className: "btn-row" },
-        ce("label", { className: "btn btn-secondary" }, ce(Icon, { n: "camera", size: 19 }), photo ? "Retake" : "Take photo",
+        ce("label", { className: "btn btn-secondary" }, ce(Art, { k: "camera", size: 26, fallback: ce(Icon, { n: "camera", size: 19 }) }), photo ? "Retake" : "Take photo",
           ce("input", { type: "file", accept: "image/*", capture: "environment", onChange: onPhoto, className: "visually-hidden" })),
         photo && (apiKey
           ? ce("button", { className: "btn btn-primary", onClick: scan, disabled: busy }, busy ? ce("span", { className: "spinner" }) : ce(Icon, { n: "sparkle", size: 19 }), busy ? "Reading cards…" : "Read cards with AI")
@@ -1520,7 +1532,7 @@ function HandHelper({ round, houseRules, level, apiKey, openSettings, onClose, w
       photo ? ce("img", { src: photo, alt: "Photo of your hand" })
             : ce("div", { className: "photo-empty" }, ce(Icon, { n: "camera", size: 28 }), ce("span", null, "Fan your cards so every corner shows.")),
       ce("div", { className: "btn-row" },
-        ce("label", { className: "btn btn-secondary" }, ce(Icon, { n: "camera", size: 19 }), photo ? "Retake" : "Take photo",
+        ce("label", { className: "btn btn-secondary" }, ce(Art, { k: "camera", size: 26, fallback: ce(Icon, { n: "camera", size: 19 }) }), photo ? "Retake" : "Take photo",
           ce("input", { type: "file", accept: "image/*", capture: "environment", onChange: onPhoto, className: "visually-hidden" })),
         photo && (apiKey
           ? ce("button", { className: "btn btn-primary", onClick: ask, disabled: busy }, busy ? ce("span", { className: "spinner" }) : ce(Icon, { n: "sparkle", size: 19 }), busy ? "Thinking…" : "Get tips")
@@ -1577,15 +1589,15 @@ function buildHighlights(ins, players) {
   };
   const names = arr => arr.map(x => x.p.name).join(" & ");
   const outs = topBy("outs");
-  if (outs) out.push({ icon: "🎯", title: "Clean hands", who: names(outs), text: "Went out " + outs[0].outs + " time" + (outs[0].outs > 1 ? "s" : "") + "." });
+  if (outs) out.push({ icon: "🎯", art: "out", title: "Clean hands", who: names(outs), text: "Went out " + outs[0].outs + " time" + (outs[0].outs > 1 ? "s" : "") + "." });
   const buyers = topBy("buyN");
-  if (buyers) out.push({ icon: "🛒", title: "Bargain hunter", who: names(buyers), text: "Said “May I?” " + buyers[0].buyN + " time" + (buyers[0].buyN > 1 ? "s" : "") + "." });
+  if (buyers) out.push({ icon: "🛒", art: "mayi", title: "Bargain hunter", who: names(buyers), text: "Said “May I?” " + buyers[0].buyN + " time" + (buyers[0].buyN > 1 ? "s" : "") + "." });
   const cb = ins.per.filter(x => x.comeback && x.comeback.d >= 10).sort((a, b) => b.comeback.d - a.comeback.d)[0];
-  if (cb) out.push({ icon: "🚀", title: "Comeback kid", who: cb.p.name, text: "Went from " + cb.comeback.from + " to " + cb.comeback.to + " points in round " + (cb.comeback.i + 1) + "." });
+  if (cb) out.push({ icon: "🚀", art: "star", title: "Comeback kid", who: cb.p.name, text: "Went from " + cb.comeback.from + " to " + cb.comeback.to + " points in round " + (cb.comeback.i + 1) + "." });
   const eligible = ins.per.filter(x => x.rs.length >= 3);
   const steady = eligible.length > 1 && [...eligible].sort((a, b) => a.spread - b.spread)[0];
   if (steady && steady.spread <= 20) {
-    out.push({ icon: "🧘", title: "Steady hand", who: steady.p.name, text: "Most consistent. Every round within " + steady.spread + " points." });
+    out.push({ icon: "🧘", art: "medal2", title: "Steady hand", who: steady.p.name, text: "Most consistent. Every round within " + steady.spread + " points." });
   }
   const heavy = ins.per.filter(x => x.worst && x.worst.v > 0).sort((a, b) => b.worst.v - a.worst.v)[0];
   if (heavy) out.push({ icon: "🎒", title: "Heavy pockets", who: heavy.p.name, text: "Caught holding " + heavy.worst.v + " in round " + (heavy.worst.i + 1) + ". It happens to everyone." });
@@ -1638,7 +1650,7 @@ function hiccups(ins, houseRules) {
 }
 function Highlights({ items }) {
   return ce("div", { className: "awards" }, items.map((a, i) => ce("div", { key: a.title, className: "award", style: { animationDelay: i * 60 + "ms" } },
-    ce("span", { className: "award-icon", "aria-hidden": true }, a.icon),
+    ce("span", { className: "award-icon", "aria-hidden": true }, ce(Art, { k: a.art, size: 36, fallback: a.icon })),
     ce("div", { className: "min0" },
       ce("div", { className: "eyebrow" }, a.title),
       ce("div", { className: "strong award-who" }, a.who),
@@ -1685,7 +1697,9 @@ function ScoresView({ players, scores, buys, hands, houseRules, ranked, allRound
       ranked.map((p, i) => {
         const lead = hasAny && p.total === leader.total, behind = p.total - leader.total, won = roundsWon(p.id);
         return ce("li", { key: p.id, className: "list-row stand-row" + (lead ? " lead" : ""), style: { animationDelay: i * 40 + "ms" } },
-          ce("span", { className: "rank" + (lead ? " lead" : "") }, lead ? ce(Icon, { n: "star", size: 16, stroke: 2.2 }) : i + 1),
+          artVariant === "salon" && i < 3 && hasAny
+            ? ce("span", { className: "rank art-rank" }, ce(Art, { k: "medal" + (i + 1), size: 34 }))
+            : ce("span", { className: "rank" + (lead ? " lead" : "") }, lead ? ce(Icon, { n: "star", size: 16, stroke: 2.2 }) : i + 1),
           ce(Avatar, { name: p.name, size: 36 }),
           ce("div", { className: "grow min0" },
             ce("div", { className: "name" }, p.name),
@@ -1907,7 +1921,7 @@ function Podium({ ranked }) {
       const place = Math.min(3, placeOf(p));
       return ce("div", { key: p.id, className: "podium-col", role: "listitem" },
         ce("div", { className: "podium-who", style: { animationDelay: delay[place] + .45 + "s" } },
-          place === 1 && ce("span", { className: "crown", "aria-hidden": true }, "👑"),
+          place === 1 && ce("span", { className: "crown", "aria-hidden": true }, ce(Art, { k: "crown", size: 34, fallback: "👑" })),
           ce(Avatar, { name: p.name, size: place === 1 ? 56 : 46 }),
           ce("span", { className: "podium-name" }, p.name),
           ce("span", { className: "podium-pts" }, p.total + " pts")),
@@ -1958,6 +1972,7 @@ function GameSummary({ ranked, scores, buys, hands, players, houseRules, wide, o
         ce("button", { className: "btn btn-secondary", onClick: share, disabled: sharing }, ce(Icon, { n: "share", size: 19 }), sharing ? "Sharing…" : "Share"),
         ce("button", { className: "btn btn-primary grow", onClick: onPlayAgain }, "Play again")) },
       ce("div", { className: "winner" },
+        ce(Art, { k: "trophy", size: 110, className: "winner-art" }),
         ce("div", { className: "eyebrow" }, tie ? "It's a tie!" : "And the winner is"),
         ce("div", { className: "winner-name" }, headline),
         ce("div", { className: "muted" }, winner.total + " points · lowest score wins")),
@@ -2472,6 +2487,19 @@ ul, ol, dl, dd { margin: 0; padding: 0; list-style: none; }
 [data-variant="salon"] .sheet .btn-secondary:active:not(:disabled) { background: linear-gradient(180deg, #FFFCF2, #EBDDBF); box-shadow: 0 0 0 1px #7A5214, 0 1px 0 #9C7430; }
 [data-variant="salon"] .sheet-foot { border-top-color: rgba(122,82,20,.25); }
 [data-variant="salon"] .grab { background: rgba(122,82,20,.35); }
+
+/* Rendered Salon artwork */
+.art { display: block; object-fit: contain; filter: drop-shadow(0 2px 3px rgba(0,0,0,.35)); pointer-events: none; }
+.hero-art { display: flex; justify-content: center; margin: 0 0 6px; }
+.hero-art .art { animation: dealIn 1.1s .1s var(--ease-out) both; filter: drop-shadow(0 10px 14px rgba(0,0,0,.45)); }
+.winner-art { margin: 0 auto 6px; animation: trophy 1s .15s var(--spring) both; filter: drop-shadow(0 10px 14px rgba(0,0,0,.35)); }
+.rank.art-rank { width: 36px; height: 36px; background: none; border: 0; }
+.crown .art { margin: 0 auto -2px; }
+[data-variant="salon"] .tab-ico::before { display: none; }
+[data-variant="salon"] .tab .art { opacity: .7; filter: saturate(.55) drop-shadow(0 2px 3px rgba(0,0,0,.35)); transition: transform .45s var(--spring), opacity .2s var(--ease); }
+[data-variant="salon"] .tab.on .art { opacity: 1; filter: drop-shadow(0 0 10px rgba(255,205,100,.55)) drop-shadow(0 2px 3px rgba(0,0,0,.4)); transform: translateY(-2px) scale(1.12); }
+[data-variant="salon"] .award-icon { background: transparent; border: 0; }
+[data-variant="salon"] .icon-btn:not(.ghost) .art { width: 28px; height: 28px; }
 
 /* ── Motion ──────────────────────────────────────────────────── */
 .view-enter { animation: viewIn .45s var(--ease) both; }
