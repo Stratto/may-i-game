@@ -12,7 +12,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;700;800;900&family=Alegreya:wght@700;800;900&family=Alegreya+Sans:wght@500;700;800&family=Cinzel:wght@700;900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Lilita+One&family=Nunito:wght@600;700;800;900&family=Alegreya:wght@700;800;900&family=Alegreya+Sans:wght@500;700;800&family=Cinzel:wght@700;900&display=swap">
 <title>May I?</title>
 <style>
   html,body{margin:0;padding:0;height:100%;background:#F5F0E6;overscroll-behavior:none;}
@@ -360,17 +360,19 @@ const reducedMotion = () => window.matchMedia && matchMedia("(prefers-reduced-mo
 // ── Looks: one signature look + packs (tokens and art only) ───────
 const LOOKS = {
   table: {
-    name: "Table", desc: "The signature look", swatch: ["#F3EFE6", "#14583A"],
-    light: { bg: "#F3EFE6", band: "#14583A", band2: "#0E4229", bandInk: "#FFFFFF", bandInk2: "rgba(255,255,255,.72)",
-      surface: "#FFFFFF", surface2: "#F7F4EE", fill: "#ECE7DC", line: "rgba(24,22,18,.10)", ink: "#17150F", ink2: "#4B473E", ink3: "#6E695E",
-      accent: "#14583A", accentInk: "#FFFFFF", accentBase: "#0B3A24", gold: "#B47A12", goldSoft: "rgba(214,160,40,.16)", red: "#C42B3B",
-      cardFace: "#FFFFFF", cardInk: "#17150F", cardRed: "#C42B3B", cardEdge: "rgba(24,22,18,.14)", scrim: "rgba(20,18,14,.38)",
-      shadow: "0 1px 2px rgba(24,22,18,.06), 0 6px 18px rgba(24,22,18,.08)", lift: "0 18px 40px rgba(24,22,18,.22)" },
-    dark: { bg: "#0D110F", band: "#123F2B", band2: "#0A2A1C", bandInk: "#FFFFFF", bandInk2: "rgba(255,255,255,.7)",
-      surface: "#1A1F1C", surface2: "#202722", fill: "#29312C", line: "rgba(255,255,255,.09)", ink: "#F3F1EC", ink2: "#C6CBC6", ink3: "#9AA29C",
-      accent: "#3DBA7E", accentInk: "#03140B", accentBase: "#1F7A4E", gold: "#EBC066", goldSoft: "rgba(235,192,102,.14)", red: "#FF7D7D",
-      cardFace: "#F6F2E9", cardInk: "#17150F", cardRed: "#C42B3B", cardEdge: "rgba(0,0,0,.3)", scrim: "rgba(0,0,0,.6)",
-      shadow: "0 1px 2px rgba(0,0,0,.5)", lift: "0 18px 40px rgba(0,0,0,.6)" },
+    name: "Table", desc: "The signature look", swatch: ["#F4F5F2", "#145A40"],
+    light: { bg: "#F1F2EE", band: "#17644A", band2: "#0D4431", bandInk: "#FFFFFF", bandInk2: "rgba(255,255,255,.7)",
+      surface: "#FFFFFF", surface2: "#F7F8F5", fill: "rgba(20,48,36,.055)", line: "rgba(20,40,30,.09)", ink: "#121714", ink2: "#46504A", ink3: "#6B756F",
+      accent: "#145A40", accentInk: "#FFFFFF", accentBase: "#0B3826", accentSoft: "rgba(20,90,64,.09)", gold: "#A87411", goldSoft: "rgba(201,148,40,.13)", red: "#C0303F",
+      cardFace: "#FFFFFF", cardInk: "#141414", cardRed: "#C8283A", cardEdge: "rgba(20,30,25,.16)", scrim: "rgba(12,22,17,.36)",
+      shadow: "0 1px 1px rgba(16,40,28,.04), 0 6px 20px -6px rgba(16,40,28,.14)", lift: "0 24px 60px -12px rgba(10,40,26,.35)",
+      fontDisplay: '"Fraunces", Georgia, serif', fontNum: '-apple-system, "SF Pro Display", system-ui, sans-serif' },
+    dark: { bg: "#0B0E0C", band: "#134D38", band2: "#0A2E21", bandInk: "#FFFFFF", bandInk2: "rgba(255,255,255,.68)",
+      surface: "#171C19", surface2: "#1D2420", fill: "rgba(255,255,255,.06)", line: "rgba(255,255,255,.08)", ink: "#F2F4F1", ink2: "#C3CAC5", ink3: "#949E97",
+      accent: "#46C08A", accentInk: "#03140B", accentBase: "#257A54", accentSoft: "rgba(70,192,138,.14)", gold: "#E8BD62", goldSoft: "rgba(232,189,98,.13)", red: "#FF8080",
+      cardFace: "#F7F5EF", cardInk: "#141414", cardRed: "#C8283A", cardEdge: "rgba(0,0,0,.35)", scrim: "rgba(0,0,0,.6)",
+      shadow: "0 0 0 1px rgba(255,255,255,.04)", lift: "0 24px 60px -12px rgba(0,0,0,.7)",
+      fontDisplay: '"Fraunces", Georgia, serif', fontNum: '-apple-system, "SF Pro Display", system-ui, sans-serif' },
   },
   salon: {
     name: "Salon", desc: "Felt, mahogany & gold", swatch: ["#0F4A2A", "#D9A94E"], art: true,
@@ -498,7 +500,9 @@ function Avatar({ name, size }) {
 }
 function Card({ code, size }) {
   const rank = code.slice(0, -1), [ch, red] = SUIT[code.slice(-1)];
-  return ce("span", { className: "pc" + (red ? " red" : "") + (size ? " " + size : "") }, ce("b", null, rank), ce("i", null, ch));
+  return ce("span", { className: "pc" + (red ? " red" : "") + (size ? " " + size : ""), "aria-label": rank + ch },
+    ce("span", { className: "pc-idx" }, ce("b", null, rank), ce("i", null, ch)),
+    ce("span", { className: "pc-pip" }, ch));
 }
 function Melds({ ex, size }) {
   return ce("div", { className: "melds" }, ex.map((m, i) => ce("span", { key: i, className: "meld" }, m.map(c => ce(Card, { key: c, code: c, size })))));
@@ -702,33 +706,36 @@ function Table({ players, totals, ranked, scores, buys, round, rules, limit, pha
   return ce("div", { className: "table" + (wide ? " wide" : "") },
     ce("header", { className: "band" },
       ce("div", { className: "band-top" },
-        ce("span", { className: "band-eyebrow" }, "Round " + r.n + " of 7"),
+        ce("span", { className: "band-eyebrow" }, "Round " + r.n, ce("span", { className: "of" }, " of 7")),
         ce("div", { className: "band-actions" },
-          ce("button", { className: "band-btn", onClick: () => open("standings"), "aria-label": "Standings" }, ce(Art, { k: "scores", size: 26, fallback: ce(Icon, { n: "chart", size: 20 }) })),
-          ce("button", { className: "band-btn", onClick: () => open("settings"), "aria-label": "Settings" }, ce(Art, { k: "settings", size: 26, fallback: ce(Icon, { n: "gear", size: 20 }) })))),
+          ce("button", { className: "band-btn", onClick: () => open("standings"), "aria-label": "Standings" }, ce(Art, { k: "scores", size: 26, fallback: ce(Icon, { n: "chart", size: 19 }) })),
+          ce("button", { className: "band-btn", onClick: () => open("settings"), "aria-label": "Settings" }, ce(Art, { k: "settings", size: 26, fallback: ce(Icon, { n: "gear", size: 19 }) })))),
       ce("button", { className: "band-main", onClick: () => open("rules", { tab: "round" }), "aria-label": r.name + ". Show this round's rules" },
         ce("h1", { key: r.n, className: "band-title" }, r.name),
         ce(Melds, { ex: r.ex, size: "sm" })),
       ce("div", { className: "band-foot" },
         ce("div", { className: "pips", "aria-label": "Round " + r.n + " of 7" }, ROUNDS.map((_, i) => ce("i", { key: i, className: (isDone(scores, i, players) ? "done" : "") + (i === round ? " now" : "") }))),
-        d && ce("span", { className: "dealer-pill" }, ce(Icon, { n: "deal", size: 14 }), d.name + " deals"),
-        r.goOut && ce("span", { className: "dealer-pill warn" }, ce(Icon, { n: "bolt", size: 14 }), "Go out in one"))),
+        ce("span", { className: "grow" }),
+        r.goOut && ce("span", { className: "tag warn" }, ce(Icon, { n: "bolt", size: 13 }), "Go out in one"),
+        d && ce("span", { className: "tag" }, ce(Icon, { n: "deal", size: 13 }), d.name + " deals"))),
     ce("main", { className: "felt-body" },
-      phase === "score" && ce("div", { className: "phase-note" }, ce("b", null, "Scoring round " + r.n), scored + " of " + players.length + " in"),
-      ce("div", { className: "grid" + (players.length > 4 ? " dense" : "") }, totals.map((p, i) => ce(PlayerCard, {
-        key: p.id, p, idx: i, phase, round, leader: hasAny && p.total === leaderTotal, dealer: d && d.id === p.id,
+      ce("div", { className: "seats-head" },
+        ce("span", null, phase === "score" ? "Scoring round " + r.n : "Players"),
+        ce("span", { className: "count" }, phase === "score" ? scored + " of " + players.length : limit === Infinity ? "Unlimited buys" : limit + " buys each")),
+      ce("ul", { className: "seats" + (phase === "score" ? " scoring" : "") }, totals.map((p, i) => ce(Seat, {
+        key: p.id, p, i, phase, round, leader: hasAny && p.total === leaderTotal, dealer: d && d.id === p.id,
         buys: (buys[round] && buys[round][p.id]) || 0, limit, value: rs[p.id], outTaken: !!outId && outId !== p.id,
         changeBuy, setScore, players, rs, onCount: () => open("counter", { player: p, round }) })))),
     ce("footer", { className: "dock dockbar" },
       phase === "play"
         ? ce("button", { className: "btn primary lg", onClick: () => { haptic(8); setPhase("score"); } }, "Score round " + r.n)
         : ce(Fragment, null,
-            ce("button", { className: "btn secondary", onClick: () => setPhase("play"), "aria-label": "Back to buys" }, ce(Icon, { n: "back", size: 20 })),
+            ce("button", { className: "btn secondary square", onClick: () => setPhase("play"), "aria-label": "Back to buys" }, ce(Icon, { n: "back", size: 20 })),
             ce("button", { className: "btn primary lg grow", disabled: !complete && !allDone, onClick: allDone ? finish : nextRound },
-              allDone ? ce(Fragment, null, ce(Icon, { n: "trophy", size: 20 }), "Final results")
+              allDone ? ce(Fragment, null, ce(Icon, { n: "trophy", size: 19 }), "Final results")
                 : complete ? (round < 6 ? "Next round" : "Finish game") : "Enter every score"))));
 }
-function PlayerCard({ p, phase, leader, dealer, buys, limit, value, outTaken, changeBuy, setScore, round, players, rs, onCount }) {
+function Seat({ p, i, phase, leader, dealer, buys, limit, value, outTaken, changeBuy, setScore, round, players, rs, onCount }) {
   const total = useCount(p.total);
   const has = typeof value === "number", out = value === 0;
   const [draft, setDraft] = useState(null);
@@ -738,7 +745,7 @@ function PlayerCard({ p, phase, leader, dealer, buys, limit, value, outTaken, ch
     if (justOut.current) { justOut.current = false; return; }
     if (draft == null) return;
     const v = draft === "" ? "" : parseInt(draft, 10); setDraft(null); setScore(round, p.id, v);
-    if (v !== "" && v > 0) {   // last unscored player with nobody out must be the one who went out
+    if (v !== "" && v > 0) {
       const next = { ...rs, [p.id]: v };
       if (!players.some(x => next[x.id] === 0)) { const left = players.filter(x => typeof next[x.id] !== "number"); if (left.length === 1) setScore(round, left[0].id, 0); }
     }
@@ -748,39 +755,45 @@ function PlayerCard({ p, phase, leader, dealer, buys, limit, value, outTaken, ch
     if (out) setScore(round, p.id, ""); else if (!outTaken) setScore(round, p.id, 0);
   }
   const shown = draft != null ? draft : has ? String(value) : "";
-  return ce("article", { className: "pcard" + (leader ? " leader" : "") + (out ? " out" : "") + (phase === "score" ? " scoring" : ""), "aria-label": p.name + ", " + p.total + " points" },
-    ce("div", { className: "pc-top" },
-      ce(Avatar, { name: p.name, size: 30 }),
-      ce("span", { className: "pc-name" }, p.name),
-      leader && ce("span", { className: "crown", "aria-label": "Leading" }, ce(Art, { k: "crown", size: 22, fallback: ce(Icon, { n: "crown", size: 16 }) })),
-      dealer && ce("span", { className: "deal-dot", title: "Dealer", "aria-label": "Dealer" }, "D")),
+  const atLimit = limit !== Infinity && buys >= limit;
+  return ce("li", { className: "seat" + (leader ? " leader" : "") + (out ? " out" : ""), style: { "--i": i } },
+    ce("span", { className: "seat-av" }, ce(Avatar, { name: p.name, size: 40 }), dealer && ce("span", { className: "dealer-badge", title: "Dealer" }, "D")),
+    ce("div", { className: "seat-main" },
+      ce("span", { className: "seat-name" }, p.name, leader && ce("span", { className: "crown", "aria-label": "Leading" }, ce(Art, { k: "crown", size: 18, fallback: ce(Icon, { n: "crown", size: 14 }) }))),
+      phase === "play"
+        ? ce("span", { className: "seat-sub" }, ce("span", { className: "num" }, total), " pts")
+        : ce("span", { className: "seat-sub" + (out ? " good" : "") }, out ? "Went out" : has ? "Scored" : "Total " + p.total)),
     phase === "play"
-      ? ce(Fragment, null,
-          ce("div", { className: "pc-total" }, ce("b", null, total), ce("small", null, "pts")),
-          ce("div", { className: "pc-buys" },
-            ce("button", { className: "pips-btn", onClick: () => changeBuy(p.id, -1), disabled: !buys, "aria-label": "Remove a buy for " + p.name },
-              limit === Infinity ? ce("span", { className: "buy-num" }, buys) : Array.from({ length: limit }, (_, i) => ce("i", { key: i, className: i < buys ? "on" : "" }))),
-            ce("button", { className: "mayi-btn", onClick: () => changeBuy(p.id, 1), disabled: buys >= limit, "aria-label": "Add a May I? buy for " + p.name }, "May I?")))
-      : ce(Fragment, null,
-          ce("input", { className: "pc-input" + (has ? " has" : "") + (out ? " zero" : ""), inputMode: "numeric", pattern: "[0-9]*", value: shown, placeholder: "–",
+      ? ce("div", { className: "buy" },
+          buys > 0 && ce("button", { className: "buy-minus", onClick: () => changeBuy(p.id, -1), "aria-label": "Remove a buy for " + p.name }, ce(Icon, { n: "minus", size: 14, stroke: 2.4 })),
+          ce("button", { className: "buy-pill" + (buys ? " has" : ""), onClick: () => changeBuy(p.id, 1), disabled: atLimit, "aria-label": "May I? buy for " + p.name + ", " + buys + " so far" },
+            ce("span", null, "May I?"),
+            limit === Infinity ? (buys > 0 && ce("b", null, buys))
+              : ce("span", { className: "dots" }, Array.from({ length: limit }, (_, k) => ce("i", { key: k, className: k < buys ? "on" : "" })))))
+      : ce("div", { className: "score" },
+          ce("button", { className: "out-btn" + (out ? " on" : ""), disabled: outTaken, "aria-pressed": out, "aria-label": p.name + " went out",
+            onPointerDown: e => { e.preventDefault(); if (!outTaken) toggleOut(); } }, ce(Icon, { n: "check", size: 16, stroke: 2.6 }), "Out"),
+          ce("button", { className: "calc-btn", onPointerDown: e => e.preventDefault(), onClick: onCount, "aria-label": "Count " + p.name + "'s hand" }, ce(Icon, { n: "calc", size: 18 })),
+          ce("input", { className: "score-in" + (has ? " has" : "") + (out ? " zero" : ""), inputMode: "numeric", pattern: "[0-9]*", value: shown, placeholder: "–",
             "aria-label": "Points for " + p.name, enterKeyHint: "next", onFocus: e => e.target.select(),
-            onChange: e => setDraft(e.target.value.replace(/[^0-9]/g, "").slice(0, 3)), onBlur: commit, onKeyDown: e => e.key === "Enter" && e.target.blur() }),
-          ce("div", { className: "pc-actions" },
-            ce("button", { className: "chip" + (out ? " on" : ""), disabled: outTaken, "aria-pressed": out, onPointerDown: e => { e.preventDefault(); if (!outTaken) toggleOut(); } }, out ? "Went out" : "Out"),
-            ce("button", { className: "chip icon", onPointerDown: e => e.preventDefault(), onClick: onCount, "aria-label": "Count " + p.name + "'s hand" }, ce(Icon, { n: "calc", size: 18 })))));
+            onChange: e => setDraft(e.target.value.replace(/[^0-9]/g, "").slice(0, 3)), onBlur: commit, onKeyDown: e => e.key === "Enter" && e.target.blur() })));
 }
 
-// ── Round intro ───────────────────────────────────────────────────
+// ── Round intro: a giant playing card ─────────────────────────────
+const SUIT_FOR = ["♠", "♥", "♦", "♣", "♠", "♥", "♦"];
 function RoundIntro({ r, dealer, onDone }) {
   const [out, setOut] = useState(false);
   const done = () => { if (out) return; setOut(true); setTimeout(onDone, 260); };
-  useEffect(() => { const t = setTimeout(done, 3200); return () => clearTimeout(t); }, []);
+  useEffect(() => { const t = setTimeout(done, 3400); return () => clearTimeout(t); }, []);
+  const suit = SUIT_FOR[r.n - 1], red = suit === "♥" || suit === "♦";
   return ce("div", { className: "intro" + (out ? " out" : ""), onClick: done, role: "status" },
-    ce("div", { className: "intro-card" },
-      ce("span", { className: "intro-n" }, "Round " + r.n),
+    ce("div", { className: "intro-card" + (red ? " red" : "") },
+      ce("span", { className: "ic-idx tl" }, ce("b", null, r.n), ce("i", null, suit)),
+      ce("span", { className: "ic-idx br" }, ce("b", null, r.n), ce("i", null, suit)),
+      ce("span", { className: "intro-n" }, "Round " + r.n + " of 7"),
       ce("h2", null, r.name),
-      ce(Melds, { ex: r.ex }),
-      dealer && ce("p", { className: "intro-deal" }, ce("b", null, dealer), " deals " + r.cards),
+      ce(Melds, { ex: r.ex, size: "sm" }),
+      dealer && ce("p", { className: "intro-deal" }, ce("b", null, dealer), " deals " + r.cards + " cards"),
       ce("p", { className: "intro-tip" }, r.tip)));
 }
 
@@ -971,9 +984,10 @@ a { color: inherit; }
 .btn.lg { min-height: 56px; font-size: 1.06rem; border-radius: 17px; }
 .btn.block { width: 100%; }
 .btn.grow, .grow { flex: 1; }
-.btn.primary { background: var(--accent); color: var(--accent-ink); box-shadow: 0 var(--btn-depth) 0 var(--accent-base); }
+.btn.primary { background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 92%, #fff), var(--accent)); color: var(--accent-ink);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 var(--btn-depth) 0 var(--accent-base), 0 10px 24px -10px color-mix(in srgb, var(--accent) 70%, transparent); }
 .btn.primary:active:not(:disabled) { transform: translateY(var(--btn-depth)) scale(.98); box-shadow: 0 0 0 var(--accent-base); }
-.btn.secondary { background: var(--fill); color: var(--ink); min-width: 56px; }
+.btn.secondary { background: var(--accent-soft, var(--fill)); color: var(--accent); min-width: 56px; }
 .btn.danger { background: rgba(196,43,59,.1); color: var(--red); margin-top: 18px; }
 .icon-btn, .round-btn { width: 44px; height: 44px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; background: var(--fill); }
 .icon-btn.ghost { background: none; color: var(--ink3); }
@@ -992,15 +1006,19 @@ a { color: inherit; }
 .row-link small { color: var(--ink3); font-size: .82rem; }
 .row-link svg { color: var(--ink3); flex-shrink: 0; }
 
-/* Playing cards */
-.pc { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; width: 26px; height: 36px; border-radius: 5px; line-height: 1;
-  background: var(--card-face); color: var(--card-ink); box-shadow: 0 0 0 1px var(--card-edge), 0 1.5px 0 var(--card-edge); font-family: var(--numf); }
-.pc b { font-size: .72rem; font-weight: 800; } .pc i { font-style: normal; font-size: .76rem; }
+/* Playing cards: corner index + centre pip */
+.pc { position: relative; display: inline-block; flex-shrink: 0; font-size: 11px; width: 2.9em; height: 4.1em; border-radius: .42em; color: var(--card-ink);
+  background: linear-gradient(170deg, #FFFFFF 0%, #F6F5F1 100%); box-shadow: 0 0 0 .5px var(--card-edge), 0 1px 1px rgba(0,0,0,.08), 0 3px 8px -3px rgba(0,0,0,.3); }
 .pc.red { color: var(--card-red); }
-.pc.sm { width: 22px; height: 30px; border-radius: 4px; } .pc.sm b { font-size: .62rem; } .pc.sm i { font-size: .64rem; }
-.pc.xl { width: 58px; height: 82px; border-radius: 9px; box-shadow: 0 0 0 1px var(--card-edge), 0 10px 24px rgba(0,0,0,.18); } .pc.xl b { font-size: 1.4rem; } .pc.xl i { font-size: 1.5rem; }
-.melds { display: flex; flex-wrap: wrap; gap: 8px; }
-.meld { display: inline-flex; gap: 2px; }
+.pc-idx { position: absolute; top: .3em; left: .32em; display: flex; flex-direction: column; align-items: center; line-height: .92; font-family: var(--numf); }
+.pc-idx b { font-size: .95em; font-weight: 700; letter-spacing: -.04em; } .pc-idx i { font-style: normal; font-size: .78em; }
+.pc-pip { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: .7em 0 0 .35em; font-size: 1.55em; line-height: 1; }
+.pc.sm { font-size: 9.5px; }
+.pc.xl { font-size: 22px; box-shadow: 0 0 0 .5px var(--card-edge), 0 2px 2px rgba(0,0,0,.08), 0 18px 30px -12px rgba(0,0,0,.45); }
+.melds { display: flex; flex-wrap: wrap; gap: 10px 14px; }
+.meld { display: inline-flex; }
+.meld .pc + .pc { margin-left: -1.15em; }
+.meld .pc:nth-child(2) { transform: translateY(-1px); } .meld .pc:nth-child(3) { transform: translateY(-2px); } .meld .pc:nth-child(4) { transform: translateY(-1px); }
 
 /* Setup */
 .setup { height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; background: var(--bg); }
@@ -1010,7 +1028,7 @@ a { color: inherit; }
 .fan > span { margin: 0 -11px; transform: rotate(var(--r)); animation: deal .9s var(--d) var(--out) both; }
 .fan > span:nth-child(1), .fan > span:nth-child(4) { translate: 0 6px; }
 @keyframes deal { from { opacity: 0; transform: translateY(16px) rotate(0); } }
-.wordmark { font-family: var(--disp); font-size: 2.7rem; font-weight: 800; letter-spacing: -.035em; margin: 0; line-height: 1; }
+.wordmark { font-family: var(--disp); font-size: 3rem; font-weight: 650; letter-spacing: -.03em; font-variation-settings: "opsz" 144; margin: 0; line-height: 1; }
 .tagline { margin: 8px 0 0; font-size: 1rem; opacity: .8; }
 .add { display: flex; gap: 8px; padding: 6px; }
 .add input { flex: 1; min-width: 0; height: 48px; border-radius: 13px; border: 0; background: var(--fill); padding: 0 14px; font-size: 1rem; outline: none; }
@@ -1020,7 +1038,8 @@ a { color: inherit; }
 .prow-main:active:not(:disabled) { transform: none; opacity: .7; }
 .pname { flex: 1; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .dealer-chip { font-size: .72rem; font-weight: 700; padding: 3px 9px; border-radius: 99px; background: var(--gold-soft); color: var(--gold); }
-.avatar { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: 999px; color: #fff; font-weight: 700; }
+.avatar { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: 999px; color: #fff; font-weight: 650; letter-spacing: -.02em;
+  background-image: linear-gradient(160deg, rgba(255,255,255,.22), rgba(0,0,0,.12)) !important; box-shadow: inset 0 0 0 .5px rgba(0,0,0,.12); }
 .dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: flex; gap: 10px; padding: 14px 20px calc(14px + env(safe-area-inset-bottom));
   background: linear-gradient(to bottom, transparent, var(--bg) 38%); }
 .setup .dock .btn { flex: 1; max-width: 480px; margin: 0 auto; }
@@ -1035,79 +1054,99 @@ a { color: inherit; }
 
 /* Table */
 .table { height: 100%; display: flex; flex-direction: column; background: var(--bg); }
-.band { flex-shrink: 0; color: var(--band-ink); background: linear-gradient(180deg, var(--band), var(--band2)); padding: calc(8px + env(safe-area-inset-top)) 18px 14px;
-  border-radius: 0 0 28px 28px; box-shadow: 0 10px 30px rgba(0,0,0,.14); position: relative; z-index: 2; }
+.band { position: relative; z-index: 2; flex-shrink: 0; color: var(--band-ink); padding: calc(6px + env(safe-area-inset-top)) 20px 16px; border-radius: 0 0 30px 30px; overflow: hidden;
+  background: radial-gradient(120% 140% at 30% 0%, color-mix(in srgb, var(--band) 88%, #fff) 0%, var(--band) 45%, var(--band2) 100%);
+  box-shadow: 0 1px 0 rgba(255,255,255,.06) inset, 0 16px 34px -18px rgba(6,40,26,.55); }
+.band::before { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .22; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+.band > * { position: relative; }
 .band-top { display: flex; align-items: center; justify-content: space-between; min-height: 44px; }
-.band-eyebrow { font-size: .8rem; font-weight: 650; letter-spacing: .04em; text-transform: uppercase; color: var(--band-ink2); }
-.band-actions { display: flex; gap: 6px; }
-.band-btn { width: 44px; height: 44px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; background: rgba(255,255,255,.12); color: var(--band-ink); }
-[data-look="lagoon"] .band-btn { background: rgba(23,58,74,.08); }
-.band-main { display: block; width: 100%; text-align: left; padding: 2px 0 0; }
-.band-main:active:not(:disabled) { transform: scale(.985); }
-.band-title { font-family: var(--disp); font-size: 2rem; font-weight: 800; letter-spacing: -.03em; margin: 0 0 10px; line-height: 1.05; animation: rise .5s var(--out) both; }
-.band-foot { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
-.pips { display: flex; gap: 4px; }
-.pips i { width: 7px; height: 7px; border-radius: 99px; background: currentColor; opacity: .28; transition: width .5s var(--spring), opacity .3s; }
-.pips i.done { opacity: .85; } .pips i.now { width: 20px; opacity: 1; background: var(--gold-band, #F2C766); }
-.dealer-pill { display: inline-flex; align-items: center; gap: 5px; font-size: .8rem; font-weight: 600; padding: 4px 10px; border-radius: 99px; background: rgba(255,255,255,.14); }
-[data-look="lagoon"] .dealer-pill { background: rgba(23,58,74,.08); }
-.dealer-pill.warn { background: rgba(255,120,120,.22); }
-.felt-body { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 16px 14px 110px; }
-.phase-note { display: flex; justify-content: space-between; align-items: baseline; margin: 0 6px 12px; font-size: .9rem; color: var(--on-bg); animation: rise .3s var(--out) both; }
-.phase-note span, .phase-note { opacity: .95; }
-.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-.table.wide .grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); max-width: 1100px; margin: 0 auto; }
-.table.wide .band { padding-left: max(28px, calc(50vw - 550px)); padding-right: max(28px, calc(50vw - 550px)); }
+.band-eyebrow { font-size: .82rem; font-weight: 600; letter-spacing: .01em; color: var(--band-ink); }
+.band-eyebrow .of { color: var(--band-ink2); font-weight: 500; }
+.band-actions { display: flex; gap: 8px; }
+.band-btn { width: 40px; height: 40px; margin: 2px 0; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; color: var(--band-ink);
+  background: rgba(255,255,255,.1); box-shadow: inset 0 0 0 .5px rgba(255,255,255,.18); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+.band-btn::after { content: ""; position: absolute; inset: -2px; }
+.band-btn { position: relative; }
+.band-main { display: block; width: 100%; text-align: left; padding: 4px 0 0; }
+.band-main:active:not(:disabled) { transform: none; opacity: .85; }
+.band-title { font-family: var(--disp); font-size: 2.15rem; font-weight: 650; letter-spacing: -.02em; line-height: 1.04; margin: 0 0 14px; font-variation-settings: "opsz" 96; animation: rise .5s var(--out) both; }
+.band-foot { display: flex; align-items: center; gap: 8px; margin-top: 16px; }
+.pips { display: flex; gap: 5px; align-items: center; }
+.pips i { width: 6px; height: 6px; border-radius: 99px; background: currentColor; opacity: .25; transition: width .5s var(--spring), opacity .3s; }
+.pips i.done { opacity: .8; } .pips i.now { width: 18px; opacity: 1; background: #F2C766; }
+.tag { display: inline-flex; align-items: center; gap: 5px; height: 26px; padding: 0 10px; border-radius: 99px; font-size: .76rem; font-weight: 600; background: rgba(255,255,255,.12); box-shadow: inset 0 0 0 .5px rgba(255,255,255,.16); white-space: nowrap; }
+.tag.warn { background: rgba(255,140,120,.22); }
+[data-look="lagoon"] .band-btn, [data-look="lagoon"] .tag { background: rgba(23,58,74,.07); box-shadow: inset 0 0 0 .5px rgba(23,58,74,.12); }
+.felt-body { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 18px 16px 120px; }
+.table.wide .felt-body > * { max-width: 640px; margin-left: auto; margin-right: auto; }
+.table.wide .band { padding-left: max(28px, calc(50vw - 320px)); padding-right: max(28px, calc(50vw - 320px)); }
 
-/* Player card */
-.pcard { position: relative; background: var(--surface); color: var(--ink); border-radius: 22px; padding: 12px 12px 12px; box-shadow: var(--shadow);
-  display: flex; flex-direction: column; gap: 8px; min-height: 160px; animation: pop .5s var(--spring) both; transition: box-shadow .3s; }
-.pcard.leader { box-shadow: var(--shadow), inset 0 0 0 2px var(--gold); }
-.pcard.out { box-shadow: var(--shadow), inset 0 0 0 2px var(--accent); }
-@keyframes pop { from { opacity: 0; transform: translateY(10px) scale(.97); } }
-@keyframes rise { from { opacity: 0; transform: translateY(6px); } }
-.pc-top { display: flex; align-items: center; gap: 8px; min-width: 0; }
-.pc-name { flex: 1; min-width: 0; font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Seats: a scoreboard, not a grid of boxes */
+.seats-head { display: flex; justify-content: space-between; align-items: baseline; padding: 0 6px 10px; font-size: .82rem; font-weight: 600; color: var(--on-bg); }
+.seats-head .count { font-weight: 500; opacity: .7; }
+.seats { list-style: none; margin: 0; padding: 4px 0; background: var(--surface); border-radius: 22px; box-shadow: var(--shadow); }
+.seat { position: relative; display: flex; align-items: center; gap: 12px; min-height: 72px; padding: 10px 14px 10px 14px; animation: rise .45s calc(var(--i) * 40ms) var(--out) both; }
+.seat + .seat::before { content: ""; position: absolute; top: 0; left: 66px; right: 14px; height: 1px; background: var(--line); }
+.seat.leader { background: linear-gradient(90deg, var(--gold-soft), transparent 75%); }
+.seats .seat.leader:first-child { border-radius: 18px 18px 0 0; } .seats .seat.leader:last-child { border-radius: 0 0 18px 18px; }
+.seat-av { position: relative; flex-shrink: 0; display: inline-flex; }
+.dealer-badge { position: absolute; right: -4px; bottom: -3px; width: 18px; height: 18px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center;
+  font-size: .6rem; font-weight: 800; color: #3A2A05; background: #F2C766; box-shadow: 0 0 0 2px var(--surface); }
+.seat-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.seat-name { display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 1.02rem; letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.seat-sub { font-size: .84rem; color: var(--ink3); font-variant-numeric: tabular-nums; }
+.seat-sub .num { font-family: var(--numf); font-size: 1.32rem; font-weight: 650; letter-spacing: -.02em; color: var(--ink); margin-right: 1px; }
+.seat-sub.good { color: var(--accent); font-weight: 600; }
 .crown { color: var(--gold); display: inline-flex; }
-.deal-dot { width: 22px; height: 22px; border-radius: 7px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; font-size: .66rem; font-weight: 800; background: var(--gold-soft); color: var(--gold); }
-.pc-total { display: flex; align-items: baseline; gap: 4px; margin-top: auto; }
-.pc-total b { font-family: var(--numf); font-size: 2.3rem; font-weight: 800; letter-spacing: -.03em; line-height: 1; font-variant-numeric: tabular-nums; }
-.pc-total small { color: var(--ink3); font-weight: 600; }
-.pc-buys { display: flex; align-items: center; gap: 8px; }
-.pips-btn { flex: 1; min-height: 44px; display: flex; align-items: center; gap: 5px; padding: 0 2px; }
-.pips-btn i { width: 11px; height: 11px; border-radius: 99px; box-shadow: inset 0 0 0 1.5px var(--ink3); transition: background .2s, box-shadow .2s, transform .4s var(--spring); }
-.pips-btn i.on { background: var(--gold); box-shadow: none; transform: scale(1.1); }
-.pips-btn:disabled { opacity: 1; }
-.buy-num { font-family: var(--numf); font-weight: 800; color: var(--gold); }
-.mayi-btn { min-height: 44px; padding: 0 12px; border-radius: 12px; background: var(--fill); font-weight: 700; font-size: .85rem; white-space: nowrap; }
-.pc-input { width: 100%; height: 58px; border-radius: 14px; border: 0; background: var(--fill); text-align: center; font-family: var(--numf); font-size: 1.8rem; font-weight: 800;
-  outline: none; font-variant-numeric: tabular-nums; transition: background .2s, box-shadow .2s; }
-.pc-input:focus { box-shadow: 0 0 0 2.5px var(--accent); background: var(--surface); }
-.pc-input.has { color: var(--accent); }
-.pc-input.zero { color: var(--accent); background: rgba(20,88,58,.08); }
-.pc-input::placeholder { color: var(--ink3); }
-.pc-actions { display: flex; gap: 8px; }
-.chip { flex: 1; min-height: 44px; border-radius: 12px; background: var(--fill); font-weight: 700; font-size: .85rem; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
-.chip.icon { flex: 0 0 44px; }
-.chip.on { background: var(--accent); color: var(--accent-ink); }
-.grid.dense .pcard { min-height: 140px; } .grid.dense .pc-total b { font-size: 1.9rem; }
-.table .dock.dockbar { background: linear-gradient(to bottom, transparent, var(--bg) 40%); }
+.buy { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.buy-minus { width: 30px; height: 44px; display: inline-flex; align-items: center; justify-content: center; color: var(--ink3); }
+.buy-pill { min-height: 40px; padding: 0 12px; border-radius: 999px; display: inline-flex; align-items: center; gap: 8px; font-size: .82rem; font-weight: 650;
+  color: var(--accent); background: var(--accent-soft, var(--fill)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 18%, transparent); position: relative; }
+.buy-pill::after { content: ""; position: absolute; inset: -2px -2px; }
+.buy-pill.has { color: var(--gold); background: var(--gold-soft); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold) 30%, transparent); }
+.buy-pill b { font-family: var(--numf); }
+.dots { display: inline-flex; gap: 3px; }
+.dots i { width: 6px; height: 6px; border-radius: 99px; box-shadow: inset 0 0 0 1.25px currentColor; opacity: .55; transition: transform .4s var(--spring); }
+.dots i.on { background: currentColor; opacity: 1; transform: scale(1.15); }
+.buy-pill:disabled { opacity: 1; }
+.score { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.out-btn { min-height: 40px; padding: 0 11px; border-radius: 999px; display: inline-flex; align-items: center; gap: 4px; font-size: .8rem; font-weight: 650;
+  color: var(--ink2); background: var(--fill); }
+.out-btn svg { opacity: .55; }
+.out-btn.on { color: var(--accent-ink); background: var(--accent); } .out-btn.on svg { opacity: 1; }
+.calc-btn { width: 40px; height: 40px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; color: var(--ink2); background: var(--fill); }
+.score-in { width: 66px; height: 48px; border-radius: 14px; border: 0; text-align: center; font-family: var(--numf); font-size: 1.35rem; font-weight: 650; letter-spacing: -.02em;
+  font-variant-numeric: tabular-nums; outline: none; background: var(--fill); color: var(--ink); transition: box-shadow .2s, background .2s; }
+.score-in::placeholder { color: var(--ink3); opacity: .45; }
+.score-in:focus { background: var(--surface); box-shadow: 0 0 0 2px var(--accent), 0 6px 16px -6px color-mix(in srgb, var(--accent) 50%, transparent); }
+.score-in.has { color: var(--ink); }
+.score-in.zero { color: var(--accent); background: var(--accent-soft, var(--fill)); }
+.seat.out { background: linear-gradient(90deg, var(--accent-soft, transparent), transparent 70%); }
+.table .dock.dockbar { background: linear-gradient(to bottom, transparent, var(--bg) 42%); }
 .table .dock.dockbar > .btn.lg { flex: 1; }
-.table.wide .dock.dockbar { justify-content: center; } .table.wide .dock.dockbar > .btn.lg { max-width: 480px; }
+.btn.square { min-width: 56px; padding: 0; }
+.table.wide .dock.dockbar { justify-content: center; } .table.wide .dock.dockbar > .btn.lg { max-width: 520px; }
 
-/* Round intro */
-.intro { position: fixed; inset: 0; z-index: 90; display: flex; align-items: center; justify-content: center; padding: 24px; background: var(--scrim); animation: fade .25s var(--ease) both; }
+/* Round intro: a giant playing card */
+.intro { position: fixed; inset: 0; z-index: 90; display: flex; align-items: center; justify-content: center; padding: 28px; background: var(--scrim);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); animation: fade .25s var(--ease) both; }
 .intro.out { animation: fadeOut .26s var(--ease) both; }
-.intro-card { width: 100%; max-width: 340px; padding: 26px 22px 22px; border-radius: 28px; text-align: center; color: var(--band-ink);
-  background: linear-gradient(180deg, var(--band), var(--band2)); box-shadow: var(--lift); animation: deal2 .6s var(--spring) both; }
+.intro-card { position: relative; width: 100%; max-width: 320px; aspect-ratio: 5 / 7; max-height: 78dvh; padding: 54px 26px 40px; border-radius: 26px; text-align: center;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: #141414;
+  background: linear-gradient(165deg, #FFFFFF, #F4F2EC); box-shadow: 0 0 0 .5px rgba(0,0,0,.12), var(--lift); animation: deal2 .65s var(--spring) both; }
 .intro.out .intro-card { animation: dealOut .26s var(--ease) both; }
-@keyframes deal2 { from { opacity: 0; transform: translateY(40px) rotate(-4deg) scale(.92); } }
-@keyframes dealOut { to { opacity: 0; transform: translateY(-20px) scale(.96); } }
-.intro-n { font-size: .8rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--band-ink2); }
-.intro-card h2 { font-family: var(--disp); font-size: 2.1rem; font-weight: 800; letter-spacing: -.03em; margin: 4px 0 16px; }
+@keyframes deal2 { from { opacity: 0; transform: translateY(60px) rotate(-6deg) scale(.9); } }
+@keyframes dealOut { to { opacity: 0; transform: translateY(-24px) rotate(3deg) scale(.96); } }
+.ic-idx { position: absolute; display: flex; flex-direction: column; align-items: center; line-height: .9; font-family: var(--numf); color: #141414; }
+.intro-card.red .ic-idx { color: #C8283A; }
+.ic-idx b { font-size: 1.7rem; font-weight: 700; } .ic-idx i { font-style: normal; font-size: 1.3rem; }
+.ic-idx.tl { top: 16px; left: 18px; } .ic-idx.br { bottom: 16px; right: 18px; transform: rotate(180deg); }
+.intro-n { font-size: .76rem; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; color: #7A7A72; }
+.intro-card h2 { font-family: var(--disp); font-size: 2.1rem; font-weight: 650; letter-spacing: -.02em; line-height: 1.05; margin: -6px 0 4px; font-variation-settings: "opsz" 96; }
 .intro-card .melds { justify-content: center; }
-.intro-deal { margin: 16px 0 4px; font-size: 1rem; }
-.intro-tip { margin: 0; font-size: .9rem; color: var(--band-ink2); }
+.intro-deal { margin: 4px 0 0; font-size: .98rem; color: #3D3D38; }
+.intro-tip { margin: 0; font-size: .86rem; line-height: 1.4; color: #6B6B64; max-width: 24ch; }
 
 /* Sheets */
 .scrim { position: fixed; inset: 0; z-index: 100; background: var(--scrim); display: flex; align-items: flex-end; justify-content: center; animation: fade .3s var(--ease) both; }
