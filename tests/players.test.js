@@ -43,16 +43,28 @@ test("avatars: a starting character is chosen from the name, the same every time
   const a = M.avSeed("Ana"), b = M.avSeed("Ana");
   assert.deepStrictEqual(a, b);
   assert.strictEqual(a.type, "face");
-  for (const k of ["skin", "hair", "hairColor", "face", "extra", "top"]) assert.ok(M.AV[k].includes(a[k]), k);
+  for (const [k, list] of [["top", "hair"], ["hairColor"], ["skin"], ["eyes"], ["eyebrows"], ["mouth"], ["beard"], ["acc"], ["clothes"], ["clothesColor"]]) assert.ok(M.AV[list || k].includes(a[k]), k);
   assert.notDeepStrictEqual(M.avSeed("Ana"), M.avSeed("Benjamin"));
 });
 
-test("avatars: every combination draws a complete SVG", () => {
-  for (const hair of M.AV.hair) for (const face of M.AV.face) for (const extra of M.AV.extra) {
-    const svg = M.faceSVG({ type: "face", skin: M.AV.skin[0], hairColor: M.AV.hairColor[0], top: M.AV.top[0], hair, face, extra });
-    assert.match(svg, /^<svg [^>]*viewBox="0 0 64 64"[\s\S]*<\/svg>$/);
-    assert.ok(!/undefined|NaN/.test(svg), hair + "/" + face + "/" + extra);
+test("avatars: every part draws a complete SVG with its own ids", () => {
+  const base = M.avSeed("Ana");
+  for (const [k, list] of [["top", "hair"], ["top", "hats"], ["hairColor"], ["skin"], ["eyes"], ["eyebrows"], ["mouth"], ["beard"], ["acc"], ["clothes"], ["clothesColor"]]) for (const v of M.AV[list || k]) {
+    const svg = M.faceSVG({ ...base, [k]: v });
+    assert.match(svg, /^<svg [^>]*viewBox="[\d ]+"[\s\S]*<\/svg>$/);
+    assert.ok(!/undefined|NaN|\[object/.test(svg), k + "/" + v);
   }
+  const a = M.faceSVG({ ...base, acc: "sunglasses" }), b = M.faceSVG({ ...base, acc: "sunglasses" });
+  const ids = s => [...s.matchAll(/id="([^"]+)"/g)].map(m => m[1]);
+  assert.ok(ids(a).length && !ids(a).some(id => ids(b).includes(id)), "two avatars on one page must not share ids");
+  assert.ok(M.faceSVG({ ...base, skin: "#614335" }).includes("#614335"));
+});
+
+test("avatars: characters made with the first drawn faces move to the new parts", () => {
+  const old = { type: "face", skin: "#F7D7BA", hair: "curly", hairColor: "#DDB052", face: "cool", extra: "none", top: "#FFFFFF" };
+  const t = M.toAva(old);
+  assert.deepStrictEqual([t.top, t.hairColor, t.skin, t.acc, t.v], ["curly", "#D6B370", "#FFDBB4", "sunglasses", 3]);
+  assert.ok(!/undefined|NaN/.test(M.faceSVG(old)));
 });
 
 test("avatars: share image sources for photos, characters and initials", () => {
