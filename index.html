@@ -1380,7 +1380,10 @@ function App() {
   else if (view.at === "game" && g) screen = ce(GameScreen, { s, api, game: g, open, go, wide, setToast, level: settings.level });
   else if (view.at === "recap" && g) screen = ce(Recap, { s, game: g, go, setToast, rematch,
     onDelete: () => withUndo("Game deleted", () => { api.set(x => { const games = { ...x.games }; delete games[g.id]; return { ...x, games }; }); go({ at: "group", groupId: g.groupId }); }) });
+  else if (view.at === "learn") screen = ce(LearnPage, { s, open, level: settings.level });
+  else if (view.at === "stats") screen = ce(StatsPage, { s, open, go });
   else screen = ce(Home, { s, open, go, sync, rematch });
+  const topLevel = !(view.at === "group" && grp) && !(view.at === "game" && g) && !(view.at === "recap" && g);
 
   let sheetEl = null;
   if (sheet) {
@@ -1417,7 +1420,7 @@ function App() {
     if (sheet.type === "settings") sheetEl = ce(SettingsSheet, { onClose: close, settings, setSettings, game: sg, onHelp: () => open("rules", { gameId: sheet.gameId, tab: sg ? "round" : "how" }),
       onEnd: sg ? () => { close(); withUndo("Game ended without saving", () => { api.game(sg.id, x => ({ ...x, status: "abandoned" })); go({ at: "group", groupId: sg.groupId }); }); } : null });
   }
-  return ce(Fragment, null, screen, sheetEl,
+  return ce(Fragment, null, screen, topLevel && ce(TabBar, { at: ["learn", "stats"].includes(view.at) ? view.at : "home", go }), sheetEl,
     toast && onTop(ce("div", { key: toast.text, className: "toast" + (toast.undo ? " has-undo" : ""), role: "status" }, ce("span", null, toast.text),
       toast.undo && ce("button", { className: "toast-undo", onClick: toast.undo }, "Undo"))));
 }
@@ -2121,7 +2124,7 @@ function SettingsSheet({ onClose, settings, setSettings, game, onEnd, onHelp }) 
       ce("div", { className: "row col" }, ce("b", null, "How well do you know May I?"),
         ce(Seg, { label: "Experience", value: settings.level || "new", onChange: v => setSettings(x => ({ ...x, level: v })), options: [["new", "Still learning"], ["pro", "I know it well"]] }),
         ce("small", { className: "rule-hint" }, (settings.level || "new") === "new" ? "The round guide opens at the start of each round." : "Guides stay closed. Tap the contract any time to open one.")),
-      ce(Row, { lead: ce("span", { className: "row-ic" }, ce(Icon, { n: "book", size: 19 })), title: game ? "Round guide and rules" : "How to play", tone: "accent", chevron: true, onClick: onHelp })),
+      game && ce(Row, { lead: ce("span", { className: "row-ic" }, ce(Icon, { n: "book", size: 19 })), title: "Round guide and rules", tone: "accent", chevron: true, onClick: onHelp })),
     ce("h3", { className: "group-h" }, "Card scanner"),
     ce(AiKeyCard),
     game && ce(Fragment, null,
@@ -2169,9 +2172,15 @@ function RoundGuide({ round, level, coach, rules }) {
     coach && ce(HandCoach, { round, rules }));
 }
 function RulesSheet({ onClose, round, rules, setRules, level, initialTab }) {
-  const [tab, setTab] = useState(initialTab || "round"), [r, setR] = useState(round || 0);
-  const limit = buyLimitOf(rules), limitText = limit === Infinity ? "unlimited buys" : limit + (limit === 1 ? " buy" : " buys");
+  const [tab, setTab] = useState(initialTab || "round");
   return ce(Sheet, { title: tab === "round" ? "Round guide" : "How to play", onClose, tall: true, cls: "rules" },
+    ce(RulesBody, { tab, setTab, round, rules, setRules, level }));
+}
+// The whole guide: rounds, basics, Q&A and house rules. Used by the Rules sheet and the Learn tab.
+function RulesBody({ tab, setTab, round, rules, setRules, level }) {
+  const [r, setR] = useState(round || 0);
+  const limit = buyLimitOf(rules), limitText = limit === Infinity ? "unlimited buys" : limit + (limit === 1 ? " buy" : " buys");
+  return ce(Fragment, null,
     ce(Seg, { label: "Rules section", value: tab, onChange: setTab, options: [["round", "Rounds"], ["how", "Basics"], ["faq", "Q&A"], ["house", "House"]] }),
     tab === "round" && ce("div", { className: "rounds-pane" },
       ce("div", { className: "rpick", role: "tablist", "aria-label": "Round" }, ROUNDS.map((x, i) => ce("button", { key: i, role: "tab", "aria-selected": i === r, "aria-label": "Round " + x.n + ", " + x.name, className: "rnum" + (i === r ? " on" : ""), onClick: () => setR(i) }, x.n, ce("span", { className: "rname" }, x.name)))),
@@ -2189,6 +2198,47 @@ function RulesSheet({ onClose, round, rules, setRules, level, initialTab }) {
       ce("div", { className: "list" }, GLOSSARY.map(w => ce("div", { key: w.term, className: "row col gloss" }, ce("b", null, w.term), ce("small", null, w.d), w.ex && ce("span", { className: "gloss-ex" }, ce(Melds, { ex: [w.ex] })))))),
     tab === "house" && (setRules ? ce(Fragment, null, ce(HouseRules, { rules, up: (k, v) => setRules(x => ({ ...x, [k]: v })) }), ce("p", { className: "group-f" }, "Changes apply to this game from now on."))
       : ce("p", { className: "group-f" }, rulesLine(rules) + ". Set house rules when you deal a new game.")));
+}
+// ── Learn tab ─────────────────────────────────────────────────────
+function LearnPage({ s, open, level }) {
+  const last = Object.values(s.games).sort((a, b) => (b.startedAt || 0) - (a.startedAt || 0))[0];
+  const [tab, setTab] = useState("how");
+  return ce(Page, { title: "Learn", className: "learn", actions: ce(NavIcon, { n: "gear", label: "Settings", onClick: () => open("settings") }) },
+    ce("p", { className: "page-lede" }, "Seven rounds, each with its own contract. Lowest score after round 7 wins."),
+    ce(RulesBody, { tab, setTab, round: 0, rules: { ...DEFAULT_RULES, ...((last && last.rules) || {}) }, setRules: null, level }));
+}
+// ── Stats tab: the trophy room across every table ─────────────────
+function StatsPage({ s, open, go }) {
+  const done = Object.values(s.games).filter(g => g.status === "done" && s.groups[g.groupId]);
+  const cabinet = Object.keys(AWARD_META).map(key => {
+    const tally = {};
+    done.forEach(g => gameAwards(g).forEach(a => { if (a.key !== key) return; const k = g.groupId + ":" + a.id; tally[k] = tally[k] || { n: 0, p: plOf(s.groups[g.groupId], g)(a.id) }; tally[k].n++; }));
+    const best = Object.values(tally).sort((a, b) => b.n - a.n)[0], tie = best && Object.values(tally).filter(x => x.n === best.n).length > 1;
+    return { key, ic: AWARD_META[key][0], t: AWARD_META[key][1], best: tie ? null : best, tie };
+  });
+  const tables = s.groupOrder.map(id => s.groups[id]).filter(Boolean).map(g => { const st = groupStats(s, g.id), top = Object.entries(st.wins).sort((a, b) => b[1] - a[1]);
+    const champ = top[0] && !(top[1] && top[1][1] === top[0][1]) ? plOf(g, null)(top[0][0]) : null; return { g, st, champ, wins: top[0] ? top[0][1] : 0 }; });
+  return ce(Page, { title: "Stats", className: "stats", actions: ce(NavIcon, { n: "gear", label: "Settings", onClick: () => open("settings") }) },
+    !done.length ? ce("section", { className: "empty-state" }, ce("span", { className: "empty-ic", "aria-hidden": true }, ce(Icon, { n: "trophy", size: 30 })),
+        ce("h2", null, "Your trophy room"), ce("p", null, "Finish a game and the awards, records and champions show up here."))
+      : ce(Fragment, null,
+        ce("h3", { className: "group-h" }, "Trophy cabinet"),
+        ce("div", { className: "cabinet" }, cabinet.map(c => ce("div", { key: c.key, className: "trophy" + (c.best ? "" : " empty") },
+          ce("span", { className: "trophy-ic", "aria-hidden": true }, ce(Icon, { n: c.ic, size: 20 })), ce("b", null, c.t),
+          c.best ? ce("span", { className: "trophy-who" }, ce(Peg, { color: c.best.p.color, name: c.best.p.name, av: c.best.p.avatar, size: 22 }), c.best.p.name, ce("small", null, "× " + c.best.n))
+            : ce("small", null, c.tie ? "Shared at the top" : "Not won yet")))),
+        ce("p", { className: "group-f" }, "Who has won each award most often, across " + done.length + (done.length === 1 ? " game." : " games."))),
+    tables.length > 0 && ce(List, { header: "Tables" }, tables.map(({ g, st, champ, wins }) => ce(Row, { key: g.id,
+      lead: champ ? ce(Peg, { color: champ.color, name: champ.name, av: champ.avatar, size: 36, ring: true }) : ce(Avatars, { players: g.players, size: 26 }),
+      title: g.name, chevron: true, onClick: () => go({ at: "group", groupId: g.id }),
+      sub: st.games.length ? (champ ? champ.name + " leads with " + wins + (wins === 1 ? " win" : " wins") : "All square at the top") + " · " + st.games.length + (st.games.length === 1 ? " game" : " games") : "No games yet" }))));
+}
+// Bottom tabs on the three top-level screens, so nothing important hides behind an icon.
+const TABS = [["home", "deal", "Play"], ["learn", "book", "Learn"], ["stats", "trophy", "Stats"]];
+function TabBar({ at, go }) {
+  return ce("nav", { className: "tabbar", "aria-label": "Main" }, ce("div", { className: "tabbar-in" }, TABS.map(([k, ic, label]) =>
+    ce("button", { key: k, className: "tab" + (at === k ? " on" : ""), "aria-current": at === k ? "page" : undefined, onClick: () => at !== k && go({ at: k }) },
+      ce("span", { className: "tab-ic" }, ce(Icon, { n: ic, size: 23, stroke: at === k ? 2.3 : 1.9 })), label))));
 }
 
 // ── Styles ────────────────────────────────────────────────────────
@@ -2265,13 +2315,22 @@ input { caret-color: var(--accent); }
 .btn.lg { min-height: 56px; border-radius: 16px; font-size: 1.06rem; }
 .btn.sm { min-height: 36px; padding: 0 14px; border-radius: 10px; }
 .btn.block { width: 100%; }
-.btn.primary { background: var(--accent); color: var(--accent-ink); }
-.btn.primary:disabled { background: var(--fill); color: var(--ink3); }
-.btn.tonal { background: var(--accent-soft); color: var(--accent); }
+/* Buttons are lit from above like a card on felt: a soft top highlight and a darker lower edge,
+   all inside the shape. No outer shadow. Pressing sinks them a touch and dims the light. */
+.btn { position: relative; transition: transform .28s var(--spring), filter .15s, box-shadow .15s; }
+.btn.primary { color: var(--accent-ink); background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 84%, #fff) 0%, var(--accent) 48%, color-mix(in srgb, var(--accent) 88%, #000) 100%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.26), inset 0 -2px 0 rgba(0,0,0,.16); }
+.btn.primary:active:not(:disabled) { filter: brightness(.93); box-shadow: inset 0 1px 0 rgba(255,255,255,.12), inset 0 2px 6px rgba(0,0,0,.18); }
+.btn.primary:disabled { background: var(--fill); color: var(--ink3); box-shadow: none; }
+.btn.tonal { background: var(--accent-soft); color: var(--accent); box-shadow: inset 0 0 0 var(--hair) color-mix(in srgb, var(--accent) 24%, transparent); }
+.btn.tonal:active:not(:disabled) { filter: brightness(.95); }
+.btn.tonal.danger { background: color-mix(in srgb, var(--red) 11%, transparent); color: var(--red); box-shadow: inset 0 0 0 var(--hair) color-mix(in srgb, var(--red) 24%, transparent); }
+.btn:disabled { opacity: 1; } .btn.tonal:disabled { background: var(--fill); color: var(--ink3); box-shadow: none; }
 .btn.plain { color: var(--accent); }
 .btn.out { background: var(--out-soft); color: var(--out); flex: none; } .btn.out.on { background: var(--out); color: var(--surface); } .btn.out:disabled { background: var(--fill); color: var(--ink3); }
 .btn.on-band { color: var(--band-ink); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--band-ink) 35%, transparent); }
-.btn.gold { background: linear-gradient(135deg, #F3D98B, #C99A2E 55%, #EBCB72); color: #3A2804; }
+.btn.gold { background: linear-gradient(180deg, #F1D48A 0%, #E2BE6E 50%, #CDA552 100%); color: #3A2804; box-shadow: inset 0 1px 0 rgba(255,255,255,.45), inset 0 -2px 0 rgba(90,60,10,.18); }
+.btn.gold:active { filter: brightness(.95); }
 .row2 { display: flex; gap: 10px; }
 .dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 8; display: flex; justify-content: center; padding: 14px max(16px, env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
   background: linear-gradient(to bottom, transparent, var(--bg) 40%); }
@@ -2436,6 +2495,29 @@ input { caret-color: var(--accent); }
 .confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; }
 
 /* Sheets */
+/* Tab bar */
+.tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 9; display: flex; justify-content: center;
+  padding: 4px max(8px, env(safe-area-inset-right)) calc(4px + env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+  background: color-mix(in srgb, var(--bg) 82%, transparent); -webkit-backdrop-filter: saturate(180%) blur(22px); backdrop-filter: saturate(180%) blur(22px); border-top: var(--hair) solid var(--line); }
+.tabbar-in { display: grid; grid-template-columns: repeat(3, 1fr); width: 100%; max-width: 460px; }
+.tab { display: grid; justify-items: center; align-content: center; gap: 1px; min-height: 52px; color: var(--ink3); font-size: .7rem; font-weight: 600; letter-spacing: .01em; }
+.tab.on { color: var(--accent); }
+.tab-ic { display: grid; place-items: center; width: 54px; height: 30px; border-radius: 99px; transition: background .25s var(--out-e), transform .3s var(--spring); }
+.tab.on .tab-ic { background: var(--accent-soft); }
+.tab:active .tab-ic { transform: scale(.9); }
+.page-lede { margin: -6px 4px 14px; color: var(--ink2); font-size: 1rem; line-height: 1.45; max-width: 52ch; }
+.empty-state { display: grid; justify-items: center; text-align: center; gap: 8px; padding: 36px 20px; border-radius: 20px; background: var(--surface); box-shadow: 0 0 0 var(--hair) var(--line); }
+.empty-state h2 { margin: 4px 0 0; font: 650 1.4rem var(--display); letter-spacing: -.015em; } .empty-state p { margin: 0; color: var(--ink2); max-width: 32ch; line-height: 1.45; }
+.empty-ic { width: 64px; height: 64px; border-radius: 20px; display: grid; place-items: center; background: var(--gold-soft); color: var(--ink); }
+.cabinet { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+@media (min-width: 640px) { .cabinet { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.trophy { display: grid; gap: 6px; align-content: start; padding: 14px; border-radius: 16px; background: var(--surface); box-shadow: 0 0 0 var(--hair) var(--line); min-width: 0; }
+.trophy > b { font-size: .95rem; line-height: 1.2; }
+.trophy-ic { width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center; background: var(--gold-soft); color: var(--ink); }
+.trophy.empty .trophy-ic { background: var(--fill); color: var(--ink3); } .trophy.empty > b { color: var(--ink2); }
+.trophy > small { color: var(--ink3); font-size: .82rem; }
+.trophy-who { display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: .9rem; min-width: 0; }
+.trophy-who small { color: var(--ink3); font-weight: 600; margin-left: auto; font-variant-numeric: tabular-nums; }
 .seats-meta { display: inline-flex; align-items: center; gap: 10px; }
 .seats-edit { display: inline-flex; align-items: center; gap: 5px; min-height: 32px; padding: 0 11px; border-radius: 99px; background: var(--accent-soft); color: var(--accent); font: 600 .8rem/1 var(--sans, inherit); text-transform: none; letter-spacing: 0; }
 .seats-edit:active { transform: scale(.96); }
