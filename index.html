@@ -629,7 +629,6 @@ function App() {
       close(); go({ at: "game", gameId: id }); } });
     if (sheet.type === "rules") sheetEl = ce(RulesSheet, { onClose: close, round: g ? g.round : 0, rules: g ? g.rules : DEFAULT_RULES, initial: sheet.tab,
       setRules: g && g.status === "live" ? fn => api.game(g.id, x => ({ ...x, rules: fn(x.rules) })) : null });
-    if (sheet.type === "counter") sheetEl = ce(CounterSheet, { onClose: close, name: sheet.name, rules: g.rules, onApply: (pts, cards) => { sheet.onApply(pts, cards); haptic(12); close(); } });
     if (sheet.type === "gameMenu") sheetEl = ce(GameMenu, { onClose: close, game: g, open, onEnd: () => { api.game(g.id, x => ({ ...x, status: "abandoned" })); close(); go({ at: "group", groupId: g.groupId }); } });
   }
   return ce(Fragment, null, screen, sheetEl,
@@ -663,24 +662,46 @@ function groupStats(s, gid) {
   const live = Object.values(s.games).find(g => g.groupId === gid && g.status === "live");
   return { games, wins, live };
 }
+const ago = t => { if (!t) return ""; const d = Math.round((now() - t) / 864e5); return d < 1 ? "today" : d === 1 ? "yesterday" : d < 7 ? d + " days ago" : new Date(t).toLocaleDateString(undefined, { day: "numeric", month: "short" }); };
+// Mini lanes: up to n players on their own tracks, positioned by value (higher = further)
+function MiniTrack({ rows, n }) {
+  const max = Math.max(1, ...rows.map(r => r.v)), min = Math.min(...rows.map(r => r.v));
+  return ce("div", { className: "mini" }, rows.slice(0, n || 3).map((r, i) => ce("div", { key: r.p.id, className: "mini-row" },
+    ce("span", { className: "mini-name" }, r.p.name),
+    ce("div", { className: "lane-track" }, ce("span", { className: "lane-peg" + (i === 0 && r.v > 0 ? " gold" : ""), style: { left: (max === min ? (r.v > 0 ? 1 : .04) : .04 + .96 * (r.v - min) / (max - min)) * 100 + "%", background: peg(r.p.color).c } })),
+    ce("span", { className: "mini-v" }, r.label))));
+}
 function Home({ s, open, go, sync }) {
   const groups = s.groupOrder.map(id => s.groups[id]).filter(Boolean);
-  return ce("div", { className: "page" },
+  const lives = groups.map(g => ({ g, game: groupStats(s, g.id).live })).filter(x => x.game);
+  return ce("div", { className: "page home" },
     ce(TopBar, { actions: ce(SyncPill, { sync }) }),
     ce("main", { className: "wrap" },
-      ce("h1", { className: "title" }, "Your groups"),
+      ce("h1", { className: "title" }, groups.length ? "Your tables" : "Game night, sorted"),
+      lives.map(({ g, game }) => {
+        const pl = id => g.players.find(p => p.id === id) || { id, name: "?", color: "red" };
+        const t = totalsOf(game), best = Math.min(...t.map(x => x.total)), worst = Math.max(...t.map(x => x.total)), any = worst > 0;
+        const rows = [...t].sort((a, b) => a.total - b.total).map(x => ({ p: pl(x.id), v: worst - x.total, label: x.total }));
+        return ce("button", { key: game.id, className: "live-card", onClick: () => go({ at: "game", gameId: game.id }) },
+          ce("span", { className: "live-top" }, ce("span", { className: "badge live" }, ce("i"), "Playing now"), ce("span", { className: "grow" }), ce("span", { className: "live-go" }, "Resume", ce(Icon, { n: "chevron", size: 18 }))),
+          ce("b", { className: "live-name" }, g.name),
+          ce("span", { className: "live-sub" }, "Round " + (game.round + 1) + " of 7 · " + ROUNDS[game.round].name + (any ? " · " + rows[0].p.name + " leads" : "")),
+          ce(MiniTrack, { rows, n: 4 }));
+      }),
       groups.length === 0 && ce("section", { className: "empty" },
         ce(TrackDemo),
         ce("h2", null, "Keep score for your card nights"),
         ce("p", null, "Make a group for each table you play with. May I? remembers the players, keeps every game, and knows all seven contracts so nobody needs the rulebook.")),
-      groups.length > 0 && ce("ul", { className: "groups" }, groups.map(g => {
-        const st = groupStats(s, g.id), lead = Object.entries(st.wins).sort((a, b) => b[1] - a[1])[0], lp = lead && g.players.find(p => p.id === lead[0]);
-        return ce("li", { key: g.id }, ce("button", { className: "group-row", onClick: () => go({ at: "group", groupId: g.id }) },
-          ce("span", { className: "peg-stack" }, g.players.slice(0, 4).map(p => ce(Peg, { key: p.id, color: p.color, name: p.name, size: 30 }))),
-          ce("span", { className: "gr-main" }, ce("b", null, g.name),
-            ce("small", null, st.live ? "Game in progress · round " + (st.live.round + 1) : g.players.length + " players · " + st.games.length + (st.games.length === 1 ? " game" : " games") + (lp ? " · " + lp.name + " leads" : ""))),
-          st.live && ce("span", { className: "badge live" }, "Live"),
-          ce(Icon, { n: "chevron", size: 18 })));
+      groups.length > 0 && ce("div", { className: "group-grid" }, groups.map(g => {
+        const st = groupStats(s, g.id);
+        const rows = g.players.map(p => ({ p, v: st.wins[p.id] || 0 })).sort((a, b) => b.v - a.v).map(r => ({ ...r, label: r.v + (r.v === 1 ? " win" : " wins") }));
+        return ce("button", { key: g.id, className: "group-card", onClick: () => go({ at: "group", groupId: g.id }) },
+          ce("span", { className: "gc-head" },
+            ce("span", { className: "gr-main" }, ce("b", null, g.name),
+              ce("small", null, g.players.length + " players · " + (st.games.length ? st.games.length + (st.games.length === 1 ? " game" : " games") + " · last played " + ago(st.games[0].endedAt) : "no games yet"))),
+            ce(Icon, { n: "chevron", size: 18 })),
+          st.games.length ? ce(MiniTrack, { rows, n: 3 })
+            : ce("span", { className: "peg-stack" }, g.players.slice(0, 6).map(p => ce(Peg, { key: p.id, color: p.color, name: p.name, size: 30 }))));
       })),
       ce("div", { className: "home-actions" },
         ce("button", { className: "btn primary", onClick: () => open("newGroup") }, ce(Icon, { n: "plus", size: 18 }), "New group"),
@@ -703,14 +724,19 @@ function GroupPage({ s, api, group, open, go, sync, setToast }) {
     return { ...p, wins: st.wins[p.id] || 0, played: played.length, avg };
   }).sort((a, b) => b.wins - a.wins || (a.avg ?? 1e9) - (b.avg ?? 1e9));
   const maxW = Math.max(1, ...board.map(b => b.wins));
+  const champ = board[0] && board[0].wins > 0 ? board[0] : null, tied = champ && board[1] && board[1].wins === champ.wins;
   const lastRules = st.games[0] && st.games[0].rules;
   return ce("div", { className: "page" },
-    ce(TopBar, { onBack: () => go({ at: "home" }), backLabel: "Groups", actions: ce(Fragment, null, ce(SyncPill, { sync }),
+    ce(TopBar, { onBack: () => go({ at: "home" }), backLabel: "Tables", actions: ce(Fragment, null, ce(SyncPill, { sync }),
       ce("button", { className: "icon-btn", onClick: () => open("share", { groupId: group.id }), "aria-label": "Share group" }, ce(Icon, { n: "share", size: 19 }))) }),
     ce("main", { className: "wrap group-wrap" },
-      ce("div", { className: "group-head" },
-        ce("h1", { className: "title" }, group.name),
-        ce("p", { className: "subtitle" }, group.players.length + " players · " + st.games.length + (st.games.length === 1 ? " game played" : " games played"))),
+      ce("section", { className: "champ" },
+        ce("div", { className: "champ-text" },
+          ce("h1", { className: "title" }, group.name),
+          ce("p", { className: "champ-line" }, champ ? (tied ? "Tied at the top on " + champ.wins + (champ.wins === 1 ? " win" : " wins") : champ.name + " holds the crown · " + champ.wins + (champ.wins === 1 ? " win" : " wins"))
+            : "No champion yet. Play a game to crown one."),
+          ce("p", { className: "subtitle" }, group.players.length + " players · " + st.games.length + (st.games.length === 1 ? " game played" : " games played"))),
+        champ && !tied && ce("div", { className: "champ-peg" }, ce("span", { className: "crown" }, ce(Icon, { n: "crown", size: 34 })), ce(Peg, { color: champ.color, name: champ.name, size: 64, ring: true }))),
       st.live ? ce("button", { className: "resume", onClick: () => go({ at: "game", gameId: st.live.id }) },
           ce("span", null, ce("b", null, "Game in progress"), ce("small", null, "Round " + (st.live.round + 1) + " of 7 · " + ROUNDS[st.live.round].name)),
           ce("span", { className: "resume-go" }, "Resume", ce(Icon, { n: "chevron", size: 18 })))
@@ -719,21 +745,21 @@ function GroupPage({ s, api, group, open, go, sync, setToast }) {
       ce("section", { className: "panel" },
         ce("div", { className: "panel-head" }, ce("h2", null, "All-time track"), ce("button", { className: "link", onClick: () => open("players", { groupId: group.id }) }, "Edit players")),
         board.length === 0 ? ce("p", { className: "muted pad" }, "No players yet. Add the people you play with.")
-          : ce("ol", { className: "lanes static" }, board.map((p, i) => ce("li", { key: p.id, className: "lane" },
+          : ce("ol", { className: "lanes static" }, board.map((p, i) => ce("li", { key: p.id, className: "lane" + (i === 0 && p.wins > 0 ? " lead" : "") },
               ce(Peg, { color: p.color, name: p.name, size: 34, ring: i === 0 && p.wins > 0 }),
               ce("div", { className: "lane-body" },
-                ce("div", { className: "lane-top" }, ce("b", { className: "lane-name" }, p.name),
-                  ce("span", { className: "lane-meta" }, p.played ? "avg " + p.avg : "no games yet"),
+                ce("div", { className: "lane-top" }, ce("span", { className: "lane-id" }, ce("b", { className: "lane-name" }, p.name),
+                  ce("span", { className: "lane-meta" }, p.played ? "Average " + p.avg + " points" : "No games yet")),
                   ce("span", { className: "lane-total" }, p.wins, ce("small", null, p.wins === 1 ? " win" : " wins"))),
                 ce("div", { className: "lane-track" }, ce("span", { className: "lane-peg", style: { left: (p.wins / maxW) * 100 + "%", background: peg(p.color).c } }))))))),
       ce("section", { className: "panel" },
         ce("div", { className: "panel-head" }, ce("h2", null, "Past games")),
         st.games.length === 0 ? ce("p", { className: "muted pad" }, "Finished games show up here with their recap.")
           : ce("ul", { className: "past" }, st.games.slice(0, 20).map(g => {
-              const r = rankOf(g), best = r[0].total, names = r.filter(x => x.total === best).map(x => (group.players.find(p => p.id === x.id) || {}).name).join(" & ");
+              const r = rankOf(g), best = r[0].total, top = r.filter(x => x.total === best).map(x => group.players.find(p => p.id === x.id) || { name: "?", color: "red" });
               return ce("li", { key: g.id }, ce("button", { className: "past-row", onClick: () => go({ at: "recap", gameId: g.id }) },
-                ce(Icon, { n: "trophy", size: 18 }),
-                ce("span", { className: "gr-main" }, ce("b", null, names + " won"), ce("small", null, new Date(g.endedAt).toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" }) + " · " + best + " points · " + g.players.length + " players")),
+                ce(Peg, { color: top[0].color, name: top[0].name, size: 32 }),
+                ce("span", { className: "gr-main" }, ce("b", null, top.map(p => p.name).join(" & ") + " won"), ce("small", null, new Date(g.endedAt).toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" }) + " · " + best + " points · " + g.players.length + " players")),
                 ce(Icon, { n: "chevron", size: 18 })));
             })))));
 }
@@ -741,8 +767,8 @@ function GroupPage({ s, api, group, open, go, sync, setToast }) {
 // ── Game screen: the score track ──────────────────────────────────
 function GameScreen({ s, api, game, open, go, wide, setToast }) {
   const group = s.groups[game.groupId];
-  const [phase, setPhase] = useState(() => game.scores[game.round] && Object.keys(game.scores[game.round]).length ? "score" : "play");
   const [board, setBoard] = useState(false);
+  const [pad, setPad] = useState(null), [intro, setIntro] = useState(null), [advance, setAdvance] = useState(false);
   const r = ROUNDS[game.round], rs = game.scores[game.round] || {};
   const pl = id => group.players.find(p => p.id === id) || { id, name: "?", color: "red" };
   const totals = totalsOf(game), ranked = [...totals].sort((a, b) => a.total - b.total);
@@ -751,9 +777,9 @@ function GameScreen({ s, api, game, open, go, wide, setToast }) {
   const scored = game.players.filter(id => typeof rs[id] === "number").length, complete = scored === game.players.length;
   const outId = game.players.find(id => rs[id] === 0);
   const allDone = ROUNDS.every((_, i) => roundDone(game, i));
-  useEffect(() => { setPhase(game.scores[game.round] && Object.keys(game.scores[game.round]).length ? "score" : "play"); }, [game.round]);
-
   const upd = fn => api.game(game.id, fn);
+  useEffect(() => { if (advance && complete) { setAdvance(false); nextRound(); } }, [advance, complete]);
+
   function setScore(pid, val, cards) {
     upd(g => {
       const sc = { ...g.scores, [g.round]: { ...(g.scores[g.round] || {}) } }, hd = { ...g.hands, [g.round]: { ...(g.hands[g.round] || {}) } };
@@ -771,36 +797,41 @@ function GameScreen({ s, api, game, open, go, wide, setToast }) {
   }
   function finish() { haptic(20); upd(g => ({ ...g, status: "done", endedAt: now() })); go({ at: "recap", gameId: game.id }); }
   function nextRound() {
-    if (allDone) return finish();
+    if (ROUNDS.every((_, i) => i === game.round ? complete : roundDone(game, i))) return finish();
     if (!complete) return;
-    const gap = ROUNDS.findIndex((_, i) => !roundDone(game, i));
+    const gap = ROUNDS.findIndex((_, i) => i !== game.round && !roundDone(game, i));
     if (game.round >= 6 && gap >= 0) { upd(g => ({ ...g, round: gap })); setToast({ text: "Round " + (gap + 1) + " still needs scores" }); return; }
     const from = game.round, best = Math.min(...game.players.map(id => rs[id]));
     const winners = game.players.filter(id => rs[id] === best).map(id => pl(id).name).join(" & ");
     haptic(14); upd(g => ({ ...g, round: from + 1 }));
-    setToast({ text: winners + " won round " + (from + 1), undo: () => { upd(g => ({ ...g, round: from })); setPhase("score"); } });
+    setIntro({ round: from + 1, winners, from });
   }
+  const firstOpen = Math.max(0, game.players.findIndex(id => typeof rs[id] !== "number"));
 
-  const lanes = ce("ol", { className: "lanes" + (phase === "score" ? " scoring" : ""), "aria-label": "Standings" }, totals.map(t => {
+  const lanes = ce("ol", { className: "lanes", "aria-label": "Standings" }, totals.map((t, i) => {
     const p = pl(t.id), isLead = hasAny && t.total === lead;
     return ce(Lane, { key: t.id, p, total: t.total, isLead, isDealer: dealer === t.id, pos: worst === lead ? 1 : (worst - t.total) / (worst - lead),
-      gap: t.total - lead, hasAny, phase, board, buys: (game.buys[game.round] && game.buys[game.round][t.id]) || 0, limit, value: rs[t.id],
-      outTaken: !!outId && outId !== t.id, round: game.round, changeBuy, setScore,
-      onCount: () => open("counter", { gameId: game.id, name: p.name, onApply: (pts, cards) => setScore(t.id, pts, cards) }) });
+      gap: t.total - lead, hasAny, board, buys: (game.buys[game.round] && game.buys[game.round][t.id]) || 0, limit, value: rs[t.id], changeBuy,
+      onEdit: () => setPad(i) });
   }));
-  const action = phase === "play"
-    ? ce("button", { className: "btn primary lg grow", onClick: () => { haptic(8); setPhase("score"); } }, "Score round " + r.n)
-    : ce(Fragment, null,
-        ce("button", { className: "btn secondary square", onClick: () => setPhase("play"), "aria-label": "Back to buys" }, ce(Icon, { n: "back", size: 20 })),
-        ce("button", { className: "btn primary lg grow", disabled: !complete && !allDone, onClick: allDone ? finish : nextRound },
-          allDone ? ce(Fragment, null, ce(Icon, { n: "flag", size: 19 }), "See the recap")
-            : complete ? (game.round < 6 ? "Next round" : "Finish game") : scored + " of " + game.players.length + " scored"));
+  const action = allDone
+    ? ce("button", { className: "btn primary lg grow", onClick: finish }, ce(Icon, { n: "flag", size: 19 }), "See the recap")
+    : complete
+      ? ce(Fragment, null,
+          ce("button", { className: "btn secondary square", onClick: () => setPad(0), "aria-label": "Edit round scores" }, ce(Icon, { n: "edit", size: 19 })),
+          ce("button", { className: "btn primary lg grow", onClick: nextRound }, game.round < 6 ? "Next round" : "Finish game", ce(Icon, { n: "chevron", size: 19 })))
+      : ce("button", { className: "btn primary lg grow", onClick: () => { haptic(8); setPad(firstOpen); } },
+          scored ? "Keep scoring · " + scored + " of " + game.players.length : ce(Fragment, null, ce(Icon, { n: "calc", size: 19 }), "Score round " + r.n));
 
-  const contract = ce(Contract, { r, game, dealerName: pl(dealer).name, open, board });
+  const contract = ce(Contract, { r, game, dealerName: pl(dealer).name, open });
+  const overlays = ce(Fragment, null,
+    pad != null && ce(ScorePad, { game, pl, start: pad, rs, setScore, onClose: () => setPad(null), onDone: () => { setPad(null); setAdvance(true); } }),
+    intro && ce(RoundIntro, { r: ROUNDS[intro.round], winners: intro.winners, fromN: intro.from + 1, dealerName: pl(game.players[dealerIdx(game, intro.round)]).name,
+      onDone: () => setIntro(null), onUndo: () => { upd(g => ({ ...g, round: intro.from })); setIntro(null); } }));
   if (board) return ce("div", { className: "scoreboard" },
-    ce("div", { className: "sb-head" }, ce("span", { className: "sb-round" }, "Round " + r.n + " of 7"), ce("h1", null, r.name), ce("span", { className: "grow" }),
+    ce("div", { className: "sb-head" }, ce("span", { className: "sb-round" }, "Round " + r.n + " of 7"), ce("h1", null, r.name), ce(Melds, { ex: r.ex }), ce("span", { className: "grow" }),
       ce("button", { className: "btn ghost-light", onClick: () => setBoard(false) }, ce(Icon, { n: "close", size: 18 }), "Exit scoreboard")),
-    ce("div", { className: "sb-body" }, lanes));
+    ce("div", { className: "sb-body" }, lanes), overlays);
   return ce("div", { className: "game" + (wide ? " wide" : "") },
     ce("header", { className: "game-bar" },
       ce("div", { className: "game-bar-row" },
@@ -813,10 +844,10 @@ function GameScreen({ s, api, game, open, go, wide, setToast }) {
     ce("main", { className: "game-main" },
       wide && ce("aside", { className: "game-side" }, contract, ce(RoundGrid, { game, pl })),
       ce("section", { className: "game-lanes" },
-        ce("div", { className: "lanes-head" }, ce("span", null, phase === "score" ? "Points left in hand" : "Standings"),
-          ce("span", null, phase === "score" ? "Tap Out for the winner" : limit === Infinity ? "Unlimited buys" : limit + " May I? buys each")),
+        ce("div", { className: "lanes-head" }, ce("span", null, scored ? "Round " + r.n + ": " + scored + " of " + game.players.length + " scored" : "Standings"),
+          ce("span", null, limit === Infinity ? "Unlimited buys" : limit + " May I? buys each")),
         lanes)),
-    ce("footer", { className: "dock" }, action));
+    ce("footer", { className: "dock" }, action), overlays);
 }
 function Contract({ r, game, dealerName, open }) {
   return ce("div", { className: "contract" },
@@ -828,37 +859,82 @@ function Contract({ r, game, dealerName, open }) {
     ce("p", { className: "c-tip" }, ce(Icon, { n: "bolt", size: 15 }), r.goOut ? "Go out in one turn. " + r.tip : r.tip),
     ce("p", { className: "c-deal" }, ce(Icon, { n: "deal", size: 15 }), dealerName + " deals " + r.cards + " cards"));
 }
-function Lane({ p, total, isLead, isDealer, pos, gap, hasAny, phase, board, buys, limit, value, outTaken, round, changeBuy, setScore, onCount }) {
-  const shown = useCount(total), has = typeof value === "number", out = value === 0;
-  const [draft, setDraft] = useState(null), justOut = useRef(false);
-  useEffect(() => setDraft(null), [round, phase]);
-  function commit() {
-    if (justOut.current) { justOut.current = false; return; }
-    if (draft == null) return; const v = draft === "" ? "" : parseInt(draft, 10); setDraft(null); setScore(p.id, v);
-  }
-  function toggleOut() { justOut.current = true; setTimeout(() => { justOut.current = false; }, 500); haptic(10); setDraft(null); if (out) setScore(p.id, ""); else if (!outTaken) setScore(p.id, 0); }
+function Lane({ p, total, isLead, isDealer, pos, gap, hasAny, board, buys, limit, value, changeBuy, onEdit }) {
+  const shown = useCount(total), has = typeof value === "number";
   const atLimit = limit !== Infinity && buys >= limit;
-  const meta = !hasAny ? "" : isLead ? "Leading" : gap + " behind";
-  return ce("li", { className: "lane" + (isLead ? " lead" : "") + (out ? " out" : "") },
-    ce("span", { className: "lane-peg-wrap" }, ce(Peg, { color: p.color, name: p.name, size: board ? 56 : 38, ring: isLead }), isDealer && ce("span", { className: "dealer", title: "Dealer" }, "D")),
+  const meta = !hasAny ? (isDealer ? "Dealing" : "Ready") : isLead ? "Leading" : gap + " behind";
+  return ce("li", { className: "lane" + (isLead ? " lead" : "") },
+    ce("span", { className: "lane-peg-wrap" }, ce(Peg, { color: p.color, name: p.name, size: board ? 56 : 40, ring: isLead }), isDealer && ce("span", { className: "dealer", title: "Dealer" }, "D")),
     ce("div", { className: "lane-body" },
       ce("div", { className: "lane-top" },
-        ce("span", { className: "lane-id" }, ce("b", { className: "lane-name" }, p.name),
-          ce("span", { className: "lane-meta" }, phase === "score" && !board ? (out ? "Went out" : "Total " + total) : meta || "\u00a0")),
-        (phase === "play" || board) && ce("span", { className: "lane-total" }, shown)),
+        ce("span", { className: "lane-id" }, ce("b", { className: "lane-name" }, p.name), ce("span", { className: "lane-meta" }, meta)),
+        has && !board && ce("button", { className: "round-chip" + (value === 0 ? " out" : ""), onClick: onEdit, "aria-label": "Edit " + p.name + "'s score this round" }, value === 0 ? "Out" : "+" + value),
+        ce("span", { className: "lane-total" }, shown)),
       ce("div", { className: "lane-track" }, ce("span", { className: "lane-peg", style: { left: pos * 100 + "%", background: peg(p.color).c } }))),
-    !board && (phase === "play"
-      ? ce("div", { className: "buy" },
-          buys > 0 && ce("button", { className: "buy-minus", onClick: () => changeBuy(p.id, -1), "aria-label": "Remove a buy for " + p.name }, ce(Icon, { n: "minus", size: 14, stroke: 2.4 })),
-          ce("button", { className: "buy-btn" + (buys ? " has" : ""), onClick: () => changeBuy(p.id, 1), disabled: atLimit, "aria-label": "May I? buy for " + p.name + ", " + buys + " so far" },
-            "May I?", limit === Infinity ? (buys > 0 && ce("b", null, buys)) : ce("span", { className: "dots" }, Array.from({ length: limit }, (_, k) => ce("i", { key: k, className: k < buys ? "on" : "" })))))
-      : ce("div", { className: "score" },
-          ce("button", { className: "out-btn" + (out ? " on" : ""), disabled: outTaken, "aria-pressed": out, "aria-label": p.name + " went out",
-            onPointerDown: e => { e.preventDefault(); if (!outTaken) toggleOut(); } }, ce(Icon, { n: "check", size: 16, stroke: 2.6 }), "Out"),
-          ce("button", { className: "calc-btn", onPointerDown: e => e.preventDefault(), onClick: onCount, "aria-label": "Count " + p.name + "'s cards" }, ce(Icon, { n: "calc", size: 18 })),
-          ce("input", { className: "score-in" + (out ? " zero" : ""), inputMode: "numeric", pattern: "[0-9]*", placeholder: "–", value: draft != null ? draft : has ? String(value) : "",
-            "aria-label": "Points for " + p.name, enterKeyHint: "next", onFocus: e => e.target.select(),
-            onChange: e => setDraft(e.target.value.replace(/[^0-9]/g, "").slice(0, 3)), onBlur: commit, onKeyDown: e => e.key === "Enter" && e.target.blur() }))));
+    !board && ce("div", { className: "buy" },
+      buys > 0 && ce("button", { className: "buy-minus", onClick: () => changeBuy(p.id, -1), "aria-label": "Remove a buy for " + p.name }, ce(Icon, { n: "minus", size: 14, stroke: 2.4 })),
+      ce("button", { className: "buy-btn" + (buys ? " has" : ""), onClick: () => changeBuy(p.id, 1), disabled: atLimit, "aria-label": "May I? buy for " + p.name + ", " + buys + " so far" },
+        "May I?", limit === Infinity ? (buys > 0 && ce("b", null, buys)) : ce("span", { className: "dots" }, Array.from({ length: limit }, (_, k) => ce("i", { key: k, className: k < buys ? "on" : "" }))))));
+}
+// One sheet scores the whole round: pick a player, type or tap cards, move on.
+function ScorePad({ game, pl, start, rs, setScore, onClose, onDone }) {
+  const ids = game.players, rules = game.rules;
+  const [idx, setIdx] = useState(start), [buf, setBuf] = useState(""), [mode, setMode] = useState("num"), [hand, setHand] = useState([]);
+  const id = ids[idx], p = pl(id), cur = rs[id], outId = ids.find(x => rs[x] === 0), outTaken = !!outId && outId !== id;
+  const cardTotal = hand.reduce((s, c) => s + cardValue(c, rules), 0);
+  const val = mode === "cards" ? (hand.length ? cardTotal : null) : buf !== "" ? parseInt(buf, 10) : null;
+  const shown = val != null ? val : typeof cur === "number" ? cur : null;
+  const reset = () => { setBuf(""); setHand([]); };
+  function move(next) { const v = { ...rs }; if (next.v != null) v[id] = next.v;
+    if (next.v > 0 && !ids.some(x => v[x] === 0)) { const left = ids.filter(x => typeof v[x] !== "number"); if (left.length === 1) v[left[0]] = 0; }
+    const after = ids.map((_, k) => (idx + 1 + k) % ids.length).find(k => typeof v[ids[k]] !== "number");
+    reset(); if (after == null) onDone(); else setIdx(after); }
+  function save(v) { haptic(10); setScore(id, v, mode === "cards" ? hand : null); move({ v }); }
+  const key = k => { haptic(5); if (k === "del") setBuf(b => b.slice(0, -1)); else if (k === "clr") setBuf(""); else setBuf(b => (b + k).replace(/^0+(?=\d)/, "").slice(0, 3)); };
+  useEffect(() => { const h = e => { if (/^\d$/.test(e.key)) key(e.key); else if (e.key === "Backspace") key("del"); else if (e.key === "Enter" && val != null) save(val); };
+    addEventListener("keydown", h); return () => removeEventListener("keydown", h); });
+  const remaining = ids.filter(x => typeof rs[x] !== "number" && x !== id).length;
+  const primary = val != null ? (remaining ? "Save · next player" : "Save round " + (game.round + 1)) : typeof cur === "number" ? (remaining ? "Next player" : "Done") : "Enter points";
+  const keys = (rules.acesPosition === "both" ? ["A1", "A15"] : ["A"]).concat(RANKS.slice(1)).concat(rules.jokersWild ? ["JOKER"] : []);
+  const face = c => c === "JOKER" ? "Jkr" : c[0] === "A" ? "A" : c;
+  return ce(Sheet, { title: "Round " + (game.round + 1) + " scores", onClose, tall: true,
+    footer: ce("div", { className: "row2" },
+      ce("button", { className: "btn out-big" + (cur === 0 ? " on" : ""), disabled: outTaken, onClick: () => save(0) }, ce(Icon, { n: "check", size: 18, stroke: 2.6 }), outTaken ? pl(outId).name + " went out" : "Went out"),
+      ce("button", { className: "btn primary grow", disabled: val == null && typeof cur !== "number", onClick: () => val != null ? save(val) : move({ v: null }) }, primary)) },
+    ce("div", { className: "pad-who", role: "tablist", "aria-label": "Players" }, ids.map((x, k) => { const v = rs[x];
+      return ce("button", { key: x, role: "tab", "aria-selected": k === idx, className: "who" + (k === idx ? " on" : "") + (typeof v === "number" ? " done" : ""), onClick: () => { reset(); setIdx(k); } },
+        ce(Peg, { color: pl(x).color, name: pl(x).name, size: 34 }), ce("span", null, pl(x).name), ce("b", null, typeof v === "number" ? (v === 0 ? "Out" : v) : "–")); })),
+    ce("div", { className: "pad-display" + (shown === 0 ? " zero" : "") + (shown == null ? " empty" : ""), "aria-live": "polite" },
+      ce("span", null, p.name + (mode === "cards" ? " · " + hand.length + (hand.length === 1 ? " card" : " cards") : "")),
+      ce("b", null, shown == null ? "0" : shown === 0 && val == null ? "Out" : shown),
+      ce("small", null, "points left in hand")),
+    ce(Seg, { label: "Entry mode", value: mode, onChange: m => { setMode(m); reset(); }, options: [["num", "Type points"], ["cards", "Tap cards"]] }),
+    mode === "num"
+      ? ce("div", { className: "numpad" }, ["1", "2", "3", "4", "5", "6", "7", "8", "9", "clr", "0", "del"].map(k =>
+          ce("button", { key: k, className: "nk" + (k.length > 1 ? " fn" : ""), onClick: () => key(k), "aria-label": k === "del" ? "Delete" : k === "clr" ? "Clear" : k },
+            k === "del" ? ce(Icon, { n: "back", size: 22 }) : k === "clr" ? "Clear" : k)))
+      : ce(Fragment, null,
+          ce("div", { className: "hand" }, hand.length ? hand.map((c, i) => ce("button", { key: i + c, className: "hcard", onClick: () => setHand(h => h.filter((_, j) => j !== i)), "aria-label": "Remove " + face(c) },
+              ce("b", null, face(c)), ce("small", null, cardValue(c, rules))))
+            : ce("p", { className: "hint center" }, "Tap each card left in " + p.name + "'s hand.")),
+          ce("div", { className: "keys" }, keys.map(c => ce("button", { key: c, className: "key", onClick: () => { haptic(5); setHand(h => [...h, c]); } },
+            ce("b", null, face(c)), ce("small", null, c === "A1" ? "1" : c === "A15" ? "15" : cardValue(c, rules)))))));
+}
+// The signature moment between rounds: the next contract is dealt onto the table.
+function RoundIntro({ r, winners, fromN, dealerName, onDone, onUndo }) {
+  useEffect(() => { const t = setTimeout(onDone, 4200); const k = e => (e.key === "Escape" || e.key === "Enter") && onDone(); addEventListener("keydown", k); return () => { clearTimeout(t); removeEventListener("keydown", k); }; }, []);
+  return ce("div", { className: "intro", role: "dialog", "aria-modal": true, "aria-label": "Round " + r.n + ": " + r.name, onClick: onDone },
+    ce("div", { className: "intro-card" },
+      ce("p", { className: "intro-won" }, ce(Icon, { n: "trophy", size: 16 }), winners + " won round " + fromN),
+      ce("div", { className: "pips big" }, ROUNDS.map((_, i) => ce("i", { key: i, className: i < r.n - 1 ? "done" : i === r.n - 1 ? "now" : "" }))),
+      ce("span", { className: "intro-n" }, "Round " + r.n + " of 7"),
+      ce("h2", null, r.name),
+      ce("div", { className: "intro-melds" }, ce(Melds, { ex: r.ex })),
+      ce("p", { className: "intro-deal" }, dealerName + " deals " + r.cards + " cards"),
+      ce("div", { className: "row2" },
+        ce("button", { className: "btn ghost-light", onClick: e => { e.stopPropagation(); onUndo(); } }, "Undo"),
+        ce("button", { className: "btn light grow", onClick: e => { e.stopPropagation(); onDone(); } }, "Let's play")),
+      ce("span", { className: "intro-timer", "aria-hidden": true })));
 }
 function RoundGrid({ game, pl }) {
   const ranked = rankOf(game);
@@ -1039,23 +1115,6 @@ function RulesSheet({ onClose, round, rules, setRules, initial }) {
         .map(([k, v]) => ce("div", { key: k }, ce("span", null, k), ce("b", null, v))))),
     tab === "house" && (setRules ? ce(HouseRules, { rules, up: (k, v) => setRules(x => ({ ...x, [k]: v })) }) : ce("p", { className: "muted" }, rulesLine(rules))));
 }
-function CounterSheet({ onClose, name, rules, onApply }) {
-  const [hand, setHand] = useState([]);
-  const total = hand.reduce((s, c) => s + cardValue(c, rules), 0), shown = useCount(total);
-  const keys = (rules.acesPosition === "both" ? ["A1", "A15"] : ["A"]).concat(RANKS.slice(1)).concat(rules.jokersWild ? ["JOKER"] : []);
-  const face = c => c === "JOKER" ? "Jkr" : c[0] === "A" ? "A" : c;
-  return ce(Sheet, { title: name + "'s cards", onClose,
-    footer: ce("div", { className: "row2" },
-      ce("button", { className: "btn secondary", onClick: () => onApply(0) }, "Went out"),
-      ce("button", { className: "btn primary grow", disabled: !hand.length, onClick: () => onApply(total, hand) }, "Give " + total + " points")) },
-    ce("div", { className: "count-total" }, ce("b", null, shown), ce("span", null, hand.length + (hand.length === 1 ? " card" : " cards"))),
-    ce("div", { className: "hand" }, hand.length ? hand.map((c, i) => ce("button", { key: i + c, className: "hcard", onClick: () => setHand(h => h.filter((_, j) => j !== i)), "aria-label": "Remove " + face(c) },
-        ce("b", null, face(c)), ce("small", null, cardValue(c, rules))))
-      : ce("p", { className: "hint center" }, "Tap each card left in their hand.")),
-    ce("div", { className: "keys" }, keys.map(c => ce("button", { key: c, className: "key", onClick: () => { haptic(5); setHand(h => [...h, c]); } },
-      ce("b", null, face(c)), ce("small", null, c === "A1" ? "1" : c === "A15" ? "15" : cardValue(c, rules))))));
-}
-
 // ── Styles ────────────────────────────────────────────────────────
 const CSS = `
 :root {
@@ -1369,6 +1428,89 @@ input { caret-color: var(--focus); }
 .toast span { padding: 6px 0; }
 .toast button { color: #8FB6FF; font-weight: 800; min-height: 36px; padding: 0 10px; border-radius: 9px; }
 
+
+/* ── v5.1: home, champion, score pad, round intro ── */
+.home .title { margin-bottom: 4px; }
+.live-card { display: grid; gap: 6px; text-align: left; background: var(--navy); color: var(--on-navy); border-radius: 18px; padding: 16px 18px 18px; transition: transform .15s var(--ease); }
+.live-card:active { transform: scale(.985); }
+.live-top { display: flex; align-items: center; }
+.live-card .badge.live { background: rgba(255,255,255,.12); color: #fff; display: inline-flex; align-items: center; gap: 6px; }
+.badge.live i { width: 7px; height: 7px; border-radius: 50%; background: #4ADE80; animation: blink 1.6s ease-in-out infinite; }
+.live-go { display: inline-flex; align-items: center; font-weight: 800; }
+.live-name { font-size: 1.6rem; font-weight: 800; letter-spacing: -.03em; margin-top: 4px; }
+.live-sub { color: var(--on-navy-2); font-size: .92rem; margin-bottom: 6px; }
+.live-card .lane-track { background: rgba(255,255,255,.14); background-image: radial-gradient(circle, rgba(255,255,255,.3) 1.4px, transparent 1.6px); background-size: 14px 8px; background-position: 3px 0; }
+.live-card .lane-track::after { background: #fff; }
+.live-card .lane-peg { box-shadow: 0 0 0 2.5px var(--navy); }
+.live-card .lane-peg.gold { box-shadow: 0 0 0 2.5px var(--navy), 0 0 0 4.5px var(--gold-ring); }
+.live-card .mini-name, .live-card .mini-v { color: var(--on-navy-2); }
+.group-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+.group-card { display: grid; gap: 14px; text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 16px; color: var(--ink); transition: border-color .15s, transform .15s var(--ease); }
+.group-card:hover { border-color: var(--line-2); }
+.group-card:active { transform: scale(.985); }
+.gc-head { display: flex; align-items: flex-start; gap: 8px; }
+.gc-head > svg { color: var(--ink-3); margin-top: 3px; flex: none; }
+.gc-head .gr-main b { font-size: 1.25rem; letter-spacing: -.02em; }
+.mini { display: grid; gap: 10px; }
+.mini-row { display: grid; grid-template-columns: 64px 1fr auto; align-items: center; gap: 10px; }
+.mini-name { font-size: .85rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mini-v { font-size: .8rem; font-weight: 700; color: var(--ink-3); font-variant-numeric: tabular-nums; min-width: 4ch; text-align: right; }
+.mini .lane-track { height: 6px; background-size: 12px 6px; }
+.mini .lane-peg { width: 13px; height: 13px; }
+.lane-peg.gold { box-shadow: 0 0 0 2.5px var(--surface), 0 0 0 4.5px var(--gold-ring); }
+.champ { display: flex; align-items: center; gap: 16px; padding: 4px 0; }
+.champ-text { flex: 1; min-width: 0; }
+.champ-line { margin: 6px 0 0; font-weight: 700; color: var(--gold); }
+.champ-peg { position: relative; flex: none; padding-top: 18px; margin-right: 6px; }
+.champ-peg .peg { font-size: 1.7rem !important; }
+.crown { position: absolute; top: -14px; left: 50%; transform: translateX(-50%) rotate(-8deg); color: var(--gold-ring); }
+.crown svg { fill: currentColor; stroke: var(--gold); stroke-width: 1.4; }
+.round-chip { flex: none; min-height: 32px; padding: 0 9px; border-radius: 9px; background: var(--board); color: var(--ink-2); font-weight: 800; font-size: .82rem; font-variant-numeric: tabular-nums; }
+.round-chip.out { background: var(--green-soft); color: var(--green); }
+.lane .lane-peg-wrap { align-self: flex-start; margin-top: 2px; }
+.pad-who { display: flex; gap: 6px; overflow-x: auto; margin: 0 -20px; padding: 2px 20px 4px; scrollbar-width: none; }
+.pad-who::-webkit-scrollbar { display: none; }
+.who { flex: none; display: grid; justify-items: center; gap: 3px; min-width: 66px; padding: 8px 6px; border-radius: 14px; border: 1.5px solid transparent; transition: background .15s, border-color .15s; }
+.who span { font-size: .8rem; font-weight: 700; max-width: 9ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.who b { font-size: .82rem; font-weight: 800; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.who.done b { color: var(--ink); }
+.who.on { background: var(--board); border-color: var(--navy); }
+.who:not(.on):not(.done) .peg { opacity: .55; }
+.pad-display { text-align: center; padding: 6px 0 2px; display: grid; }
+.pad-display span { font-weight: 700; color: var(--ink-2); }
+.pad-display b { font-size: 4.2rem; line-height: 1; font-weight: 800; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+.pad-display small { color: var(--ink-3); font-weight: 600; }
+.pad-display.zero b { color: var(--green); }
+.pad-display.empty b { color: var(--line-2); }
+.numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.nk { min-height: 58px; border-radius: 14px; background: var(--board); font-size: 1.5rem; font-weight: 800; display: grid; place-items: center; transition: transform .1s var(--ease), background .12s; font-variant-numeric: tabular-nums; }
+.nk:active { transform: scale(.95); background: var(--board-2); }
+.nk.fn { background: transparent; font-size: .95rem; color: var(--ink-2); }
+.btn.out-big { background: var(--green-soft); color: var(--green); flex: none; }
+.btn.out-big.on { background: var(--green); color: #fff; }
+.btn.out-big:disabled { background: var(--board); color: var(--ink-3); }
+.intro { position: fixed; inset: 0; z-index: 35; background: rgba(13,24,44,.86); display: grid; place-items: center; padding: 20px; animation: fade .25s ease both; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.intro-card { width: 100%; max-width: 420px; color: #fff; text-align: center; display: grid; gap: 12px; justify-items: center; position: relative; }
+.intro-won { display: inline-flex; align-items: center; gap: 8px; margin: 0; padding: 6px 12px; border-radius: 99px; background: rgba(255,255,255,.1); font-weight: 700; font-size: .9rem; color: #FFE08A; animation: rise .4s var(--ease) both; }
+.pips.big { width: 100%; max-width: 280px; margin-top: 10px; }
+.pips.big i { height: 6px; }
+.pips.big i.now { animation: pipfill .6s .2s var(--ease) both; transform-origin: left; }
+.intro-n { color: var(--on-navy-2); font-weight: 700; margin-top: 6px; animation: rise .45s .15s var(--ease) both; }
+.intro h2 { margin: 0; font-size: clamp(2.6rem, 11vw, 3.6rem); line-height: 1; letter-spacing: -.035em; text-wrap: balance; animation: rise .5s .22s var(--ease) both; }
+.intro-melds { margin: 10px 0 4px; }
+.intro-melds .pc { width: 38px; height: 52px; animation: deal .45s var(--ease) both; }
+.intro-melds .pc b, .intro-melds .pc i { font-size: 1rem; }
+.intro-melds .meld:nth-child(1) .pc { animation-delay: .35s; } .intro-melds .meld:nth-child(2) .pc { animation-delay: .5s; } .intro-melds .meld:nth-child(3) .pc { animation-delay: .65s; }
+.intro-melds .melds { justify-content: center; gap: 12px; }
+.intro-deal { margin: 0; color: var(--on-navy-2); }
+.intro .row2 { width: 100%; margin-top: 14px; }
+.btn.light { background: #fff; color: var(--navy); }
+.intro-timer { position: absolute; left: 0; right: 0; bottom: -18px; height: 3px; border-radius: 2px; background: rgba(255,255,255,.5); transform-origin: left; animation: drain 4.2s linear both; }
+.sb-head .melds { align-self: center; }
+@keyframes blink { 50% { opacity: .35; } }
+@keyframes pipfill { from { transform: scaleX(0); } }
+@keyframes deal { from { transform: translateY(-40px) rotate(-12deg); opacity: 0; } }
+@keyframes drain { to { transform: scaleX(0); } }
 @keyframes fade { from { opacity: 0; } }
 @keyframes up { from { transform: translateY(24px); opacity: 0; } }
 .toast { --x: -50%; } @keyframes up-t { from { transform: translate(-50%, 24px); opacity: 0; } } .toast { animation-name: up-t; }

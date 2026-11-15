@@ -29,7 +29,10 @@ Flat. Panels: white, 1px `--line`, radius 14px. Controls: radius 12px, 44px mini
 - **Lane:** peg (38px, dealer badge "D"), name with status line underneath, large total, dotted track with a finish post. Peg position = (worst − total) / (worst − leader).
 - **Contract bar:** navy, 7 round pips (amber = current), "Round n of 7 · contract", name, mini meld cards, tip, dealer line. Tapping it opens that round's rules.
 - **Buy control:** "May I?" with one dot per allowed buy, gold when used, small minus to undo.
-- **Score row:** Out (green when on, only one per round), hand counter, numeric input.
+- **Score pad:** one sheet scores the whole round. A strip of player chips on top, a big number display, Type points / Tap cards toggle, a 3×4 keypad or card keys, then "Went out" (one per round) and "Save · next player". It jumps to the next unscored player and commits the round when the last one is saved. Each lane then shows a small "+18" or "Out" chip that reopens the pad.
+- **Round intro:** the signature moment between rounds. A dimmed overlay shows who won the round, the 7 pips filling, the next contract name at display size, its cards dealt in, and who deals, with Undo and Let's play. It closes itself after 4.2s.
+- **Home:** a navy "Playing now" card per live game with mini lanes, then one card per group with its all-time mini track (top 3 by wins).
+- **Group header:** group name, champion line in gold, and the champion's 64px peg with a gold crown.
 - **Dock:** primary action pinned at the bottom, one obvious next step.
 - **Sheet:** bottom sheet on phones (drag to close), centred dialog at 700px and up.
 
