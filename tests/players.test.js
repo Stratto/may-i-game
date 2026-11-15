@@ -42,34 +42,53 @@ test("sync: an older table document still brings its new rounds in", () => {
 test("avatars: a starting character is chosen from the name, the same every time", () => {
   const a = M.avSeed("Ana"), b = M.avSeed("Ana");
   assert.deepStrictEqual(a, b);
-  assert.strictEqual(a.type, "face");
-  for (const [k, list] of [["top", "hair"], ["hairColor"], ["skin"], ["eyes"], ["eyebrows"], ["mouth"], ["beard"], ["acc"], ["clothes"], ["clothesColor"]]) assert.ok(M.AV[list || k].includes(a[k]), k);
+  assert.deepStrictEqual([a.type, a.v], ["face", 4]);
+  assert.ok(M.FIG.looks.includes(a.who) && a.who.startsWith("Person"), "starting characters use the Person forms: " + a.who);
+  assert.ok(M.FIG.tones.slice(0, 5).includes(a.tone), a.tone);
   assert.notDeepStrictEqual(M.avSeed("Ana"), M.avSeed("Benjamin"));
 });
 
-test("avatars: every part draws a complete SVG with its own ids", () => {
-  const base = M.avSeed("Ana");
-  for (const [k, list] of [["top", "hair"], ["top", "hats"], ["hairColor"], ["skin"], ["eyes"], ["eyebrows"], ["mouth"], ["beard"], ["acc"], ["clothes"], ["clothesColor"]]) for (const v of M.AV[list || k]) {
-    const svg = M.faceSVG({ ...base, [k]: v });
-    assert.match(svg, /^<svg [^>]*viewBox="[\d ]+"[\s\S]*<\/svg>$/);
-    assert.ok(!/undefined|NaN|\[object/.test(svg), k + "/" + v);
-  }
-  const a = M.faceSVG({ ...base, acc: "sunglasses" }), b = M.faceSVG({ ...base, acc: "sunglasses" });
-  const ids = s => [...s.matchAll(/id="([^"]+)"/g)].map(m => m[1]);
-  assert.ok(ids(a).length && !ids(a).some(id => ids(b).includes(id)), "two avatars on one page must not share ids");
-  assert.ok(M.faceSVG({ ...base, skin: "#614335" }).includes("#614335"));
+test("avatars: costumes and moods come in the character's own form", () => {
+  assert.strictEqual(M.figGender("Woman curly hair"), "Woman");
+  assert.strictEqual(M.figGender("Old man"), "Man");
+  assert.strictEqual(M.figGender("Princess"), "Woman");
+  assert.strictEqual(M.figGender("Prince"), "Man");
+  assert.strictEqual(M.figGender("Child"), "Person");
+  assert.deepStrictEqual(["Woman", "Man", "Person"].map(g => M.figRole(g, "cook")), ["Woman cook", "Man cook", "Cook"]);
+  assert.deepStrictEqual(["Woman", "Man", "Person"].map(g => M.figRole(g, "mage")), ["Woman mage", "Man mage", "Person mage"]);
+  assert.deepStrictEqual(["Woman", "Man", "Person"].map(g => M.figRole(g, "royal")), ["Princess", "Prince", "Person with crown"]);
+  assert.deepStrictEqual(["Woman", "Man", "Person"].map(g => M.figRole(g, "claus")), ["Mrs claus", "Santa claus", "Mx claus"]);
+  assert.strictEqual(M.figMood("Person", "shrugging"), "Person shrugging");
 });
 
-test("avatars: characters made with the first drawn faces move to the new parts", () => {
-  const old = { type: "face", skin: "#F7D7BA", hair: "curly", hairColor: "#DDB052", face: "cool", extra: "none", top: "#FFFFFF" };
-  const t = M.toAva(old);
-  assert.deepStrictEqual([t.top, t.hairColor, t.skin, t.acc, t.v], ["curly", "#D6B370", "#FFDBB4", "sunglasses", 3]);
-  assert.ok(!/undefined|NaN/.test(M.faceSVG(old)));
+test("avatars: picture addresses follow the pinned Fluent Emoji layout", () => {
+  assert.strictEqual(M.figSrc("Woman curly hair", "Medium-Dark"),
+    "https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Woman%20curly%20hair/Medium-Dark/3D/woman_curly_hair_3d_medium-dark.png");
+  assert.match(M.figSrc("Ninja", "nonsense"), /\/Ninja\/Default\/3D\/ninja_3d_default\.png$/);
+});
+
+test("avatars: flat characters from before move to their nearest 3D look", () => {
+  const first = { type: "face", skin: "#F7D7BA", hair: "curly", hairColor: "#DDB052", face: "cool", extra: "none", top: "#FFFFFF" };
+  assert.deepStrictEqual(M.toFig(first), { type: "face", v: 4, who: "Woman blonde hair", tone: "Light" });
+  const flat = { type: "face", v: 3, top: "shortFlat", hairColor: "#2C1B18", skin: "#614335", beard: "beardMedium" };
+  assert.deepStrictEqual(M.toFig(flat), { type: "face", v: 4, who: "Man beard", tone: "Dark" });
+  assert.strictEqual(M.toFig({ type: "face", v: 3, top: "hijab", skin: "#D08B5B", beard: "none" }).who, "Woman with headscarf");
+  const now = { type: "face", v: 4, who: "Boy", tone: "Medium" };
+  assert.deepStrictEqual(M.toFig(now), now);
+});
+
+test("avatars: a photo reading becomes a character only when it names a real look", () => {
+  const base = { type: "face", v: 4, who: "Person", tone: "Dark" };
+  assert.deepStrictEqual(M.figFromPhoto({ found: true, look: "Man red hair", tone: "Light" }, base), { type: "face", v: 4, who: "Man red hair", tone: "Light" });
+  assert.strictEqual(M.figFromPhoto({ found: false, look: "Man", tone: "Light" }, base), null);
+  assert.strictEqual(M.figFromPhoto({ found: true, look: "Dragon", tone: "Light" }, base), null);
+  assert.strictEqual(M.figFromPhoto({ found: true, look: "Girl", tone: "Default" }, base).tone, "Dark");
+  assert.deepStrictEqual(M.AVATAR_SCHEMA.properties.look.enum, M.FIG.looks);
 });
 
 test("avatars: share image sources for photos, characters and initials", () => {
   assert.strictEqual(M.avatarSrc({ type: "photo", src: "data:image/jpeg;base64,xx" }), "data:image/jpeg;base64,xx");
-  assert.match(M.avatarSrc(M.avSeed("Cy")), /^data:image\/svg\+xml;charset=utf-8,%3Csvg/);
+  assert.match(M.avatarSrc(M.avSeed("Cy")), /^https:\/\/cdn\.jsdelivr\.net\/gh\/microsoft\/fluentui-emoji@[0-9a-f]{40}\/assets\//);
   assert.strictEqual(M.avatarSrc(null), null);
 });
 

@@ -196,14 +196,16 @@ const SCENARIOS = [
     await until(() => c.$$(".sheet").length === 2, 2000, "the avatar maker");
     const top = () => c.$$(".sheet").pop();
     await c.tap(c.button(/Character/, top()));
-    await c.tap([...top().querySelectorAll('[role="tab"]')].find(b => b.textContent.trim() === "Glasses"));
-    await c.tap(top().querySelector('[aria-label="Round glasses"]'));
+    await c.tap([...top().querySelectorAll('[role="tab"]')].find(b => b.textContent.trim() === "Costumes"));
+    await c.tap(top().querySelector('[aria-label="Astronaut"]'));
+    await c.tap([...top().querySelectorAll('[role="tab"]')].find(b => b.textContent.trim() === "Skin tone"));
+    await c.tap(top().querySelector('[aria-label="Medium dark"]'));
     await c.tap([...top().querySelectorAll("button")].find(b => b.textContent.trim() === "Save"));
     await until(() => c.$$(".sheet").length === 1, 2000, "the avatar maker to close");
     await c.tap([...c.$(".sheet").querySelectorAll("button")].find(b => b.textContent.trim().startsWith("Save")));
     await until(() => !c.$(".sheet"), 2000, "the players sheet to close").catch(() => {});
     const saved = c.store().groups.g1.players[2].avatar, shown = c.$$(".tablepage .peg.face").length;
-    return saved && saved.acc === "round" && shown ? { ok: true, note: "Cy's character saved and shown" } : { ok: false, note: "Saved " + JSON.stringify(saved) + ", shown " + shown };
+    return saved && saved.v === 4 && /astronaut/i.test(saved.who) && saved.tone === "Medium-Dark" && shown ? { ok: true, note: "Cy's 3D astronaut saved and shown" } : { ok: false, note: "Saved " + JSON.stringify(saved) + ", shown " + shown };
   } },
   { name: "Home shows the hero and Playing now", run: async c => {
     await c.tap(c.button(/Tables/));
