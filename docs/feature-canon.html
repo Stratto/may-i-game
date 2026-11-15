@@ -1,0 +1,291 @@
+<title>May I? Feature Canon</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one reading column; a felt masthead, an era rail, then a filterable inventory of cards grouped by category, then the lab plan. */
+:root {
+  --bg: #F2F3F0; --surface: #FFFFFF; --fill: #E7EAE5; --line: rgba(20,30,24,.13);
+  --ink: #141A16; --ink2: #47524B; --ink3: #5F6A63;
+  --felt: #17644A; --felt2: #0B3D2B; --on-felt: #FFFFFF; --on-felt2: rgba(255,255,255,.8);
+  --must: #145A40; --must-soft: #DDEEE5; --up: #8A5E0B; --up-soft: #F6ECD2; --retire: #A3262F; --retire-soft: #F8E1E2;
+  --display: "Fraunces", Georgia, serif; --body: "Inter", -apple-system, system-ui, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0D110F; --surface: #171D1A; --fill: #222A26; --line: rgba(255,255,255,.11);
+  --ink: #EDF1EE; --ink2: #B7C0BA; --ink3: #949E98; --felt: #145A40; --felt2: #072218;
+  --must: #5BD69A; --must-soft: rgba(91,214,154,.14); --up: #E8BD62; --up-soft: rgba(232,189,98,.14); --retire: #FF8A8A; --retire-soft: rgba(255,138,138,.13);
+  color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0D110F; --surface: #171D1A; --fill: #222A26; --line: rgba(255,255,255,.11);
+  --ink: #EDF1EE; --ink2: #B7C0BA; --ink3: #949E98; --felt: #145A40; --felt2: #072218;
+  --must: #5BD69A; --must-soft: rgba(91,214,154,.14); --up: #E8BD62; --up-soft: rgba(232,189,98,.14); --retire: #FF8A8A; --retire-soft: rgba(255,138,138,.13);
+  color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.5 var(--body); }
+.wrap { max-width: 980px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1, h2, h3 { font-family: var(--display); font-weight: 650; letter-spacing: -.015em; text-wrap: balance; margin: 0; }
+.mast { background: radial-gradient(120% 140% at 30% 0%, #1E6E52 0%, var(--felt) 45%, var(--felt2) 100%); color: var(--on-felt); border-radius: 0 0 28px 28px; }
+.mast .wrap { padding-block: 40px 30px; display: grid; gap: 14px; }
+.mast h1 { font-size: clamp(2rem, 6vw, 3rem); line-height: 1.05; font-variation-settings: "opsz" 96; }
+.mast p { margin: 0; color: var(--on-felt2); max-width: 62ch; font-size: 1.02rem; }
+.stats { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+.stat { background: rgba(0,0,0,.18); border-radius: 12px; padding: 8px 14px; font-size: .85rem; color: var(--on-felt2); }
+.stat b { display: block; color: var(--on-felt); font: 650 1.4rem/1.1 var(--display); }
+section { padding-block: 34px 0; display: grid; gap: 14px; }
+section > h2 { font-size: 1.6rem; }
+.lede { color: var(--ink2); margin: 0; max-width: 68ch; }
+.eras { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.era { background: var(--surface); border-radius: 14px; padding: 14px; box-shadow: 0 0 0 1px var(--line); display: grid; gap: 4px; align-content: start; }
+.era .v { font-size: .75rem; font-weight: 700; letter-spacing: .04em; color: var(--ink3); text-transform: uppercase; }
+.era h3 { font-size: 1.05rem; }
+.era small { color: var(--ink3); font-size: .78rem; }
+.era p { margin: 4px 0 0; font-size: .85rem; color: var(--ink2); }
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding-block: 10px; display: grid; gap: 8px; border-bottom: 1px solid var(--line); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { border: 0; font: 600 .82rem var(--body); padding: 8px 14px; border-radius: 99px; background: var(--fill); color: var(--ink2); cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.chip:focus-visible, .tier:focus-visible, .btn:focus-visible { outline: 3px solid #1F6FEB; outline-offset: 2px; }
+.counts { font-size: .82rem; color: var(--ink3); display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+.counts b { color: var(--ink); }
+.btn { border: 0; font: 600 .85rem var(--body); padding: 8px 14px; border-radius: 10px; background: var(--felt2); color: #fff; cursor: pointer; margin-left: auto; }
+.cat { display: grid; gap: 8px; }
+.cat h3 { font-size: 1.15rem; margin-top: 14px; }
+.items { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 10px; }
+.item { background: var(--surface); border-radius: 14px; padding: 14px; box-shadow: 0 0 0 1px var(--line); display: grid; gap: 6px; align-content: start; min-width: 0; }
+.item header { display: flex; gap: 10px; align-items: flex-start; justify-content: space-between; }
+.item h4 { margin: 0; font-size: .98rem; font-weight: 650; }
+.item p { margin: 0; color: var(--ink2); font-size: .88rem; }
+.item .src { font-size: .76rem; color: var(--ink3); }
+.item .src b { color: var(--ink2); font-weight: 600; }
+.item.new { box-shadow: 0 0 0 1px var(--line), inset 3px 0 0 var(--up); }
+.tier { flex: none; border: 0; cursor: pointer; font: 700 .7rem var(--body); letter-spacing: .03em; text-transform: uppercase; padding: 7px 11px; border-radius: 8px; }
+.tier.must { background: var(--must-soft); color: var(--must); }
+.tier.up { background: var(--up-soft); color: var(--up); }
+.tier.retire { background: var(--retire-soft); color: var(--retire); }
+.moments { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 10px; }
+.moment { background: radial-gradient(120% 140% at 30% 0%, #1E6E52 0%, var(--felt) 50%, var(--felt2) 100%); color: var(--on-felt); border-radius: 16px; padding: 16px; display: grid; gap: 4px; }
+.moment h3 { font-size: 1.1rem; } .moment p { margin: 0; color: var(--on-felt2); font-size: .88rem; } .moment small { color: #F3D98B; font-weight: 600; font-size: .75rem; }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 12px; }
+.panel { background: var(--surface); border-radius: 14px; padding: 16px 18px; box-shadow: 0 0 0 1px var(--line); min-width: 0; }
+.panel h3 { font-size: 1.1rem; margin-bottom: 8px; }
+.panel ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; color: var(--ink2); font-size: .9rem; }
+.panel li b { color: var(--ink); }
+.tbl { overflow-x: auto; background: var(--surface); border-radius: 14px; box-shadow: 0 0 0 1px var(--line); }
+table { border-collapse: collapse; width: 100%; font-size: .88rem; min-width: 640px; }
+th, td { text-align: left; padding: 10px 14px; border-top: 1px solid var(--line); vertical-align: top; }
+th { border-top: 0; font-size: .74rem; letter-spacing: .04em; text-transform: uppercase; color: var(--ink3); }
+td:first-child { font-weight: 650; white-space: nowrap; }
+td { color: var(--ink2); }
+footer { padding-block: 36px 48px; color: var(--ink3); font-size: .82rem; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<header class="mast"><div class="wrap">
+  <h1>May I? Feature Canon</h1>
+  <p>The best of every version of the app, from the first Velvet Casino build to v6, sorted into what the next version must have, what levels it up, and what to leave behind. It's the starting point for planning the ideal experience for players, groups and families on phones, tablets and the TV.</p>
+  <div class="stats">
+    <div class="stat"><b>22</b>versions reviewed</div>
+    <div class="stat"><b>6</b>eras, Jun–Nov 2026</div>
+    <div class="stat"><b id="sMust">0</b>must-haves</div>
+    <div class="stat"><b id="sUp">0</b>level-ups</div>
+    <div class="stat"><b id="sRet">0</b>to retire</div>
+  </div>
+</div></header>
+
+<main class="wrap">
+<section>
+  <h2>Six eras, six strengths</h2>
+  <p class="lede">Each rebuild fixed the last one's clutter but threw out its best ideas. The camera, the coaching and the deep stats were lost in the October rebuild and never came back.</p>
+  <div class="eras">
+    <div class="era"><span class="v">v1 · Jun–Jul</span><h3>Velvet Casino</h3><small>12df13a → d1be84c</small><p>Casino felt and gold, the four suit tabs, the "May I?" explainer timeline, "Why this rule?" notes.</p></div>
+    <div class="era"><span class="v">v2 · Sep</span><h3>AI &amp; game worlds</h3><small>ce2e4be → b6eead8</small><p>Photo-to-score with AI, the hand coach, deep stats, Grand Salon, Candy, Lagoon, "Surprise me".</p></div>
+    <div class="era"><span class="v">v3 · Oct 22</span><h3>HIG overhaul</h3><small>039ea2e</small><p>The richest build: iOS chrome, Play/Scores/Rules tabs, round strip, full tablet layout.</p></div>
+    <div class="era"><span class="v">v4 · Oct 25</span><h3>The Table &amp; looks</h3><small>d78ce84 → 88da3cb</small><p>Felt band, scoreboard seats, giant round-intro card; Pop, Midnight and Fresh.</p></div>
+    <div class="era"><span class="v">v5 · Nov 14</span><h3>Score Track</h3><small>f69137d → 3262a5f</small><p>Groups, codes and live sync, racing pegs, score pad, podium, share image.</p></div>
+    <div class="era"><span class="v">v6 · Nov 15</span><h3>The Table, again</h3><small>4e710a7</small><p>The cleanest core: iOS pages, one action per screen, four looks with dark mode and Daylight.</p></div>
+  </div>
+</section>
+
+<section aria-labelledby="inv">
+  <h2 id="inv">The inventory</h2>
+  <p class="lede">Tap a tier label to change it. Your choices stay in this browser. "Copy my picks" puts the list on your clipboard so you can paste it back to Claude. Items marked with a gold edge are new ideas that no version has had yet.</p>
+  <div class="bar">
+    <div class="chips" id="tierChips" role="group" aria-label="Filter by tier"></div>
+    <div class="chips" id="catChips" role="group" aria-label="Filter by category"></div>
+    <div class="counts"><span id="shown"></span><button class="btn" id="copy" type="button">Copy my picks</button></div>
+  </div>
+  <div id="list"></div>
+</section>
+
+<section>
+  <h2>Wow moments worth protecting</h2>
+  <p class="lede">These are what made people smile across versions. The next version should have all of them, and each one should feel like the same table.</p>
+  <div class="moments">
+    <div class="moment"><small>v2 · v3</small><h3>Snap a hand, score it</h3><p>Photograph the loser's cards and AI fills in the count. You check it against the photo and save it. The most tedious part of rummy disappears.</p></div>
+    <div class="moment"><small>v4 · v6</small><h3>The next contract is dealt</h3><p>A giant playing card with the round as its rank, the winner of the last round, who deals, and an Undo.</p></div>
+    <div class="moment"><small>v2 → v6</small><h3>The finale</h3><p>Fireworks, a podium rising 3, 2, 1, a bobbing crown and suit confetti, then a share-ready image.</p></div>
+    <div class="moment"><small>v2 · v3</small><h3>"Still in it"</h3><p>Personal comeback maths for everyone who is behind: "Beat Ana by about 6 a round and it's yours."</p></div>
+    <div class="moment"><small>v5</small><h3>The race</h3><p>Pegs sliding along a score track as each round lands. You can see who's ahead from across the room.</p></div>
+    <div class="moment"><small>v2 · v3</small><h3>Choosing a table</h3><p>Grand Salon's mahogany and gold, and the "Surprise me" die that spins to a new look on each launch.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2>Lessons from the churn</h2>
+  <div class="two">
+    <div class="panel"><h3>What keeps getting lost</h3><ul>
+      <li><b>Fixing past rounds.</b> v3 had a round strip; since v4, a score can't be corrected once the 5-second Undo has gone.</li>
+      <li><b>Coaching depth.</b> Tips went from two beginner tips plus two pro tips per round to a single line.</li>
+      <li><b>The tablet.</b> v3's side rail and two-column layout became a centred phone column.</li>
+      <li><b>Share fallbacks.</b> v6 dropped the clipboard fallback, so Share does nothing on some browsers.</li>
+      <li><b>Looks as worlds.</b> Looks with their own fonts and art were reduced to colour swaps.</li>
+    </ul></div>
+    <div class="panel"><h3>Bugs to carry forward as fixed</h3><ul>
+      <li>Live sync never retries a failed push and has no reconnect listener.</li>
+      <li>Removed players show as "?" in past games.</li>
+      <li>Re-counting a hand starts from an empty keypad, and scanned suits are thrown away.</li>
+      <li>Haptics do nothing on iPhone (<code>navigator.vibrate</code>), so feedback needs a visual or sound fallback.</li>
+      <li>The AI SDK was loaded without a pinned version, and the API key sat in plain localStorage.</li>
+      <li>The tip-jar link is still a placeholder.</li>
+    </ul></div>
+  </div>
+</section>
+
+<section>
+  <h2>A local play-test lab</h2>
+  <p class="lede">The proposal: before any build is called done, it goes through the same panel. Seeded games drive the real app in a local browser at phone, tablet and TV sizes. Then a reviewer for each lens scores what it sees against a fixed rubric. Every lens runs the same four players.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Lens</th><th>What it checks</th><th>How it runs</th><th>Pass looks like</th></tr></thead>
+    <tbody>
+      <tr><td>Usability</td><td>Core tasks: first game, scoring a round, fixing a mistake, finding a rule</td><td>Scripted taps with counts and timings; heuristic review (ux-heuristics, design-everyday-things)</td><td>A round scored in under 20 taps; a mistake fixed in 3 or fewer; zero dead ends</td></tr>
+      <tr><td>Fun &amp; progression</td><td>Reasons to come back: awards, streaks, rivalries, comeback hope</td><td>Review with hooked-ux and drive-motivation over a seeded 10-game history</td><td>Every player, not just the winner, gets a moment each game</td></tr>
+      <tr><td>Visual design</td><td>A game-world identity on every screen, hierarchy, consistency across looks</td><td>Impeccable critique plus the detector, screenshots of every screen in every look</td><td>Squint test: every screen reads as the card table</td></tr>
+      <tr><td>Cross-play</td><td>Two phones and a tablet on one group: join by code, live scoring, conflicts, offline</td><td>Several local tabs as separate devices against a local sync stub</td><td>No lost scores; every device catches up within 2 seconds</td></tr>
+      <tr><td>Wow moments</td><td>Timing, easing and payoff of the intro, finale, scan and race</td><td>Visible-pane recordings at 60 fps; microinteractions review</td><td>Each moment lands in under 1 second and can be skipped</td></tr>
+      <tr><td>Play &amp; results</td><td>Rules accuracy, card values for every house-rule combination, ties, gaps, awards</td><td>Unit tests on the pure game functions with fixture games</td><td>All fixture games score exactly</td></tr>
+      <tr><td>Access &amp; sunlight</td><td>Contrast, Dynamic Type, VoiceOver labels, reduced motion, Daylight</td><td>Accessibility review plus automated contrast checks</td><td>WCAG AA in every look; usable at the largest text size</td></tr>
+    </tbody>
+  </table></div>
+  <div class="two">
+    <div class="panel"><h3>Personas every lens uses</h3><ul>
+      <li><b>Gran, first game.</b> Large text, outdoors, has never seen the rules.</li>
+      <li><b>The host.</b> Keeps score on one phone for six players, fast and impatient.</li>
+      <li><b>The competitive teen.</b> On their own phone, wants stats and bragging rights.</li>
+      <li><b>Family night.</b> A tablet propped up as the scoreboard, phones joining by code.</li>
+    </ul></div>
+    <div class="panel"><h3>Suggested order</h3><ul>
+      <li><b>1.</b> You mark the tiers on this page (must-have / level-up / retire).</li>
+      <li><b>2.</b> Claude turns your picks into an experience plan: screens, flows and devices.</li>
+      <li><b>3.</b> Build the lab's scenario scripts and game-logic tests first, against v6.</li>
+      <li><b>4.</b> Build the must-haves, then run the full panel; repeat for the level-ups.</li>
+    </ul></div>
+  </div>
+</section>
+</main>
+<footer class="wrap">Sources: four parallel code reviews of 22 snapshots of index.html from git (12df13a to 4e710a7), commit messages, and screenshots of the v1, v2, v3, v4 and v6 builds served locally.</footer>
+
+<script>
+const ITEMS = [
+ // Scoring
+ ["Scoring","must","Score pad: one sheet per round","Pick a player, type or tap cards, and it jumps to the next unscored player; works with a keyboard too.","v5 e56df39, v6","v6 ScorePad"],
+ ["Scoring","must","Tap-the-cards counter","Card-face keypad with values that follow house rules, a per-card ace 1 or 15 toggle, and a count-up total.","v1 → v6","v1 ace toggle + v6 pad"],
+ ["Scoring","must","One Out per round, auto-Out","Only one player can go out; the last unscored player is set to 0, labelled \"last to score\".","v2 de8ccdb → v6","v3 label + v6 logic"],
+ ["Scoring","must","\"May I?\" buy tracker","Dots up to the house limit, minus to undo, a spoken count for screen readers, and a lock at the limit.","v1 → v6","v4 pill + v3 aria-live"],
+ ["Scoring","must","Fix any past round","An R1–R7 strip to view and correct earlier rounds without moving the game on.","v2, v3 only","v3 PlayView strip"],
+ ["Scoring","must","Undo the last round change","Undo on the round intro and on toasts.","v3 → v6","v6 RoundIntro"],
+ ["Scoring","must","Gaps and ties handled","Results only appear once all 7 rounds are scored, it jumps to any gap, and ties are crowned fairly.","v1 d1be84c → v6","v1 isTie + v6 nextRound"],
+ ["Scoring","up","Stored hands reused","Counted or scanned hands stay with the round so a re-count starts from them, and they feed the stats.","v2 (stored, unused since)","new: preload hands[round][pid]"],
+ // Camera & AI
+ ["Camera & AI","must","Photo to score","Snap a hand, AI reads the cards into the counter, you check them against the photo, then save.","v2, v3","v3 HandCounter + scanHand"],
+ ["Camera & AI","up","Hand coach","Snap your own hand privately for advice on what you have, what to aim for, what to keep and what to discard next.","v2, v3","v3 HandHelper + adviseHand"],
+ ["Camera & AI","must","Safe AI plumbing","Pinned SDK, current model, a clear cost note, and the key handled safely (or a proxy so no key is needed).","new","new"],
+ ["Camera & AI","up","Card confidence","Unsure cards highlighted on the photo, and suits kept for aces and runs.","new","new"],
+ // Rules & coaching
+ ["Rules & coaching","must","Contract as real cards","Contract name, line (\"2 sets of 3 · deal 10\"), example melds as cards, pips, dealer.","v1 → v6","v6 band + v3 contract line"],
+ ["Rules & coaching","must","Round guide","Plain goal, facts, \"Watch out\", \"After you go down\", tips.","v2, v3","v3 RoundGuide"],
+ ["Rules & coaching","must","New player or seasoned","New players get the guide automatically each round; seasoned players get strategy instead.","v2, v3","v3 settings.level"],
+ ["Rules & coaching","must","How \"May I?\" works","A 5-step timeline that quotes your table's buy limit.","v1, v2, v3","v1 MayIExplainer"],
+ ["Rules & coaching","must","House rules that explain themselves","Each rule's hint text changes with the setting, with a \"Why this rule?\" note on family variants.","v1 → v3","v1 RULE_WHY + ruleHint"],
+ ["Rules & coaching","must","Learn in 60 seconds","A quick-start sheet from the first screen.","v2, v3","v3 QuickStart"],
+ ["Rules & coaching","up","FAQ and glossary","6 common questions and 9 terms with card examples.","v2, v3","v3 FAQ, GLOSSARY"],
+ ["Rules & coaching","retire","Rules in four places","How to play, the Rules tab, the round cards and Setup all repeated the rules. Keep one home, opened from the contract.","v1","—"],
+ // Results & stats
+ ["Results & stats","must","The finale","Fireworks, a podium rising 3, 2, 1, a crown and confetti, all skippable and quiet under reduced motion.","v2 → v6","v3 Fireworks + v6 Recap"],
+ ["Results & stats","must","Share image with fallbacks","A 1080×1350 image in the current look; falls back to text, download, then clipboard.","v1 → v6","v6 resultsImage + v1 chain"],
+ ["Results & stats","must","Round-by-round grid","Every round, with zeros highlighted and totals.","v1 → v6","v6 RoundGrid"],
+ ["Results & stats","up","\"Still in it\" comeback notes","Maths-backed hope for each trailing player during the game.","v2, v3","v3 chaseNotes"],
+ ["Results & stats","up","Full awards","Clean hands, Bargain hunter, Comeback kid, Steady hand, Joker juggler, Heavy pockets.","v2, v3 (4 since)","v3 buildHighlights"],
+ ["Results & stats","up","What got people caught","Penalty points by card type, the most-caught card, the toughest round.","v2, v3","v3 Insights + hiccups"],
+ // Groups & progression
+ ["Groups & progression","must","Tables with history","Each table keeps its players, colours, games and champion.","v5, v6","v6 GroupPage"],
+ ["Groups & progression","must","Dealer picker and rotation","Tap to choose who deals first or roll the die; a D badge that moves each round.","v1 → v6","v3 random die + v6 badge"],
+ ["Groups & progression","must","One-tap new game","Start with last night's players and rules, no table required; tables are optional.","new","new"],
+ ["Groups & progression","up","Player profiles and badges","Lifetime awards, streaks, best round, head-to-head records.","new","new"],
+ ["Groups & progression","up","Racing pegs","The score-track race as a view, for example on the TV scoreboard or the recap.","v5","v5 Lane, MiniTrack"],
+ ["Groups & progression","up","Group management","Rename, delete or leave a table, delete a game, keep removed players' names.","new","new"],
+ // Cross-play
+ ["Cross-play & devices","must","Offline and resume","Saves every change, survives reloads, installs as an app.","v1 → v6","v6 useStore"],
+ ["Cross-play & devices","must","Tablet layout","A side rail, two columns, a sticky score column, and rules as a list beside the detail.","v2, v3","v3 Rail, grid2"],
+ ["Cross-play & devices","up","Live table sync","Phones join by code and score live; needs retry, reconnect and per-round merge.","v5, v6 (off)","v6 useSync, then harden"],
+ ["Cross-play & devices","up","TV scoreboard","Full-screen big-type standings for the room; cast or open on a laptop.","v5, v6","v6 scoreboard mode"],
+ // Look & feel
+ ["Look & feel","must","A game world on every screen","Felt, real cards and suit motifs on Home, tables and the recap, not just the game screen.","v1, v2, v4","v1 felt + v4 band"],
+ ["Look & feel","must","Round intro card","A giant 5:7 card dealt in between rounds.","v4 5ea8fd0 → v6","v6 big-card"],
+ ["Look & feel","must","iOS foundations","Large titles, swipe sheets, Dynamic Type, 44pt targets, one next-step button.","v3, v6","v6 Page, Sheet, dock"],
+ ["Look & feel","must","Daylight and dark mode","A high-contrast sunlight look, and dark variants that follow the phone.","v6","v6 LOOKS"],
+ ["Look & feel","up","Looks as worlds","Each look has its own felt, card back, type and art (Grand Salon, Pop, Midnight).","v2, v4","v3 Salon + v4 looks"],
+ ["Look & feel","up","Surprise me","A die that spins to a different look on each launch.","v2 → v4","b6eead8 rollSurprise"],
+ ["Look & feel","up","Suit motifs","Fanned suits logo, floating suits, suit confetti, card fan on the first screen.","v1, v2","v1 FannedSuits, Confetti"],
+ ["Look & feel","up","Sound and visual feedback","A soft card-flip and chime option, since vibration doesn't work on iPhone.","new","new"],
+ ["Look & feel","retire","Deep 3D shadows and glass everywhere","Candy's chunky buttons and v1's glass panels; you asked for no deep or offset shadows.","v1, v2, v4","—"],
+ ["Look & feel","retire","Hard-coded skin colours and heavy art","630 KB of PNGs and hex values outside the tokens.","v2, v3","—"],
+ // Flow
+ ["Flow","retire","Browsing that moves the game","In v1, tapping a round card changed the live round.","v1","—"],
+ ["Flow","retire","Tap-twice to delete","Replace it with a clear confirm step and an undo.","v4 → v6","—"],
+ ["Flow","retire","Text-only share","Always share the image.","v4","—"],
+ ["Flow","must","Kind tip jar","\"Tip the dealer\": never blocks anything; needs a real link.","v1 → v6","v6 SettingsSheet"],
+];
+const TIERS = { must: "Must-have", up: "Level-up", retire: "Retire" };
+const KEY = "mayi-canon-tiers";
+let saved = {}; try { saved = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) {}
+const items = ITEMS.map(([cat, tier, name, desc, from, port], i) => ({ id: i, cat, tier: saved[name] || tier, name, desc, from, port, isNew: from === "new" }));
+const cats = [...new Set(items.map(x => x.cat))];
+let fTier = "all", fCat = "all";
+function chips(el, opts, get, set) {
+  el.innerHTML = "";
+  opts.forEach(([v, label]) => { const b = document.createElement("button"); b.className = "chip"; b.type = "button"; b.textContent = label; b.setAttribute("aria-pressed", get() === v); b.onclick = () => { set(v); render(); }; el.appendChild(b); });
+}
+function render() {
+  chips(document.getElementById("tierChips"), [["all", "All tiers"], ...Object.entries(TIERS)], () => fTier, v => fTier = v);
+  chips(document.getElementById("catChips"), [["all", "All categories"], ...cats.map(c => [c, c])], () => fCat, v => fCat = v);
+  const list = document.getElementById("list"); list.innerHTML = "";
+  let n = 0;
+  cats.forEach(c => {
+    if (fCat !== "all" && fCat !== c) return;
+    const rows = items.filter(x => x.cat === c && (fTier === "all" || x.tier === fTier)); if (!rows.length) return;
+    const wrap = document.createElement("div"); wrap.className = "cat";
+    wrap.innerHTML = `<h3>${c}</h3>`; const grid = document.createElement("div"); grid.className = "items";
+    rows.forEach(x => { n++;
+      const a = document.createElement("article"); a.className = "item" + (x.isNew ? " new" : "");
+      a.innerHTML = `<header><h4></h4><button type="button" class="tier ${x.tier}" title="Change tier"></button></header><p></p><div class="src"><b>From</b> <span class="f"></span> · <b>Port from</b> <span class="p"></span></div>`;
+      a.querySelector("h4").textContent = x.name; a.querySelector("p").textContent = x.desc;
+      a.querySelector(".f").textContent = x.from; a.querySelector(".p").textContent = x.port;
+      const t = a.querySelector(".tier"); t.textContent = TIERS[x.tier]; t.setAttribute("aria-label", x.name + ": " + TIERS[x.tier] + ". Change tier");
+      t.onclick = () => { const order = ["must", "up", "retire"]; x.tier = order[(order.indexOf(x.tier) + 1) % 3]; saved[x.name] = x.tier; try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) {} render(); };
+      grid.appendChild(a); });
+    wrap.appendChild(grid); list.appendChild(wrap);
+  });
+  const c = t => items.filter(x => x.tier === t).length;
+  document.getElementById("sMust").textContent = c("must"); document.getElementById("sUp").textContent = c("up"); document.getElementById("sRet").textContent = c("retire");
+  document.getElementById("shown").innerHTML = `Showing <b>${n}</b> of ${items.length} · <b>${c("must")}</b> must · <b>${c("up")}</b> level-up · <b>${c("retire")}</b> retire`;
+}
+document.getElementById("copy").onclick = async e => {
+  const txt = Object.entries(TIERS).map(([k, l]) => l + ":\n" + items.filter(x => x.tier === k).map(x => "- " + x.name).join("\n")).join("\n\n");
+  try { await navigator.clipboard.writeText(txt); e.target.textContent = "Copied"; } catch (err) { e.target.textContent = "Copy blocked"; }
+  setTimeout(() => e.target.textContent = "Copy my picks", 1800);
+};
+render();
+</script>
