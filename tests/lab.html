@@ -138,14 +138,17 @@ const SCENARIOS = [
     const after = c.store().games.live.buys[3] || {}, sum = o => Object.values(o).reduce((s, v) => s + v, 0);
     return sum(after) === sum(before) + 1 ? { ok: true, note: "Buy saved for round 4" } : { ok: false, note: "Buys went " + sum(before) + " → " + sum(after) };
   } },
-  { name: "Scoring a round moves the game on", run: async c => {
+  { name: "Scoring a round, then starting the next", run: async c => {
     await c.tap(c.$(".dock button"));
     await until(() => c.$(".sheet .keys, .sheet .who-strip"), 2000, "the score pad");
-    await c.tap(c.button(/Went out/, c.$(".sheet")));
+    await c.tap(c.button(/went out/i, c.$(".sheet")));
     for (const n of ["2", "7", "4"]) {
       await c.tap([...c.$$(".sheet button")].find(b => b.textContent.trim() === n));
       const btns = c.$$(".sheet button"); await c.tap(btns[btns.length - 1]);
     }
+    // The round waits on the table for a check, then moves on when you start the next one.
+    await until(() => !c.$(".sheet .who-strip") && /Start round 5/.test((c.$(".dock button") || {}).textContent || ""), 3000, "the Start round 5 button");
+    await c.tap(c.$(".dock button"));
     await until(() => c.store().games.live.round === 4, 3000, "round 5");
     const intro = await until(() => c.$(".intro"), 2000, "the round intro").catch(() => null);
     if (intro) { await c.tap(intro); await until(() => !c.$(".intro"), 2000, "the intro to close").catch(() => {}); }
