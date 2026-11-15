@@ -589,7 +589,9 @@ const RULE_WHY = {
   buyLimit: "The classic rule is 3 buys per round. It keeps the game moving without letting one player take over. Unlimited suits a more relaxed, social game.",
   jokersWild: "Some families take the jokers out to keep scoring simple and cut down on luck. With jokers in, you can rescue almost any hand.",
   twosWild: "Making 2s wild came from families who found runs hard to build. They score 15 in hand, the same as a joker, so holding one is risky.",
-  acesPosition: "Aces low is the original rule. High and both ends came from families who wanted more ways to build runs. J–Q–K–A feels good to lay down.",
+  acesPosition: "Aces low is the original rule. High and both ends came from families who wanted more ways to build runs. J–Q–K–A feels good to lay down. Where an ace sits never changes what it scores.",
+  aceValue: "Most families score an ace at 15, the same as a joker, so holding one late is a real risk. Continental tables use 20. Scoring it at 1 makes aces cheap to keep.",
+  jokerValue: "15 is the classic May I? value. Continental and Shanghai tables charge 50, which makes getting caught with a joker a disaster.",
 };
 
 function ruleHint(key, rules) {
@@ -599,39 +601,63 @@ function ruleHint(key, rules) {
     return "Each player can buy up to " + n + " time" + (n === 1 ? "" : "s") + " per round. Resets each round.";
   }
   if (key === "jokersWild") return rules.jokersWild
-    ? "Jokers stand in for any card. Worth 15 points in hand."
+    ? "Jokers stand in for any card. Worth " + wildPoints(rules) + " points in hand."
     : "No jokers. Take them out of the deck before dealing.";
   if (key === "twosWild") return rules.twosWild
-    ? "2s are wild too. Worth 15 points in hand."
+    ? "2s are wild too. Worth " + wildPoints(rules) + " points in hand, the same as a joker."
     : "2s are ordinary cards. Only jokers are wild.";
   if (key === "acesPosition") return rules.acesPosition === "high"
-    ? "Aces only end a run (J–Q–K–A). Worth 15 points in hand."
+    ? "Aces only end a run (J–Q–K–A)."
     : rules.acesPosition === "both"
-      ? "Aces can start or end a run, but a run can't wrap round (K–A–2). Worth 1 or 15 points in hand."
-      : "Aces only start a run (A–2–3–4). Worth 1 point in hand.";
+      ? "Aces can start or end a run, but a run can't wrap round (K–A–2)."
+      : "Aces only start a run (A–2–3–4).";
+  if (key === "aceValue") return "Every ace left in a hand costs " + acePoints(rules) + (acePoints(rules) === 1 ? " point." : " points.");
+  if (key === "jokerValue") return "Every joker" + (rules.twosWild ? " and wild 2" : "") + " left in a hand costs " + wildPoints(rules) + " points.";
   return "";
 }
 const RANKS = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
 const SUIT = { S:["♠",0], H:["♥",1], D:["♦",1], C:["♣",0] };
-const DEFAULT_RULES = { buyLimit: "3", customBuyLimit: 3, jokersWild: true, acesPosition: "low", twosWild: false };
+const DEFAULT_RULES = { buyLimit: "3", customBuyLimit: 3, jokersWild: true, acesPosition: "low", twosWild: false, aceValue: 15, jokerValue: 15 };
+// Card points are their own house rule. Games from before aceValue existed keep the old
+// scoring (aces 1, or 15 when played high) so finished games never change.
+const acePoints = r => r.aceValue != null ? r.aceValue : r.acesPosition === "high" ? 15 : 1;
+const wildPoints = r => r.jokerValue || 15;
 // Hand cards are ranks ("7", "K", "JOKER"); photo scans may add a suit ("7S", "KH").
 const rankPart = c => /^(10|[2-9AJQK])[SHDC]$/.test(c) ? c.slice(0, -1) : c;
 function cardValue(raw, r) {
   const c = rankPart(raw);
-  if (c === "JOKER") return 15; if (c === "A1") return 1; if (c === "A15") return 15;
-  if (c === "A") return r.acesPosition === "high" ? 15 : 1;
-  if (c === "2" && r.twosWild) return 15;
+  if (c === "JOKER") return wildPoints(r); if (c === "A1") return 1; if (c === "A15") return 15;
+  if (c === "A") return acePoints(r);
+  if (c === "2" && r.twosWild) return wildPoints(r);
   if (c === "J" || c === "Q" || c === "K") return 10;
   return parseInt(c, 10) || 0;
 }
 const buyLimitOf = r => r.buyLimit === "unlimited" ? Infinity : r.buyLimit === "custom" ? Math.max(1, r.customBuyLimit || 1) : 3;
-const rulesLine = r => [(r.buyLimit === "unlimited" ? "Unlimited" : buyLimitOf(r)) + " buys", r.jokersWild ? "jokers wild" : "no jokers", r.twosWild ? "2s wild" : null, r.acesPosition === "low" ? "aces low" : r.acesPosition === "high" ? "aces high" : "aces either"].filter(Boolean).join(" · ");
+const rulesLine = r => [(r.buyLimit === "unlimited" ? "Unlimited" : buyLimitOf(r)) + " buys", r.jokersWild ? "jokers wild" : "no jokers", r.twosWild ? "2s wild" : null, r.acesPosition === "low" ? "aces low" : r.acesPosition === "high" ? "aces high" : "aces either",
+  r.aceValue != null && r.aceValue !== 15 ? "aces " + r.aceValue + " pts" : null, r.jokerValue && r.jokerValue !== 15 ? "jokers " + r.jokerValue + " pts" : null].filter(Boolean).join(" · ");
 
 // ── Game maths ────────────────────────────────────────────────────
 const roundDone = (g, i) => !!g.scores[i] && g.players.every(id => typeof g.scores[i][id] === "number");
 const totalsOf = g => g.players.map(id => ({ id, total: Object.values(g.scores).reduce((s, r) => s + (r && typeof r[id] === "number" ? r[id] : 0), 0) }));
 const rankOf = g => totalsOf(g).sort((a, b) => a.total - b.total);
 const dealerIdx = (g, r) => (g.dealer + r) % Math.max(g.players.length, 1);
+// Joining and leaving mid-game. Whoever is dealing now keeps the deal either way.
+const keepDealer = (players, who, round) => { const n = players.length, at = Math.max(0, players.indexOf(who)); return ((at - round) % n + n) % n; };
+// A late player takes the highest score of every finished round (or 0 if the table prefers),
+// so joining late never helps, and finished rounds stay finished.
+function addToGame(g, pid, info, start) {
+  const dealing = g.players[dealerIdx(g, g.round)], players = [...g.players, pid], scores = { ...g.scores };
+  ROUNDS.forEach((_, i) => { if (!roundDone(g, i)) return; const row = g.scores[i];
+    scores[i] = { ...row, [pid]: start === "zero" ? 0 : Math.max(...g.players.map(id => row[id])) }; });
+  return { ...g, players, scores, names: { ...(g.names || {}), [pid]: info }, joined: { ...(g.joined || {}), [pid]: g.round }, dealer: keepDealer(players, dealing, g.round) };
+}
+// Leaving keeps the player's name for the results. Nobody can leave a two-player game.
+function dropFromGame(g, pid) {
+  const i = g.players.indexOf(pid); if (i < 0 || g.players.length <= 2) return g;
+  const dealing = g.players[dealerIdx(g, g.round)], next = dealing === pid ? g.players[(i + 1) % g.players.length] : dealing;
+  const players = g.players.filter(id => id !== pid);
+  return { ...g, players, left: { ...(g.left || {}), [pid]: g.round }, dealer: keepDealer(players, next, g.round) };
+}
 
 // ── May I? stats ──────────────────────────────────────────────────
 // Pure functions over the v6 data model. Classic script: everything is
@@ -1036,22 +1062,37 @@ function useMedia(q) {
   useEffect(() => { const mq = matchMedia(q), h = () => setM(mq.matches); h(); mq.addEventListener("change", h); return () => mq.removeEventListener("change", h); }, [q]);
   return m;
 }
+// Overlays render straight onto <body>, so one opened from inside another always lands on top,
+// and nothing they sit inside (a transformed page or sheet) can clip or misplace them.
+const onTop = el => ReactDOM.createPortal(el, document.body);
+let openSheets = 0;
+const lockPage = on => { openSheets = Math.max(0, openSheets + (on ? 1 : -1)); document.documentElement.classList.toggle("locked", openSheets > 0); };
+// The on-screen keyboard shrinks the visual viewport but not the layout one. Track it so
+// sheets sit above the keyboard instead of behind it.
+(function trackViewport() {
+  const vv = window.visualViewport; if (!vv || !document.documentElement.style) return;
+  const set = () => { const st = document.documentElement.style; st.setProperty("--vv-h", Math.round(vv.height) + "px"); st.setProperty("--vv-top", Math.round(vv.offsetTop) + "px"); };
+  vv.addEventListener("resize", set); vv.addEventListener("scroll", set); set();
+})();
 function Sheet({ title, onClose, children, footer, tall, cls }) {
   const [closing, setClosing] = useState(false), [drag, setDrag] = useState(0), d = useRef(null);
+  useEffect(() => { lockPage(true); return () => lockPage(false); }, []);
+  // A field that gets focus scrolls into view once the keyboard has finished opening.
+  const onFocus = e => { const el = e.target; if (el.matches && el.matches("input:not([type=file]):not([type=range]), textarea")) setTimeout(() => el.scrollIntoView({ block: "nearest", behavior: "smooth" }), 320); };
   const close = () => { if (closing) return; if (reducedMotion()) return onClose(); setClosing(true); setTimeout(onClose, 200); };
   const me = useRef(null);
   useEffect(() => { const k = e => { if (e.key !== "Escape") return; const all = document.querySelectorAll(".scrim"); if (all[all.length - 1] === me.current) close(); }; addEventListener("keydown", k); return () => removeEventListener("keydown", k); });
   const start = e => { if (e.target.closest("button")) return; d.current = { y: e.clientY, t: performance.now() }; e.currentTarget.setPointerCapture && e.currentTarget.setPointerCapture(e.pointerId); };
   const move = e => d.current && setDrag(Math.max(0, e.clientY - d.current.y));
   const end = e => { if (!d.current) return; const dy = Math.max(0, e.clientY - d.current.y), v = dy / (performance.now() - d.current.t); d.current = null; if (dy > 100 || v > .6) close(); else setDrag(0); };
-  return ce("div", { ref: me, className: "scrim" + (closing ? " out" : ""), onClick: close },
+  return onTop(ce("div", { ref: me, className: "scrim" + (closing ? " out" : ""), onClick: close, onFocus },
     ce("div", { className: "sheet" + (closing ? " out" : "") + (drag ? " drag" : "") + (tall ? " tall" : "") + (cls ? " " + cls : ""), role: "dialog", "aria-modal": true, "aria-label": title,
         style: drag ? { transform: "translateY(" + drag + "px)" } : null, onClick: e => e.stopPropagation() },
       ce("div", { className: "sheet-head", onPointerDown: start, onPointerMove: move, onPointerUp: end, onPointerCancel: end },
         ce("span", { className: "grab", "aria-hidden": true }), ce("h2", null, title),
         ce("button", { className: "icon-btn", onClick: close, "aria-label": "Close" }, ce(Icon, { n: "close", size: 18 }))),
       ce("div", { className: "sheet-body" }, children),
-      footer && ce("div", { className: "sheet-foot" }, footer)));
+      footer && ce("div", { className: "sheet-foot" }, footer))));
 }
 
 // ── Store: groups + games, saved locally, synced per group ────────
@@ -1322,7 +1363,7 @@ function App() {
   const withUndo = (text, change) => { const before = s; change(); setToast({ text, undo: () => { api.set(() => before); setToast(null); } }); };
   const startGame = (groupId, players, dealer, rules) => {
     const id = uid();
-    api.set(x => ({ ...x, games: { ...x.games, [id]: { id, groupId, players, dealer, rules, names: namesOf(x.groups[groupId], players), round: 0, scores: {}, buys: {}, hands: {}, status: "live", startedAt: now(), updatedAt: now() } } }));
+    api.set(x => ({ ...x, games: { ...x.games, [id]: { id, groupId, players, dealer, rules: { ...DEFAULT_RULES, ...rules }, names: namesOf(x.groups[groupId], players), round: 0, scores: {}, buys: {}, hands: {}, status: "live", startedAt: now(), updatedAt: now() } } }));
     close(); go({ at: "game", gameId: id });
   };
   // Rematch: same players and rules, the deal moves one seat left.
@@ -1364,12 +1405,21 @@ function App() {
     if (sheet.type === "level") sheetEl = ce(LevelSheet, { onClose: close, onPick: lv => { setSettings(x => ({ ...x, level: lv })); if (lv === "new" && sg) open("rules", { gameId: sg.id }); else close(); } });
     if (sheet.type === "rules") sheetEl = ce(RulesSheet, { onClose: close, round: sg ? sg.round : 0, rules: sg ? sg.rules : DEFAULT_RULES, level: settings.level, initialTab: sheet.tab,
       setRules: sg && sg.status === "live" ? fn => api.game(sg.id, x => ({ ...x, rules: fn(x.rules) })) : null });
+    if (sheet.type === "gamePlayers" && sg) sheetEl = ce(GamePlayersSheet, { onClose: close, game: sg, group: s.groups[sg.groupId],
+      onAdd: (pid, name, start) => { let who = name;
+        api.set(x => { const grp = x.groups[sg.groupId], gm = x.games[sg.id]; let p = pid && grp.players.find(q => q.id === pid), groups = x.groups;
+          if (!p) { const used = grp.players.map(q => q.color); p = { id: uid(), name, color: (PEGS.find(c => !used.includes(c.k)) || PEGS[grp.players.length % 8]).k };
+            groups = { ...groups, [grp.id]: { ...grp, players: [...grp.players, p], updatedAt: now() } }; }
+          who = p.name;
+          return { ...x, groups, games: { ...x.games, [gm.id]: { ...addToGame(gm, p.id, namesOf({ players: [p] }, [p.id])[p.id], start), updatedAt: now() } } }; });
+        haptic(10); sound("chip"); setToast({ text: (who || "New player") + " joined the game" }); },
+      onDrop: id => { const nm = plOf(s.groups[sg.groupId], sg)(id).name; withUndo(nm + " left the game", () => api.game(sg.id, gm => dropFromGame(gm, id))); } });
     if (sheet.type === "settings") sheetEl = ce(SettingsSheet, { onClose: close, settings, setSettings, game: sg, onHelp: () => open("rules", { gameId: sheet.gameId, tab: sg ? "round" : "how" }),
       onEnd: sg ? () => { close(); withUndo("Game ended without saving", () => { api.game(sg.id, x => ({ ...x, status: "abandoned" })); go({ at: "group", groupId: sg.groupId }); }); } : null });
   }
   return ce(Fragment, null, screen, sheetEl,
-    toast && ce("div", { key: toast.text, className: "toast" + (toast.undo ? " has-undo" : ""), role: "status" }, ce("span", null, toast.text),
-      toast.undo && ce("button", { className: "toast-undo", onClick: toast.undo }, "Undo")));
+    toast && onTop(ce("div", { key: toast.text, className: "toast" + (toast.undo ? " has-undo" : ""), role: "status" }, ce("span", null, toast.text),
+      toast.undo && ce("button", { className: "toast-undo", onClick: toast.undo }, "Undo"))));
 }
 function SyncPill({ sync }) {
   if (sync === "local") return null;
@@ -1412,14 +1462,14 @@ function Home({ s, open, go, sync, rematch }) {
         ce("h2", null, "Keep score at the table"),
         ce("p", null, "May I? knows all seven contracts, counts the cards and tracks every buy. Add who's playing and deal. Your table remembers every game and crowns a champion."),
         ce("button", { className: "btn primary lg block", onClick: () => open("quick") }, "Start a game"),
-        ce("button", { className: "btn plain block", onClick: () => open("join") }, "Join a table with a code"),
+        ce("button", { className: "btn plain block", onClick: () => open("join") }, "Join a table with a code", !syncOn && ce(Soon)),
         ce("button", { className: "btn plain block", onClick: () => open("rules", { tab: "how" }) }, "New to May I? Learn in 60 seconds"))
       : ce(List, { header: "Tables", footer: "Each table keeps its own players, games and champion." },
           groups.map(g => { const st = groupStats(s, g.id), lead = Object.entries(st.wins).sort((a, b) => b[1] - a[1]), lp = lead[0] && !(lead[1] && lead[1][1] === lead[0][1]) && g.players.find(p => p.id === lead[0][0]);
             return ce(Row, { key: g.id, lead: ce(Avatars, { players: g.players }), title: g.name, chevron: true, onClick: () => go({ at: "group", groupId: g.id }),
               sub: st.games.length ? [st.games.length + (st.games.length === 1 ? " game" : " games"), lp && lp.name + " leads", ago(st.games[0].endedAt)].filter(Boolean).join(" · ") : g.players.length + " players · no games yet" }); }),
           ce(Row, { lead: ce("span", { className: "row-ic" }, ce(Icon, { n: "plus", size: 20 })), title: "New table", tone: "accent", onClick: () => open("newGroup") }),
-          ce(Row, { lead: ce("span", { className: "row-ic" }, ce(Icon, { n: "link", size: 20 })), title: "Join with a code", tone: "accent", onClick: () => open("join") })));
+          ce(Row, { lead: ce("span", { className: "row-ic" }, ce(Icon, { n: "link", size: 20 })), title: "Join with a code", tone: "accent", trail: !syncOn && ce(Soon), onClick: () => open("join") })));
 }
 function Fan() {
   return ce("div", { className: "fan", "aria-hidden": true }, ["BACK", "KH", "QD", "AS"].map((c, i) => ce("span", { key: c, style: { "--i": i } }, c === "BACK" ? ce("span", { className: "pc back" }) : ce(Card, { code: c }))));
@@ -1565,7 +1615,9 @@ function GameScreen({ s, api, game, open, go, wide, setToast, level }) {
           ce("span", { className: "tag rules-tag" }, "Rules", ce(Icon, { n: "chevron", size: 14 }))))),
     ce("main", { className: "table-body" },
       ce(RoundStrip, { game, pl, onPick: i => { haptic(6); setFix(i); } }),
-      ce("div", { className: "seats-head" }, ce("span", null, scored ? "Scoring round " + r.n : "Players"), ce("span", null, scored ? scored + " of " + game.players.length + " in" : limit === Infinity ? "Unlimited buys" : limit + " buys each")),
+      ce("div", { className: "seats-head" }, ce("span", null, scored ? "Scoring round " + r.n : "Players"),
+        ce("span", { className: "seats-meta" }, scored ? scored + " of " + game.players.length + " in" : limit === Infinity ? "Unlimited buys" : limit + " buys each",
+          ce("button", { className: "seats-edit", onClick: () => open("gamePlayers", { gameId: game.id }) }, ce(Icon, { n: "users", size: 15 }), "Add or remove"))),
       seats,
       ce("p", { className: "tip" }, ce(Icon, { n: "bolt", size: 16 }), r.goOut ? "Go out in one turn. " + r.tip : r.tip),
       chase.length > 0 && ce(List, { header: "Still in it" }, chase.map(c => ce(Row, { key: c.id, lead: ce(Peg, { color: pl(c.id).color, name: pl(c.id).name, av: pl(c.id).avatar, size: 32 }), title: pl(c.id).name, sub: c.text }))),
@@ -1608,12 +1660,13 @@ function ScorePad({ game, pl, start, round, rs, setScore, onClose, onDone }) {
   // Opening a player whose cards were counted brings those cards back, so a recount starts from what was there.
   const openPlayer = k => { const h = stored(k); setBuf(""); setHand(h); setDoubt([]); setScanMsg(null); if (h.length) setMode("cards"); setIdx(k); };
   // Photo scan: the reader fills the hand; cards it guessed are outlined so they get a second look.
-  const [doubt, setDoubt] = useState([]), [scanning, setScanning] = useState(false), [scanMsg, setScanMsg] = useState(null), fileRef = useRef(null);
+  const [doubt, setDoubt] = useState([]), [scanning, setScanning] = useState(false), [scanMsg, setScanMsg] = useState(null), fileRef = useRef(null), libRef = useRef(null);
+  const [hasKey, setHasKey] = useState(() => !!getAiKey());
   async function onPhoto(e) {
     const f = e.target.files && e.target.files[0]; e.target.value = ""; if (!f) return;
     setScanning(true); setScanMsg(null);
     try { const data = await resizeImage(f); const r = await scanHand(data);
-      setHand(r.cards.map(c => c.token)); setDoubt(r.cards.map(c => !c.sure)); haptic(12);
+      setHand(r.cards.map(c => c.token)); setDoubt(r.cards.map(c => !c.sure)); haptic(12); if (r.cards.length) setMode("cards");
       const guessed = r.cards.filter(c => !c.sure).length;
       setScanMsg(!r.cards.length ? { err: true, t: "No cards found. Try again with the cards spread out in good light." }
         : { t: "Read " + r.cards.length + (r.cards.length === 1 ? " card" : " cards") + "." + (guessed ? " Check the " + guessed + " outlined." : "") + (r.unclear ? " " + r.unclear + " couldn't be read, so add them by hand." : "") });
@@ -1634,7 +1687,7 @@ function ScorePad({ game, pl, start, round, rs, setScore, onClose, onDone }) {
     addEventListener("keydown", h); return () => removeEventListener("keydown", h); });
   const remaining = ids.filter(x => typeof rs[x] !== "number" && x !== id).length;
   const primary = val != null ? (remaining ? "Save · next player" : "Save round " + (R + 1)) : typeof cur === "number" ? (remaining ? "Next player" : "Done") : "Enter " + p.name + "'s points";
-  const keys = (rules.acesPosition === "both" ? ["A1", "A15"] : ["A"]).concat(RANKS.slice(1)).concat(rules.jokersWild ? ["JOKER"] : []);
+  const keys = (rules.aceValue == null && rules.acesPosition === "both" ? ["A1", "A15"] : ["A"]).concat(RANKS.slice(1)).concat(rules.jokersWild ? ["JOKER"] : []);
   const face = c => { const k = rankPart(c), su = k !== c ? SUIT[c.slice(-1)][0] : ""; return (k === "JOKER" ? "Jkr" : k[0] === "A" ? "A" : k) + su; };
   return ce(Sheet, { title: (fixing ? "Fix round " : "Round ") + (R + 1) + (fixing ? "" : " scores"), onClose, tall: true,
     footer: ce("div", { className: "row2" },
@@ -1646,15 +1699,23 @@ function ScorePad({ game, pl, start, round, rs, setScore, onClose, onDone }) {
     ce("div", { className: "pad-display" + (shown === 0 ? " zero" : "") + (shown == null ? " empty" : ""), "aria-live": "polite" },
       ce("b", null, shown == null ? "0" : shown === 0 && val == null ? "Out" : shown),
       ce("small", null, mode === "cards" ? hand.length + (hand.length === 1 ? " card" : " cards") + " left in hand" : "points left in hand")),
-    ce(Seg, { label: "How to enter", value: mode, onChange: m => { setMode(m); reset(); }, options: [["num", "Type points"], ["cards", "Tap cards"]] }),
-    mode === "num"
-      ? ce("div", { className: "numpad" }, ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "del"].map((k, j) => k === "" ? ce("span", { key: j }) :
+    ce(Seg, { label: "How to enter", value: mode, onChange: m => { setMode(m); reset(); }, options: [["num", "Type points"], ["cards", "Tap cards"], ["photo", "Photo"]] }),
+    ce("input", { ref: fileRef, type: "file", accept: "image/*", capture: "environment", hidden: true, onChange: onPhoto }),
+    ce("input", { ref: libRef, type: "file", accept: "image/*", hidden: true, onChange: onPhoto }),
+    mode === "photo" ? ce("div", { className: "photo-pane" + (scanning ? " busy" : "") },
+        ce("span", { className: "photo-ic", "aria-hidden": true }, ce(Icon, { n: "camera", size: 30 })),
+        ce("b", null, hasKey ? "Photograph " + p.name + "'s hand" : "Count a hand from a photo"),
+        ce("p", null, hasKey ? "Spread the cards face up in good light. The app reads them and adds them up, and anything it isn't sure of gets a gold outline." : "Spread the cards face up and take one photo. The app reads the cards and adds them up. It uses your own Anthropic API key, saved on this phone only."),
+        hasKey ? ce("div", { className: "photo-actions" },
+            ce("button", { className: "btn primary", disabled: scanning, onClick: () => fileRef.current && fileRef.current.click() }, ce(Icon, { n: "camera", size: 18 }), scanning ? "Reading cards…" : "Take photo"),
+            ce("button", { className: "btn tonal", disabled: scanning, onClick: () => libRef.current && libRef.current.click() }, "Choose photo"))
+          : ce(AiKeyCard, { open: true, onSaved: () => setHasKey(true) }),
+        scanMsg && ce("p", { className: "scan-msg" + (scanMsg.err ? " err" : ""), role: scanMsg.err ? "alert" : "status" }, scanMsg.t))
+    : mode === "num"
+      ? ce("div", { className: "numpad" }, ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "del"].map(k => k === "" ? ce("span", { key: "gap" }) :
           ce("button", { key: k, className: "nk" + (k === "del" ? " fn" : ""), onClick: () => key(k), "aria-label": k === "del" ? "Delete" : k }, k === "del" ? ce(Icon, { n: "back", size: 24 }) : k)))
       : ce(Fragment, null,
-          ce("div", { className: "scanbar" },
-            ce("input", { ref: fileRef, type: "file", accept: "image/*", capture: "environment", hidden: true, onChange: onPhoto }),
-            ce("button", { className: "btn tonal sm", disabled: scanning, onClick: () => fileRef.current && fileRef.current.click() }, ce(Icon, { n: "camera", size: 18 }), scanning ? "Reading cards…" : "Scan the hand"),
-            scanMsg && ce("p", { className: "scan-msg" + (scanMsg.err ? " err" : ""), role: scanMsg.err ? "alert" : "status" }, scanMsg.t)),
+          scanMsg && ce("p", { className: "scan-msg" + (scanMsg.err ? " err" : ""), role: scanMsg.err ? "alert" : "status" }, scanMsg.t),
           ce("div", { className: "hand" + (scanning ? " busy" : "") }, hand.length ? hand.map((c, i) => ce("button", { key: i + c, className: "hcard" + (doubt[i] ? " doubt" : ""), onClick: () => { setHand(h => h.filter((_, j) => j !== i)); setDoubt(d => d.filter((_, j) => j !== i)); }, "aria-label": "Remove " + face(c) + (doubt[i] ? ", unsure" : "") },
               ce("b", null, face(c)), ce("small", null, cardValue(c, rules)))) : ce("p", { className: "hint" }, "Tap each card left in " + p.name + "'s hand. Tap a card here to remove it.")),
           ce("div", { className: "keys" }, keys.map(c => ce("button", { key: c, className: "key", onClick: () => { haptic(5); sound("tap"); setHand(h => [...h, c]); } },
@@ -1666,7 +1727,7 @@ function RoundIntro({ r, winners, fromN, dealerName: dn, onDone, onUndo }) {
   const done = () => { if (gone.current) return; gone.current = true; if (reducedMotion()) return cb.current(); setOut(true); setTimeout(() => cb.current(), 260); };
   useEffect(() => { const t = setTimeout(done, 4600); const k = e => (e.key === "Escape" || e.key === "Enter") && done(); addEventListener("keydown", k); return () => { clearTimeout(t); removeEventListener("keydown", k); }; }, []);
   const suit = SUIT_CYCLE[(r.n - 1) % 4], red = suit === "♥" || suit === "♦";
-  return ce("div", { className: "intro" + (out ? " out" : ""), role: "dialog", "aria-modal": true, "aria-label": "Round " + r.n + ": " + r.name, onClick: done },
+  return onTop(ce("div", { className: "intro" + (out ? " out" : ""), role: "dialog", "aria-modal": true, "aria-label": "Round " + r.n + ": " + r.name, onClick: done },
     winners && ce("p", { className: "intro-won" }, ce(Icon, { n: "trophy", size: 16 }), winners + " won round " + fromN),
     ce("div", { className: "bc-flip" }, ce("div", { className: "bc-back", "aria-hidden": true }), ce("div", { className: "big-card" + (red ? " red" : "") },
       ce("span", { className: "bc-idx" }, ce("b", null, r.n), ce("i", null, suit)), ce("span", { className: "bc-idx flip" }, ce("b", null, r.n), ce("i", null, suit)),
@@ -1677,7 +1738,7 @@ function RoundIntro({ r, winners, fromN, dealerName: dn, onDone, onUndo }) {
       ce("span", { className: "bc-tip" }, r.goOut ? "Go out in one turn. No final discard." : r.watch))),
     ce("div", { className: "intro-actions" },
       onUndo && ce("button", { className: "btn on-band", onClick: e => { e.stopPropagation(); onUndo(); } }, "Undo round " + fromN),
-      ce("button", { className: "btn gold grow", onClick: e => { e.stopPropagation(); done(); } }, r.n === 1 && !winners ? "Deal" : "Let's play")));
+      ce("button", { className: "btn gold grow", onClick: e => { e.stopPropagation(); done(); } }, r.n === 1 && !winners ? "Deal" : "Let's play"))));
 }
 function RoundGrid({ game, pl }) {
   const ranked = rankOf(game);
@@ -1742,7 +1803,7 @@ function Recap({ s, game, go, setToast, rematch, onDelete }) {
   return ce(Page, { title: "Results", back: group.name, onBack: () => go({ at: "group", groupId: group.id }), className: "recap",
       actions: ce(NavIcon, { n: "share", label: "Share the results", onClick: share }),
       footer: game.status === "done" && sameTable && ce("footer", { className: "dock" }, ce("button", { className: "btn primary lg grow", onClick: () => rematch(game) }, ce(Icon, { n: "deal", size: 20 }), "Rematch")) },
-    fresh && ce(Confetti), fresh && ce(PlayOnce, { fn: () => sound("win") }),
+    fresh && onTop(ce(Confetti)), fresh && ce(PlayOnce, { fn: () => sound("win") }),
     ce("section", { className: "finale" },
       ce("p", { className: "finale-date" }, (game.endedAt ? new Date(game.endedAt).toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" }) : "") ),
       ce("h2", null, top.map(t => pl(t.id).name).join(" & ") + (top.length > 1 ? " share the win" : " wins")),
@@ -1816,9 +1877,8 @@ function PlayerEditor({ players, setPlayers, autoFocus }) {
     haptic(8); setPlayers([...players, { id: uid(), name: n, color }]); setDraft(""); ref.current && ref.current.focus(); };
   const [editing, setEditing] = useState(null), ed = players.find(p => p.id === editing);
   return ce(Fragment, null,
-    // Rendered on the page, not inside the open sheet, so it can sit on top of it.
-    ed && ReactDOM.createPortal(ce(AvatarSheet, { player: ed, taken: used.filter(c => c !== ed.color), onClose: () => setEditing(null),
-      onSave: (color, avatar) => { setPlayers(players.map(p => p.id === ed.id ? { ...p, color, avatar } : p)); setEditing(null); } }), document.body),
+    ed && ce(AvatarSheet, { player: ed, taken: used.filter(c => c !== ed.color), onClose: () => setEditing(null),
+      onSave: (color, avatar) => { setPlayers(players.map(p => p.id === ed.id ? { ...p, color, avatar } : p)); setEditing(null); } }),
     ce("div", { className: "list" },
       players.map(p => ce("div", { key: p.id, className: "row edit" },
         ce("button", { className: "peg-btn", onClick: () => setEditing(p.id), "aria-label": "Change " + p.name + "'s avatar and colour" }, ce(Peg, { color: p.color, name: p.name, av: p.avatar, size: 34 })),
@@ -1898,6 +1958,32 @@ function PlayersSheet({ onClose, group, api }) {
     ce(PlayerEditor, { players, setPlayers }),
     ce("p", { className: "group-f" }, "Removing a player keeps their past games."));
 }
+// Add or remove players while a game is going.
+function GamePlayersSheet({ onClose, game, group, onAdd, onDrop }) {
+  const [start, setStart] = useState("worst"), [draft, setDraft] = useState("");
+  const pl = plOf(group, game), inGame = game.players, bench = group.players.filter(p => !inGame.includes(p.id));
+  const full = inGame.length >= MAX_PLAYERS, missed = ROUNDS.some((_, i) => roundDone(game, i));
+  const addNew = () => { const n = draft.trim().slice(0, 20); if (!n || full) return; onAdd(null, n, start); setDraft(""); };
+  return ce(Sheet, { title: "Players in this game", onClose, tall: true },
+    ce("div", { className: "list" }, inGame.map(id => { const p = pl(id), j = game.joined && game.joined[id];
+      return ce("div", { key: id, className: "row" }, ce(Peg, { color: p.color, name: p.name, av: p.avatar, size: 34 }),
+        ce("span", { className: "row-main" }, ce("b", null, p.name), j != null && ce("small", null, "Joined in round " + (j + 1))),
+        ce("button", { className: "btn tonal sm danger", disabled: inGame.length <= 2, onClick: () => onDrop(id), "aria-label": "Remove " + p.name + " from this game" }, "Remove")); })),
+    ce("p", { className: "group-f" }, inGame.length <= 2 ? "A game needs at least 2 players." : "Removing someone takes them out of this game's standings. You can undo it."),
+    full ? ce("p", { className: "group-f" }, "This game has the most players a deck can deal for (" + MAX_PLAYERS + ").") : ce(Fragment, null,
+      ce("h3", { className: "group-h" }, "Add someone"),
+      ce("div", { className: "list" },
+        bench.map(p => ce("button", { key: p.id, className: "row tap", onClick: () => onAdd(p.id, null, start) },
+          ce(Peg, { color: p.color, name: p.name, av: p.avatar, size: 34 }), ce("span", { className: "row-main" }, ce("b", null, p.name), ce("small", null, "From " + group.name)),
+          ce("span", { className: "row-add", "aria-hidden": true }, ce(Icon, { n: "plus", size: 18 })))),
+        ce("form", { className: "row edit", onSubmit: e => { e.preventDefault(); addNew(); } },
+          ce("span", { className: "row-ic add" }, ce(Icon, { n: "plus", size: 20 })),
+          ce("input", { className: "row-input", value: draft, placeholder: "New player's name", "aria-label": "New player's name", maxLength: 20, onChange: e => setDraft(e.target.value), enterKeyHint: "done" }),
+          draft.trim() && ce("button", { className: "btn tonal sm", type: "submit" }, "Add"))),
+      missed && ce("div", { className: "list" }, ce("div", { className: "row col" }, ce("b", null, "Rounds they missed"),
+        ce(Seg, { label: "Rounds they missed", value: start, onChange: setStart, options: [["worst", "Highest score"], ["zero", "Zero"]] }),
+        ce("small", { className: "rule-hint" }, start === "worst" ? "Each finished round counts as that round's highest score, so joining late never helps." : "Finished rounds count as 0. Friendlier, but a late player starts ahead.")))));
+}
 function StartSheet({ onClose, group, onStart, lastRules }) {
   const [sel, setSel] = useState(group.players.map(p => p.id)), [dealer, setDealer] = useState(0), [rules, setRules] = useState({ ...DEFAULT_RULES, ...(lastRules || {}) });
   const chosen = group.players.filter(p => sel.includes(p.id)), d = Math.min(dealer, Math.max(0, chosen.length - 1));
@@ -1933,14 +2019,27 @@ function HouseRules({ rules, up }) {
     ce("div", { className: "row col" }, ce("div", { className: "rule-top" }, ce("b", null, "Jokers wild"), ce(Switch, { on: rules.jokersWild, onChange: v => up("jokersWild", v), label: "Jokers wild" })), meta("jokersWild")),
     ce("div", { className: "row col" }, ce("div", { className: "rule-top" }, ce("b", null, "2s wild too"), ce(Switch, { on: rules.twosWild, onChange: v => up("twosWild", v), label: "Twos wild" })), meta("twosWild")),
     ce("div", { className: "row col" }, ce("b", null, "Aces in runs"),
-      ce(Seg, { label: "Aces", value: rules.acesPosition, onChange: v => up("acesPosition", v), options: [["low", "A-2-3-4"], ["high", "J-Q-K-A"], ["both", "Either"]] }), meta("acesPosition")));
+      ce(Seg, { label: "Aces", value: rules.acesPosition, onChange: v => up("acesPosition", v), options: [["low", "A-2-3-4"], ["high", "J-Q-K-A"], ["both", "Either"]] }), meta("acesPosition")),
+    ce("div", { className: "row col" }, ce("b", null, "Ace points"),
+      ce(Seg, { label: "Ace points", value: String(acePoints(rules)), onChange: v => up("aceValue", +v), options: [["1", "1"], ["15", "15"], ["20", "20"]] }), meta("aceValue")),
+    ce("div", { className: "row col" }, ce("b", null, "Joker points"),
+      ce(Seg, { label: "Joker points", value: String(wildPoints(rules)), onChange: v => up("jokerValue", +v), options: [["15", "15"], ["25", "25"], ["50", "50"]] }), meta("jokerValue")));
+}
+// Live sharing needs the sync server, which isn't switched on yet. The screens stay in the
+// design so people know it's coming, and say plainly that it arrives in the next release.
+const Soon = () => ce("span", { className: "soon" }, "Next release");
+function SoonPanel({ title, text }) {
+  return ce("div", { className: "soon-panel" }, ce("span", { className: "soon-ic", "aria-hidden": true }, ce(Icon, { n: "users", size: 26 })),
+    ce(Soon), ce("b", null, title), ce("p", null, text));
 }
 function ShareSheet({ onClose, group, setToast }) {
   const link = location.origin + location.pathname + "?join=" + group.code;
   const copy = async t => setToast({ text: (await copyText(t)) ? "Copied" : "Couldn't copy. Press and hold the code to select it." });
+  if (!syncOn) return ce(Sheet, { title: "Share " + group.name, onClose, footer: ce("button", { className: "btn tonal lg block", onClick: onClose }, "OK") },
+    ce(SoonPanel, { title: "Score together on every phone", text: "Soon everyone at the table can follow the game and add scores from their own phone, using this table's code. It's coming in the next release." }),
+    ce("div", { className: "code-box idle", "aria-label": "Table code " + group.code }, ce("small", null, "Your table's code"), ce("b", { className: "code" }, group.code.slice(0, 3) + " " + group.code.slice(3))));
   return ce(Sheet, { title: "Share " + group.name, onClose,
     footer: ce("button", { className: "btn primary lg block", onClick: () => navigator.share ? navigator.share({ title: "Join " + group.name + " on May I?", url: link }).catch(e => e && e.name !== "AbortError" && copy(link)) : copy(link) }, ce(Icon, { n: "share", size: 18 }), "Send invite link") },
-    !syncOn && ce("p", { className: "note" }, "Live sharing isn't switched on in this copy of the app yet. Once it is, anyone with this code can follow and score games on their phone."),
     ce("button", { className: "code-box", onClick: () => copy(group.code), "aria-label": "Copy table code" }, ce("small", null, "Table code · tap to copy"), ce("b", { className: "code" }, group.code.slice(0, 3) + " " + group.code.slice(3))),
     ce("p", { className: "group-f" }, "Anyone with the code can see and edit this table, so share it with your players only."));
 }
@@ -1948,6 +2047,8 @@ function JoinSheet({ onClose, initial, api, onJoined }) {
   const [code, setCode] = useState((initial || "").toUpperCase()), [err, setErr] = useState(null), [busy, setBusy] = useState(false);
   const clean = code.replace(/[^A-Z0-9]/gi, "").toUpperCase().slice(0, 6);
   const go = async () => { setBusy(true); setErr(null); const e = await joinByCode(clean, api); setBusy(false); if (e) setErr(e); else onJoined(); };
+  if (!syncOn) return ce(Sheet, { title: "Join a table", onClose, footer: ce("button", { className: "btn tonal lg block", onClick: onClose }, "OK") },
+    ce(SoonPanel, { title: "Join a friend's table", text: "Type a table's 6-character code to follow the game and score from your phone. Joining arrives in the next release." }));
   return ce(Sheet, { title: "Join a table", onClose,
     footer: ce("button", { className: "btn primary lg block", disabled: clean.length !== 6 || busy, onClick: go }, busy ? "Looking…" : "Join") },
     ce("div", { className: "list" }, ce("input", { className: "row-input solo code-in", value: clean, placeholder: "ABC123", "aria-label": "Table code", autoCapitalize: "characters", autoComplete: "off", spellCheck: false, onChange: e => setCode(e.target.value), autoFocus: !initial })),
@@ -1974,15 +2075,15 @@ function TableSheet({ onClose, group, onRename, onDelete }) {
     ce("div", { className: "list gap" }, ce("button", { className: "row tap danger", onClick: onDelete },
       ce("span", { className: "row-main" }, ce("b", null, "Delete table"), ce("small", null, "Removes its players and every game. You can undo this for a few seconds.")))));
 }
-function AiKeyCard() {
-  const [key, setKey] = useState(getAiKey), [draft, setDraft] = useState(""), [show, setShow] = useState(false);
-  const save = () => { const k = draft.trim(); if (!k) return; setAiKey(k); setKey(k); setDraft(""); setShow(false); haptic(10); };
+function AiKeyCard({ open, onSaved }) {
+  const [key, setKey] = useState(getAiKey), [draft, setDraft] = useState(""), [show, setShow] = useState(!!open);
+  const save = () => { const k = draft.trim(); if (!k) return; setAiKey(k); setKey(k); setDraft(""); setShow(false); haptic(10); onSaved && onSaved(); };
   return ce("div", { className: "list" },
     key ? ce(Row, { lead: ce("span", { className: "row-ic soft" }, ce(Icon, { n: "camera", size: 19 })), title: "Scanner is on", sub: "Key ending " + key.slice(-4) + " · saved on this device only",
         trail: ce("button", { className: "btn plain sm", onClick: () => { setAiKey(""); setKey(""); } }, "Remove") })
       : show ? ce("form", { className: "row col", onSubmit: e => { e.preventDefault(); save(); } },
           ce("b", null, "Your Anthropic API key"),
-          ce("input", { className: "row-input boxed", type: "password", value: draft, placeholder: "sk-ant-…", autoComplete: "off", spellCheck: false, "aria-label": "Anthropic API key", onChange: e => setDraft(e.target.value), autoFocus: true }),
+          ce("input", { className: "row-input boxed", type: "password", value: draft, placeholder: "sk-ant-…", autoComplete: "off", spellCheck: false, "aria-label": "Anthropic API key", onChange: e => setDraft(e.target.value), autoFocus: !open }),
           ce("small", { className: "rule-hint" }, "Get one at console.anthropic.com. It stays on this phone and goes only to Anthropic. Each scan costs a few cents on your account."),
           ce("button", { className: "btn primary block", type: "submit", disabled: !draft.trim() }, "Turn on the scanner"))
       : ce(Row, { lead: ce("span", { className: "row-ic soft" }, ce(Icon, { n: "camera", size: 19 })), title: "Count cards from a photo", sub: "Uses your own Anthropic API key", chevron: true, onClick: () => setShow(true) }));
@@ -2080,7 +2181,7 @@ function RulesSheet({ onClose, round, rules, setRules, level, initialTab }) {
       ce("h3", { className: "group-h" }, "Your turn"), ce(Steps, { items: TURN_STEPS }),
       ce("h3", { className: "group-h" }, "How “May I?” works"), ce(Steps, { items: MAYI_STEPS, limitText }),
       ce("h3", { className: "group-h" }, "Points left in hand"),
-      ce("div", { className: "values" }, [["2–9", rules.twosWild ? "3–9 face, 2s 15" : "face value"], ["10 J Q K", "10"], ["Ace", rules.acesPosition === "high" ? "15" : rules.acesPosition === "both" ? "1 or 15" : "1"], ["Joker", "15"]]
+      ce("div", { className: "values" }, [["2–9", rules.twosWild ? "3–9 face, 2s " + wildPoints(rules) : "face value"], ["10 J Q K", "10"], ["Ace", rules.aceValue == null && rules.acesPosition === "both" ? "1 or 15" : String(acePoints(rules))], ["Joker", String(wildPoints(rules))]]
         .map(([k, v]) => ce("div", { key: k }, ce("span", null, k), ce("b", null, v))))),
     tab === "faq" && ce(Fragment, null,
       ce("div", { className: "list faq" }, FAQ.map(f => ce("details", { key: f.q, className: "qa" }, ce("summary", null, f.q, ce(Icon, { n: "chevron", size: 16 })), ce("p", null, f.a)))),
@@ -2335,10 +2436,15 @@ input { caret-color: var(--accent); }
 .confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; }
 
 /* Sheets */
-.scrim { position: fixed; inset: 0; z-index: 30; background: rgba(0,0,0,.36); display: flex; align-items: flex-end; justify-content: center; animation: fade .2s ease both; }
+.seats-meta { display: inline-flex; align-items: center; gap: 10px; }
+.seats-edit { display: inline-flex; align-items: center; gap: 5px; min-height: 32px; padding: 0 11px; border-radius: 99px; background: var(--accent-soft); color: var(--accent); font: 600 .8rem/1 var(--sans, inherit); text-transform: none; letter-spacing: 0; }
+.seats-edit:active { transform: scale(.96); }
+.row-add { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); flex: none; }
+html.locked, html.locked body { overflow: hidden; overscroll-behavior: none; }
+.scrim { position: fixed; left: 0; right: 0; top: var(--vv-top, 0px); height: var(--vv-h, 100%); z-index: 30; background: rgba(0,0,0,.36); display: flex; align-items: flex-end; justify-content: center; animation: fade .2s ease both; }
 .scrim.out { animation: fade .24s ease reverse both; }
-.sheet { width: 100%; max-width: 560px; max-height: 94vh; max-height: 94dvh; background: var(--bg); border-radius: 22px 22px 0 0; display: flex; flex-direction: column; box-shadow: 0 -10px 40px rgba(0,0,0,.2); animation: up .5s var(--out-e) both; }
-.sheet.out { animation: down .24s ease-in both; } .sheet.drag { animation: none; transition: none; } .sheet.tall { min-height: 72vh; }
+.sheet { width: 100%; max-width: 560px; max-height: 94vh; max-height: calc(var(--vv-h, 100dvh) - 20px); background: var(--bg); border-radius: 22px 22px 0 0; display: flex; flex-direction: column; box-shadow: 0 -10px 40px rgba(0,0,0,.2); animation: up .5s var(--out-e) both; }
+.sheet.out { animation: down .24s ease-in both; } .sheet.drag { animation: none; transition: none; } .sheet.tall { min-height: min(72vh, calc(var(--vv-h, 100dvh) - 20px)); }
 @media (min-width: 700px) { .scrim { align-items: center; } .sheet { border-radius: 22px; max-height: 86vh; } }
 .sheet-head { display: flex; align-items: center; gap: 8px; padding: 16px 10px 6px 20px; position: relative; touch-action: none; }
 .grab { position: absolute; top: 6px; left: 50%; width: 36px; height: 5px; border-radius: 3px; background: var(--line); transform: translateX(-50%); }
@@ -2446,7 +2552,18 @@ input { caret-color: var(--accent); }
 .level:active { transform: scale(.98); }
 
 /* Card scanner and hand coach */
-.scanbar { display: grid; justify-items: center; gap: 6px; }
+.soon { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 99px; background: var(--gold-soft); color: var(--ink); font: 650 .72rem/1.3 inherit; letter-spacing: .02em; white-space: nowrap; }
+.soon-panel { display: grid; justify-items: center; text-align: center; gap: 8px; padding: 22px 18px; border-radius: 16px; background: var(--surface); box-shadow: 0 0 0 var(--hair) var(--line); }
+.soon-panel > b { font: 650 1.15rem var(--display); } .soon-panel > p { margin: 0; color: var(--ink2); font-size: .92rem; line-height: 1.45; max-width: 36ch; }
+.soon-ic { width: 56px; height: 56px; border-radius: 18px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); }
+.code-box.idle { cursor: default; }
+.photo-pane { display: grid; justify-items: center; text-align: center; gap: 8px; padding: 18px 16px; border-radius: 16px; background: var(--surface); box-shadow: 0 0 0 var(--hair) var(--line); }
+.photo-pane > b { font-size: 1.05rem; } .photo-pane > p { margin: 0; color: var(--ink2); font-size: .9rem; line-height: 1.4; max-width: 34ch; }
+.photo-pane > .list { width: 100%; text-align: left; }
+.photo-pane.busy .photo-ic { animation: pulse 1.1s ease-in-out infinite; }
+.photo-ic { width: 60px; height: 60px; border-radius: 18px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); }
+.photo-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 4px; }
+@keyframes pulse { 50% { transform: scale(.92); opacity: .7; } }
 .scan-msg { margin: 0; font-size: .86rem; color: var(--ink2); text-align: center; line-height: 1.35; } .scan-msg.err { color: var(--red); }
 .hand.busy { opacity: .45; }
 .hcard.doubt { box-shadow: 0 0 0 2px var(--gold-ring); }

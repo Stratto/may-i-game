@@ -67,6 +67,28 @@ test("cardValue: 2s are 15 only when wild; junk scores 0", () => {
   assert.strictEqual(M.cardValue("?", RULES), 0);
 });
 
+test("card points are their own rule: an ace is one value wherever it sits in a run", () => {
+  const d = M.DEFAULT_RULES;
+  assert.strictEqual(d.aceValue, 15);
+  assert.strictEqual(d.jokerValue, 15);
+  ["low", "high", "both"].forEach(pos => assert.strictEqual(M.cardValue("A", { ...d, acesPosition: pos }), 15, pos));
+  assert.strictEqual(M.cardValue("AS", { ...d, aceValue: 20 }), 20);
+  assert.strictEqual(M.cardValue("A", { ...d, aceValue: 1 }), 1);
+  assert.strictEqual(M.cardValue("JOKER", { ...d, jokerValue: 50 }), 50);
+  assert.strictEqual(M.cardValue("2H", { ...d, twosWild: true, jokerValue: 25 }), 25);
+  assert.strictEqual(M.rulesLine({ ...d, aceValue: 20, jokerValue: 50 }), "3 buys · jokers wild · aces low · aces 20 pts · jokers 50 pts");
+  assert.strictEqual(M.rulesLine(d), "3 buys · jokers wild · aces low");
+  assert.match(M.ruleHint("aceValue", d), /costs 15 points/);
+  assert.ok(M.RULE_WHY.aceValue && M.RULE_WHY.jokerValue);
+});
+
+test("games from before card points keep their old ace scoring", () => {
+  const old = { buyLimit: "3", jokersWild: true, acesPosition: "low", twosWild: false };
+  assert.strictEqual(M.cardValue("A", old), 1);
+  assert.strictEqual(M.cardValue("A", { ...old, acesPosition: "high" }), 15);
+  assert.strictEqual(M.cardValue("JOKER", old), 15);
+});
+
 // ── House rules ───────────────────────────────────────────────────
 test("buy limits: classic 3, custom at least 1, unlimited", () => {
   assert.strictEqual(M.buyLimitOf(RULES), 3);

@@ -28,14 +28,15 @@ Inset grouped lists: radius 14, 56px rows, hairline separators inset to the text
 - **Felt band (game):** back with the group name; gear (game settings); screen icon (scoreboard, wide screens only); "Round n of 7", contract name, mini meld cards; pips (current one in gold), dealer tag, "Rules ›". Tapping the contract is the only way into the rules.
 - **Seat:** 42px avatar (gold ring if leading, gold "D" if dealing, and a 1st/2nd/3rd medal in gold, silver or bronze once a round is scored; ties share a medal), name, status line ("Leading", "12 behind"), this round's "+12" or "Out" chip (tap to edit), count-up total, "May I?" buy pill with one dot per allowed buy.
 - **Dock:** a single primary button for the next step: Score round n, Keep scoring, Next round, or See who won.
-- **Score pad:** player strip, big display, Type points / Tap cards, keypad, Went out (one per round), Save · next player.
+- **Score pad:** player strip, big display, Type points / Tap cards / Photo, keypad, Went out (one per round), Save · next player. Photo is its own tab: it takes or chooses a photo, and the first time it asks for the API key right there.
+- **Players in this game:** "Add or remove" in the seats header. Add someone from the table or a new name; missed rounds count as each round's highest score (or zero). Removing someone acts at once with Undo. Whoever is dealing keeps the deal.
 - **Round intro:** the next contract on a giant 5:7 playing card with corner indices, dealer and tip; Undo round n and Let's play; closes itself after 4.6s.
 - **Recap:** felt finale with a gold hairline frame, Fraunces winner, podium (2, 1, 3) with a gold first block and crown, then lists for the rest of the field, highlights and the round grid. Share (nav bar) makes a 1080×1350 image in the current look.
 - **Round strip:** seven tiles under the band. The current round is filled with the accent, finished rounds show the colour of whoever went out, and tapping a finished round opens the score pad as "Fix round n". The dock is the only way to score the current round.
 - **Undo toast:** ending, deleting a game and deleting a table act at once and show a toast with Undo for 6 seconds. Nothing asks twice.
 - **Round guide (Rules sheet):** tabs Rounds, Basics, Q&A, House. A round shows the contract card with its goal and card maths, then Watch out (gold callout), After you go down, Tips, and Pro tips (open for seasoned players). Basics uses numbered step timelines. Every house rule shows a live hint and a "Why?" note.
 - **Coaching level:** asked once after the first deal ("Have you played before?"). Learners get the round guide at the start of every round. It can be changed in Settings.
-- **Card scanner:** in the score pad's Tap cards mode, "Scan the hand" takes a photo and fills the hand with suited cards. Cards the reader guessed get a gold outline so they get a second look. It uses the player's own Anthropic API key, set in Settings and stored on that device only.
+- **Card scanner:** the score pad's Photo tab takes a photo and fills the hand with suited cards. Cards the reader guessed get a gold outline so they get a second look. It uses the player's own Anthropic API key, set in Settings and stored on that device only.
 - **Hand coach:** at the bottom of the current round's guide. A private photo of your hand returns what Claude sees, what you have, what to aim for, keep, discard and one tip.
 - **Still in it:** under the seats between rounds, one row per trailing player with the gap, the rounds left and the margin needed each round. Seats show "▲ up 2" or "▼ down 1" after each round.
 - **Race track:** racing pegs on lanes, with the lowest total nearest the chequered finish. It appears on the results screen, and fills the TV scoreboard on wide screens.
@@ -47,7 +48,9 @@ Inset grouped lists: radius 14, 56px rows, hairline separators inset to the text
 - **Roll for dealer:** a link in the New game sheet's header. The dealer chip hops between players and slows to a stop.
 - **Sounds:** short WebAudio tones (tap, chip, save, deal, out and a winner's fanfare), on by default with a switch in Settings. Haptics stay on regardless.
 - **Avatars:** every player is initials, a photo or a drawn character, always on their own colour. Tap a player's circle in Edit players to open the avatar maker: take or choose a photo and drag and zoom to frame it (saved as a 192px JPEG, about 5–10 KB), or build a character from skin, hair, hair colour, face, an extra and a top. Avatars show everywhere a player does, including the share image.
-- **Sheets:** bottom sheets on phones (swipe down, scrim, Escape), centred at 700px and up.
+- **Sheets:** bottom sheets on phones (swipe down, scrim, Escape), centred at 700px and up. Every overlay (sheets, the round intro, toasts, confetti) renders on `<body>`, so a sheet opened from a sheet always lands on top. The page behind is locked while a sheet is open, and sheets follow the visual viewport so the keyboard never covers a field.
+- **Card points:** ace and joker points are their own house rules (default 15 and 15), separate from where aces sit in runs. Games from before this keep their old scoring.
+- **Sharing (paused):** Share and Join show a "Next release" badge and explain what's coming. Live sharing needs the sync server.
 
 ## Layout
 Content max 720px. At 900px and up the game shows seats on the left and the round grid on the right, the Rules sheet lists the rounds by name beside the guide, and Home and the table page widen to 1040px in two columns: the hero spans both, then Playing now beside Tables, and Standings beside Records. Scoreboard mode fills the screen with the band and large seats.

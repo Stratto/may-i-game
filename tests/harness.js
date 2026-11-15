@@ -10,7 +10,7 @@ const EXPORTS = [
   "ruleHint", "rankPart", "cardValue", "buyLimitOf", "rulesLine", "contractLine",
   "roundDone", "totalsOf", "rankOf", "dealerIdx", "plOf", "namesOf",
   "gameAwards", "chaseNotes", "caughtStats", "playerProfile", "groupRecords", "rankMoves",
-  "mergeGame", "applyDoc", "AV", "avSeed", "faceSVG", "avatarSrc",
+  "mergeGame", "applyDoc", "AV", "avSeed", "faceSVG", "avatarSrc", "addToGame", "dropFromGame",
 ];
 
 // Anything the app pokes at load time (document, matchMedia, style setters)
