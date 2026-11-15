@@ -35,6 +35,11 @@ Inset grouped lists: radius 14, 56px rows, hairline separators inset to the text
 - **Coaching level:** asked once after the first deal ("Have you played before?"). Learners get the round guide at the start of every round. It can be changed in Settings.
 - **Card scanner:** in the score pad's Tap cards mode, "Scan the hand" takes a photo and fills the hand with suited cards. Cards the reader guessed get a gold outline so they get a second look. It uses the player's own Anthropic API key, set in Settings and stored on that device only.
 - **Hand coach:** at the bottom of the current round's guide. A private photo of your hand returns what Claude sees, what you have, what to aim for, keep, discard and one tip.
+- **Still in it:** under the seats between rounds, one row per trailing player with the gap, the rounds left and the margin needed each round. Seats show "▲ up 2" or "▼ down 1" after each round.
+- **Race track:** racing pegs on lanes, with the lowest total nearest the chequered finish. It appears on the results screen, and fills the TV scoreboard on wide screens.
+- **Awards (six):** Clean hands, Bargain hunter, Comeback kid, Steady hand, Heavy pockets and Joker juggler. Nobody gets one on a tie. Gold tiles, or green for the positive ones.
+- **What got people caught:** points by card type as bars, plus the most caught card, the toughest round and a heavy-buying warning. It needs counted cards.
+- **Profiles:** tap a player in the standings to see eight stat tiles, the awards they've won and head-to-head records. The table page also shows records.
 - **Sheets:** bottom sheets on phones (swipe down, scrim, Escape), centred at 700px and up.
 
 ## Layout

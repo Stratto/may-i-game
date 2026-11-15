@@ -611,22 +611,298 @@ const roundDone = (g, i) => !!g.scores[i] && g.players.every(id => typeof g.scor
 const totalsOf = g => g.players.map(id => ({ id, total: Object.values(g.scores).reduce((s, r) => s + (r && typeof r[id] === "number" ? r[id] : 0), 0) }));
 const rankOf = g => totalsOf(g).sort((a, b) => a.total - b.total);
 const dealerIdx = (g, r) => (g.dealer + r) % Math.max(g.players.length, 1);
-function insights(g, rules) {
-  const done = ROUNDS.map((_, i) => i).filter(i => roundDone(g, i));
-  const per = g.players.map(id => {
-    const rs = done.map(i => ({ i, v: g.scores[i][id] }));
-    const buyN = Object.values(g.buys || {}).reduce((s, r) => s + ((r && r[id]) || 0), 0);
-    let cb = null; rs.forEach((x, k) => { if (k) { const d = rs[k - 1].v - x.v; if (!cb || d > cb.d) cb = { d, from: rs[k - 1].v, to: x.v }; } });
-    const worst = rs.reduce((m, x) => (!m || x.v > m.v ? x : m), null);
-    return { id, outs: rs.filter(x => x.v === 0).length, buyN, cb, worst };
+
+// ── May I? stats ──────────────────────────────────────────────────
+// Pure functions over the v6 data model. Classic script: everything is
+// top-level so the app can load it with a plain <script>. Private helpers
+// are prefixed `st` so they never collide with the app's own globals
+// (cardValue, ROUNDS, roundDone, totalsOf, rankOf, DEFAULT_RULES).
+// Round indexes are 0-based throughout (round 0 = "Two Sets").
+
+const ST_ROUND_COUNT = 7;
+const ST_DEFAULT_RULES = { buyLimit: "3", customBuyLimit: 3, jokersWild: true, acesPosition: "low", twosWild: false };
+const ST_CATS = [
+  { key: "wild", label: "Jokers & wilds" },
+  { key: "ace", label: "Aces" },
+  { key: "face", label: "Faces (J/Q/K)" },
+  { key: "high", label: "High (8–10)" },
+  { key: "low", label: "Low (2–7)" },
+];
+
+function stFallbackCardValue(c, r) {
+  if (c === "JOKER") return 15; if (c === "A1") return 1; if (c === "A15") return 15;
+  if (c === "A") return r.acesPosition === "high" ? 15 : 1;
+  if (c === "2" && r.twosWild) return 15;
+  if (c === "J" || c === "Q" || c === "K") return 10;
+  return parseInt(c, 10) || 0;
+}
+function stValue(token, rules) {
+  const fn = typeof cardValue === "function" ? cardValue : stFallbackCardValue;
+  return fn(token, rules);
+}
+function stRules(g) { return Object.assign({}, ST_DEFAULT_RULES, (g && g.rules) || {}); }
+
+// "7S" → "7", "AH" → "A", "10D" → "10", "JOKER" stays. Only strips when what's left is a real rank.
+function stNorm(token) {
+  const t = String(token || "").toUpperCase();
+  if (t.length > 1 && /[SHDC]$/.test(t)) {
+    const base = t.slice(0, -1);
+    if (/^(A|A1|A15|[2-9]|10|J|Q|K)$/.test(base)) return base;
+  }
+  return t;
+}
+const stRank = t => (t === "A1" || t === "A15" ? "A" : t);   // aces collapse to one rank for counting
+function stCategory(t, rules) {
+  if (t === "JOKER" || (t === "2" && rules.twosWild)) return "wild";
+  if (t === "A" || t === "A1" || t === "A15") return "ace";
+  if (t === "J" || t === "Q" || t === "K") return "face";
+  const n = parseInt(t, 10);
+  if (n >= 8 && n <= 10) return "high";
+  if (n >= 2 && n <= 7) return "low";
+  return null;
+}
+
+const stIsDone = (g, i) => !!(g.scores && g.scores[i]) && g.players.length > 0 && g.players.every(id => typeof g.scores[i][id] === "number");
+const stDoneRounds = g => { const a = []; for (let i = 0; i < ST_ROUND_COUNT; i++) if (stIsDone(g, i)) a.push(i); return a; };
+// Totals over the given rounds (default: every stored score, like the app's totalsOf).
+function stTotals(g, rounds) {
+  const idx = rounds || Object.keys(g.scores || {});
+  const out = {};
+  g.players.forEach(id => {
+    out[id] = idx.reduce((s, i) => { const r = g.scores[i]; return s + (r && typeof r[id] === "number" ? r[id] : 0); }, 0);
   });
-  const top = key => { const a = per.filter(x => x[key] > 0).sort((x, y) => y[key] - x[key]); return a.length && (a.length < 2 || a[0][key] > a[1][key]) ? a[0] : null; };
-  const awards = [];
-  const o = top("outs"); if (o) awards.push({ ic: "out", t: "Clean hands", id: o.id, d: "Went out " + o.outs + (o.outs === 1 ? " time" : " times") });
-  const b = top("buyN"); if (b) awards.push({ ic: "mayi", t: "Bargain hunter", id: b.id, d: b.buyN + (b.buyN === 1 ? " buy" : " buys") });
-  const c = per.filter(x => x.cb && x.cb.d >= 10).sort((x, y) => y.cb.d - x.cb.d)[0]; if (c) awards.push({ ic: "bolt", t: "Comeback", id: c.id, d: c.cb.from + " → " + c.cb.to + " in one round" });
-  const h = per.filter(x => x.worst && x.worst.v > 0).sort((x, y) => y.worst.v - x.worst.v)[0]; if (h) awards.push({ ic: "calc", t: "Heavy pockets", id: h.id, d: h.worst.v + " points in round " + (h.worst.i + 1) });
-  return { done, awards };
+  return out;
+}
+// Competition ranking: 1 + number of players strictly lower.
+function stPositions(totals) {
+  const ids = Object.keys(totals), pos = {};
+  ids.forEach(id => { pos[id] = 1 + ids.filter(o => totals[o] < totals[id]).length; });
+  return pos;
+}
+const stBuysOf = (g, id) => Object.values(g.buys || {}).reduce((s, r) => s + ((r && r[id]) || 0), 0);
+const stPlural = (n, one, many) => n + " " + (n === 1 ? one : many || one + "s");
+// Single strict leader on a positive number; null on ties or when nobody scores.
+function stTopOne(rows, val) {
+  const a = rows.filter(x => val(x) > 0).sort((x, y) => val(y) - val(x));
+  return a.length && (a.length < 2 || val(a[0]) > val(a[1])) ? a[0] : null;
+}
+
+function stPerPlayer(g) {
+  const done = stDoneRounds(g);
+  return g.players.map(id => {
+    const rs = done.map(i => ({ i, v: g.scores[i][id] }));
+    let worst = null, best = null, cb = null;
+    rs.forEach((x, k) => {
+      if (!worst || x.v > worst.v) worst = x;
+      if (!best || x.v < best.v) best = x;
+      if (k > 0) { const d = rs[k - 1].v - x.v; if (!cb || d > cb.d) cb = { d, from: rs[k - 1].v, to: x.v, i: x.i }; }
+    });
+    const avg = rs.length ? rs.reduce((s, x) => s + x.v, 0) / rs.length : 0;
+    return { id, rs, outs: rs.filter(x => x.v === 0).length, buyN: stBuysOf(g, id), worst, best, cb, avg, spread: rs.length ? worst.v - best.v : 0 };
+  });
+}
+
+// ── 1. Awards ─────────────────────────────────────────────────────
+function gameAwards(game) {
+  const per = stPerPlayer(game), awards = [];
+
+  const o = stTopOne(per, x => x.outs);
+  if (o) awards.push({ key: "clean", ic: "out", t: "Clean hands", id: o.id, d: "Went out " + stPlural(o.outs, "time") });
+
+  const b = stTopOne(per, x => x.buyN);
+  if (b) awards.push({ key: "bargain", ic: "mayi", t: "Bargain hunter", id: b.id, d: "Said “May I?” " + stPlural(b.buyN, "time") });
+
+  const c = stTopOne(per.filter(x => x.cb && x.cb.d >= 10), x => x.cb.d);
+  if (c) awards.push({ key: "comeback", ic: "bolt", t: "Comeback kid", id: c.id, d: "From " + c.cb.from + " to " + c.cb.to + " in round " + (c.cb.i + 1) });
+
+  const eligible = per.filter(x => x.rs.length >= 3);
+  if (eligible.length > 1) {
+    const s = [...eligible].sort((x, y) => x.spread - y.spread);
+    if (s[0].spread <= 20 && s[0].spread < s[1].spread)
+      awards.push({ key: "steady", ic: "chart", t: "Steady hand", id: s[0].id, d: "Every round within " + s[0].spread + " points" });
+  }
+
+  const h = stTopOne(per.filter(x => x.worst), x => x.worst.v);
+  if (h) awards.push({ key: "heavy", ic: "calc", t: "Heavy pockets", id: h.id, d: "Caught with " + h.worst.v + " in round " + (h.worst.i + 1) });
+
+  const jokers = game.players.map(id => ({ id, n: 0 }));
+  Object.values(game.hands || {}).forEach(r => jokers.forEach(j => {
+    ((r && r[j.id]) || []).forEach(t => { if (stNorm(t) === "JOKER") j.n++; });
+  }));
+  const j = stTopOne(jokers, x => x.n);
+  if (j) awards.push({ key: "joker", ic: "flag", t: "Joker juggler", id: j.id, d: "Caught with " + stPlural(j.n, "joker") + ", worth " + j.n * 15 });
+
+  return awards;
+}
+
+// ── 2. Still in it ────────────────────────────────────────────────
+// nameOf (optional): function id→name, a {id: name} map, or an array of {id, name}.
+function stNamer(nameOf) {
+  if (typeof nameOf === "function") return nameOf;
+  if (Array.isArray(nameOf)) return id => { const p = nameOf.find(x => x.id === id); return p ? p.name : "the leader"; };
+  if (nameOf && typeof nameOf === "object") return id => nameOf[id] || "the leader";
+  return () => "the leader";
+}
+function chaseNotes(game, nameOf) {
+  if (game.status && game.status !== "live") return [];
+  const done = stDoneRounds(game), left = ST_ROUND_COUNT - done.length;
+  if (!done.length || !left || game.players.length < 2) return [];
+  const name = stNamer(nameOf);
+  const totals = stTotals(game, done);
+  const ranked = game.players.map(id => ({ id, total: totals[id] })).sort((a, b) => a.total - b.total);
+  const per = stPerPlayer(game), leader = ranked[0], L = per.find(x => x.id === leader.id);
+  const lw = L.worst ? L.worst.v : 0, la = L.avg, ln = name(leader.id);
+  const rounds = stPlural(left, "round");
+
+  return ranked.slice(1).filter(p => p.total > leader.total).map(p => {
+    const gap = p.total - leader.total, pr = Math.ceil(gap / left);
+    const me = per.find(x => x.id === p.id);
+    let text;
+    if (pr <= 12 || gap <= la * left * 0.6)
+      text = (gap <= 15 ? "Only " + gap : gap) + " behind with " + rounds + " left. Beat " + ln + " by about " + pr + " a round and it's yours.";
+    else if (lw >= gap / 2)
+      text = gap + " behind with " + rounds + " left, so about " + pr + " a round. " + ln + " has had a " + lw + "-point round before. One big swing changes everything.";
+    else
+      text = gap + " behind with " + rounds + " left, about " + pr + " a round. Go down early and dump high cards to chip away." +
+        (lw > 0 ? " " + ln + "'s worst round so far was " + lw + "." : "");
+    if (me && me.outs > 0 && p.id === ranked[ranked.length - 1].id) text += " You've gone out before, so you know how.";
+    return { id: p.id, text };
+  });
+}
+
+// ── 3. What got people caught ─────────────────────────────────────
+function caughtStats(game) {
+  const rules = stRules(game), done = stDoneRounds(game);
+  const pts = {}, ranks = {};
+  ST_CATS.forEach(c => { pts[c.key] = 0; });
+  Object.values(game.hands || {}).forEach(r => game.players.forEach(pid => {
+    ((r && r[pid]) || []).forEach(raw => {
+      const t = stNorm(raw), cat = stCategory(t, rules), v = stValue(t, rules);
+      if (!cat) return;
+      pts[cat] += v;
+      const rk = stRank(t);
+      ranks[rk] = ranks[rk] || { token: rk, pts: 0, count: 0 };
+      ranks[rk].count++; ranks[rk].pts += v;
+    });
+  }));
+  const total = Object.values(pts).reduce((s, v) => s + v, 0);
+  const cats = total > 0
+    ? ST_CATS.filter(c => pts[c.key] > 0).map(c => ({ key: c.key, label: c.label, pts: pts[c.key], pct: Math.round(pts[c.key] / total * 100) }))
+        .sort((a, b) => b.pts - a.pts)
+    : [];
+
+  const top = Object.values(ranks).sort((a, b) => b.count - a.count || b.pts - a.pts)[0];
+  const topCard = top && top.count > 1 ? { token: top.token, pts: top.pts, count: top.count } : null;
+
+  let toughest = null;
+  if (done.length > 1) done.forEach(i => {
+    const t = game.players.reduce((s, id) => s + game.scores[i][id], 0);
+    if (!toughest || t > toughest.total) toughest = { round: i, total: t };
+  });
+
+  let buyWarning = null;
+  const per = stPerPlayer(game), heavy = per.filter(x => x.buyN >= 3);
+  if (heavy.length && done.length) {
+    const avgAll = per.reduce((s, x) => s + x.avg, 0) / per.length;
+    const avgBuy = heavy.reduce((s, x) => s + x.avg, 0) / heavy.length;
+    if (avgBuy > avgAll + 3)
+      buyWarning = "Heavy buying is backfiring. Big buyers are averaging " + Math.round(avgBuy) + " a round against a table average of " +
+        Math.round(avgAll) + ". Each buy adds a penalty card.";
+  }
+  return { cats, topCard, toughest, buyWarning };
+}
+
+// ── Group history helpers ─────────────────────────────────────────
+function stGroupGames(state, groupId) {
+  return Object.values((state && state.games) || {})
+    .filter(g => g.groupId === groupId && g.status === "done")
+    .sort((a, b) => (a.endedAt || 0) - (b.endedAt || 0));
+}
+function stWinners(g) {
+  const t = stTotals(g), best = Math.min(...g.players.map(id => t[id]));
+  return { totals: t, best, ids: g.players.filter(id => t[id] === best) };
+}
+function stStreaks(games, pid) {
+  let cur = 0, best = 0, bestAt = null;
+  games.filter(g => g.players.includes(pid)).forEach(g => {
+    if (stWinners(g).ids.includes(pid)) { cur++; if (cur > best) { best = cur; bestAt = g.endedAt || 0; } } else cur = 0;
+  });
+  return { current: cur, best, bestAt };
+}
+
+// ── 4. Player profile ─────────────────────────────────────────────
+function playerProfile(state, groupId, playerId) {
+  const games = stGroupGames(state, groupId).filter(g => g.players.includes(playerId));
+  let wins = 0, sum = 0, outs = 0, buys = 0, roundsWon = 0, bestGame = null, bestRound = null;
+  const badges = {}, h2h = {};
+  games.forEach(g => {
+    const w = stWinners(g), mine = w.totals[playerId];
+    if (w.ids.includes(playerId)) wins++;
+    sum += mine;
+    if (!bestGame || mine < bestGame.total) bestGame = { total: mine, gameId: g.id };
+    buys += stBuysOf(g, playerId);
+    stDoneRounds(g).forEach(i => {
+      const r = g.scores[i], v = r[playerId];
+      if (v === 0) outs++;
+      if (v === Math.min(...g.players.map(id => r[id]))) roundsWon++;
+      if (!bestRound || v < bestRound.v) bestRound = { v, gameId: g.id, round: i };
+    });
+    gameAwards(g).forEach(a => { if (a.id === playerId) badges[a.key] = (badges[a.key] || 0) + 1; });
+    g.players.forEach(o => {
+      if (o === playerId) return;
+      const h = h2h[o] = h2h[o] || { id: o, played: 0, wins: 0, losses: 0 };
+      h.played++;
+      if (mine < w.totals[o]) h.wins++; else if (mine > w.totals[o]) h.losses++;
+    });
+  });
+  const s = stStreaks(games, playerId);
+  return {
+    games: games.length, wins, winRate: games.length ? wins / games.length : 0,
+    avg: games.length ? sum / games.length : 0,
+    bestGame, bestRound, outs, buys,
+    streak: { current: s.current, best: s.best },
+    badges, roundsWon,
+    h2h: Object.values(h2h).sort((a, b) => b.played - a.played),
+  };
+}
+
+// ── 5. Group records ──────────────────────────────────────────────
+// Ties go to whoever set the record first (chronologically); for most games, group order.
+function groupRecords(state, groupId) {
+  const games = stGroupGames(state, groupId);
+  const group = state && state.groups && state.groups[groupId];
+  const members = [];
+  (group ? group.players.map(p => p.id) : []).concat(...games.map(g => g.players)).forEach(id => { if (!members.includes(id)) members.push(id); });
+
+  let lowestWin = null, mostOuts = null, longestStreak = null, mostGames = null;
+  games.forEach(g => {
+    const w = stWinners(g);
+    if (!lowestWin || w.best < lowestWin.v) lowestWin = { v: w.best, id: w.ids[0], ids: w.ids, gameId: g.id };
+    const done = stDoneRounds(g);
+    g.players.forEach(id => {
+      const n = done.filter(i => g.scores[i][id] === 0).length;
+      if (n > 0 && (!mostOuts || n > mostOuts.v)) mostOuts = { v: n, id, gameId: g.id };
+    });
+  });
+  members.forEach(id => {
+    const s = stStreaks(games, id);
+    if (s.best > 0 && (!longestStreak || s.best > longestStreak.v || (s.best === longestStreak.v && s.bestAt < longestStreak.at)))
+      longestStreak = { v: s.best, id, at: s.bestAt };
+    const n = games.filter(g => g.players.includes(id)).length;
+    if (n > 0 && (!mostGames || n > mostGames.v)) mostGames = { v: n, id };
+  });
+  if (longestStreak) longestStreak = { v: longestStreak.v, id: longestStreak.id };
+  return { lowestWin, mostOuts, longestStreak, mostGames };
+}
+
+// ── 6. Rank moves ─────────────────────────────────────────────────
+function rankMoves(game) {
+  const done = stDoneRounds(game);
+  if (done.length < 2) return {};
+  const now = stPositions(stTotals(game, done)), before = stPositions(stTotals(game, done.slice(0, -1)));
+  const out = {};
+  game.players.forEach(id => { out[id] = before[id] - now[id]; });
+  return out;
 }
 
 // ── Icons (one stroke family) ─────────────────────────────────────
@@ -999,6 +1275,7 @@ function App() {
       onRename: name => api.group(tg.id, x => ({ ...x, name })),
       onDelete: () => { close(); withUndo(tg.name + " deleted", () => { api.set(x => { const groups = { ...x.groups }, games = { ...x.games }; delete groups[tg.id];
         Object.values(games).forEach(gm => { if (gm.groupId === tg.id) delete games[gm.id]; }); return { ...x, groups, games, groupOrder: x.groupOrder.filter(i => i !== tg.id) }; }); go({ at: "home" }); }); } }); }
+    if (sheet.type === "profile" && s.groups[sheet.groupId]) sheetEl = ce(ProfileSheet, { onClose: close, s, group: s.groups[sheet.groupId], playerId: sheet.playerId });
     if (sheet.type === "level") sheetEl = ce(LevelSheet, { onClose: close, onPick: lv => { setSettings(x => ({ ...x, level: lv })); if (lv === "new" && sg) open("rules", { gameId: sg.id }); else close(); } });
     if (sheet.type === "rules") sheetEl = ce(RulesSheet, { onClose: close, round: sg ? sg.round : 0, rules: sg ? sg.rules : DEFAULT_RULES, level: settings.level, initialTab: sheet.tab,
       setRules: sg && sg.status === "live" ? fn => api.game(sg.id, x => ({ ...x, rules: fn(x.rules) })) : null });
@@ -1081,15 +1358,45 @@ function GroupPage({ s, group, open, go, sync, rematch }) {
     ce("p", { className: "lede" }, champ ? ce(Fragment, null, ce(Icon, { n: "crown", size: 18 }), champ.name + " is the champion with " + champ.wins + (champ.wins === 1 ? " win" : " wins"))
       : st.games.length ? "It's all square at the top." : group.players.length + " players. Deal the first game to crown a champion."),
     ce(List, { header: "Standings", footer: st.games.length ? "Ranked by wins, then average score. Lowest score wins a game." : null },
-      board.map((p, i) => ce(Row, { key: p.id, lead: ce(Peg, { color: p.color, name: p.name, size: 36, ring: champ && champ.id === p.id }), title: p.name,
+      board.map((p, i) => ce(Row, { key: p.id, lead: ce(Peg, { color: p.color, name: p.name, size: 36, ring: champ && champ.id === p.id }), title: p.name, chevron: p.played > 0, onClick: p.played ? () => open("profile", { groupId: group.id, playerId: p.id }) : null,
         sub: p.played ? p.played + (p.played === 1 ? " game" : " games") + " · average " + p.avg : "No games yet",
         trail: ce("span", { className: "num-trail" }, ce("b", null, p.wins), ce("small", null, p.wins === 1 ? "win" : "wins")) })),
       ce(Row, { lead: ce("span", { className: "row-ic" }, ce(Icon, { n: "edit", size: 19 })), title: "Edit players", tone: "accent", onClick: () => open("players", { groupId: group.id }) })),
+    st.games.length > 1 && ce(Records, { s, group }),
     st.games.length > 0 && ce(List, { header: "Past games" }, st.games.slice(0, 25).map(g => {
       const r = rankOf(g), best = r[0].total, top = r.filter(x => x.total === best).map(x => plOf(group, g)(x.id));
       return ce(Row, { key: g.id, lead: ce(Peg, { color: top[0].color, name: top[0].name, size: 32 }), title: top.map(p => p.name).join(" & ") + " won with " + best, chevron: true,
         sub: new Date(g.endedAt).toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" }) + " · " + g.players.length + " players", onClick: () => go({ at: "recap", gameId: g.id }) });
     })));
+}
+
+// Table records: the bragging rights.
+function Records({ s, group }) {
+  const r = groupRecords(s, group.id), name = id => plOf(group, null)(id).name, rows = [];
+  if (r.lowestWin) rows.push(["trophy", "Lowest winning score", r.lowestWin.v, r.lowestWin.ids.map(name).join(" & ")]);
+  if (r.mostOuts) rows.push(["out", "Most outs in one game", r.mostOuts.v, name(r.mostOuts.id)]);
+  if (r.longestStreak && r.longestStreak.v > 1) rows.push(["bolt", "Longest win streak", r.longestStreak.v, name(r.longestStreak.id)]);
+  const playedBy = id => Object.values(s.games).filter(g => g.groupId === group.id && g.status === "done" && g.players.includes(id)).length;
+  if (r.mostGames && group.players.filter(p => playedBy(p.id) === r.mostGames.v).length === 1) rows.push(["users", "Most games played", r.mostGames.v, name(r.mostGames.id)]);
+  return rows.length ? ce(List, { header: "Records" }, rows.map(([ic, t, v, who]) => ce(Row, { key: t, lead: ce("span", { className: "row-ic soft" }, ce(Icon, { n: ic, size: 19 })), title: t, sub: who, trail: ce("span", { className: "num-trail" }, ce("b", null, v)) }))) : null;
+}
+const AWARD_META = { clean: ["out", "Clean hands"], bargain: ["mayi", "Bargain hunter"], comeback: ["bolt", "Comeback kid"], steady: ["chart", "Steady hand"], heavy: ["calc", "Heavy pockets"], joker: ["flag", "Joker juggler"] };
+function ProfileSheet({ onClose, s, group, playerId }) {
+  const p = plOf(group, null)(playerId), pr = playerProfile(s, group.id, playerId), name = id => plOf(group, null)(id).name;
+  const tiles = [["Games", pr.games], ["Wins", pr.wins], ["Win rate", Math.round(pr.winRate * 100) + "%"], ["Average", Math.round(pr.avg)],
+    ["Best game", pr.bestGame ? pr.bestGame.total : "–"], ["Times out", pr.outs], ["Buys", pr.buys], ["Best streak", pr.streak.best]];
+  const badges = Object.entries(pr.badges);
+  return ce(Sheet, { title: p.name, onClose, tall: true },
+    ce("div", { className: "profile-head" }, ce(Peg, { color: p.color, name: p.name, size: 64, ring: pr.streak.current > 1 }),
+      ce("p", null, pr.streak.current > 1 ? "On a " + pr.streak.current + "-game winning streak" : pr.wins ? pr.wins + (pr.wins === 1 ? " win" : " wins") + " at " + group.name : "Still chasing a first win at " + group.name)),
+    ce("div", { className: "tiles" }, tiles.map(([k, v]) => ce("div", { key: k }, ce("b", null, v), ce("span", null, k)))),
+    badges.length > 0 && ce(Fragment, null, ce("h3", { className: "group-h" }, "Awards won"),
+      ce("div", { className: "badges" }, badges.map(([k, n]) => ce("div", { key: k, className: "badge" }, ce("span", { className: "row-ic award " + k }, ce(Icon, { n: AWARD_META[k][0], size: 20 })), ce("b", null, AWARD_META[k][1]), ce("small", null, "× " + n))))),
+    pr.h2h.length > 0 && ce(Fragment, null, ce("h3", { className: "group-h" }, "Head to head"),
+      ce("div", { className: "list" }, pr.h2h.map(h => { const o = plOf(group, null)(h.id);
+        return ce(Row, { key: h.id, lead: ce(Peg, { color: o.color, name: o.name, size: 32 }), title: "vs " + name(h.id), sub: h.played + (h.played === 1 ? " game" : " games"),
+          trail: ce("span", { className: "h2h" }, ce("b", { className: h.wins > h.losses ? "up" : h.wins < h.losses ? "down" : "" }, h.wins + "–" + h.losses)) }); }))),
+    ce("p", { className: "group-f" }, "Head to head counts the games where both of you played and who finished lower."));
 }
 
 // ── Game: the table ───────────────────────────────────────────────
@@ -1135,9 +1442,10 @@ function GameScreen({ s, api, game, open, go, wide, setToast, level }) {
     setIntro({ round: from + 1, winners, from });
   }
   const firstOpen = Math.max(0, game.players.findIndex(id => typeof rs[id] !== "number"));
+  const chase = scored ? [] : chaseNotes(game, id => pl(id).name), moves = rankMoves(game);
   const seats = ce("ol", { className: "seats", "aria-label": "Players" }, totals.map((t, i) => {
     const p = pl(t.id), isLead = hasAny && t.total === lead, buys = (game.buys[game.round] && game.buys[game.round][t.id]) || 0;
-    return ce(Seat, { key: t.id, i, p, total: t.total, isLead, isDealer: dealer === t.id, gap: t.total - lead, hasAny, board, buys, limit, value: rs[t.id], changeBuy, onEdit: () => setPad(i) });
+    return ce(Seat, { key: t.id, i, p, total: t.total, isLead, isDealer: dealer === t.id, gap: t.total - lead, hasAny, board, buys, limit, value: rs[t.id], changeBuy, onEdit: () => setPad(i), move: scored ? 0 : moves[t.id] || 0 });
   }));
   const action = allDone ? ce("button", { className: "btn primary lg grow", onClick: finish }, ce(Icon, { n: "trophy", size: 20 }), "See who won")
     : complete ? ce("button", { className: "btn primary lg grow", onClick: nextRound }, game.round < 6 ? "Next round" : "Finish game")
@@ -1150,7 +1458,8 @@ function GameScreen({ s, api, game, open, go, wide, setToast, level }) {
       onDone: () => { setIntro(null); if (!level) open("level", { gameId: game.id }); else if (level === "new") open("rules", { gameId: game.id }); }, onUndo: intro.from != null ? () => { upd(g => ({ ...g, round: intro.from })); setIntro(null); } : null }));
   if (board) return ce("div", { className: "scoreboard" },
     ce("div", { className: "sb-head" }, ce("span", null, "Round " + r.n + " of 7"), ce("h1", null, r.name), ce(Melds, { ex: r.ex }), ce("span", { className: "grow" }),
-      ce("button", { className: "btn on-band", onClick: () => setBoard(false) }, "Done")), seats, overlays);
+      ce("button", { className: "btn on-band", onClick: () => setBoard(false) }, "Done")), ce(RaceTrack, { game, pl, big: true }),
+      chase.length > 0 && ce("p", { className: "sb-chase" }, pl(chase[chase.length - 1].id).name + ": " + chase[chase.length - 1].text), overlays);
   return ce("div", { className: "game" + (wide ? " wide" : "") },
     ce("header", { className: "band" },
       ce("div", { className: "band-row" },
@@ -1170,6 +1479,7 @@ function GameScreen({ s, api, game, open, go, wide, setToast, level }) {
       ce("div", { className: "seats-head" }, ce("span", null, scored ? "Scoring round " + r.n : "Players"), ce("span", null, scored ? scored + " of " + game.players.length + " in" : limit === Infinity ? "Unlimited buys" : limit + " buys each")),
       seats,
       ce("p", { className: "tip" }, ce(Icon, { n: "bolt", size: 16 }), r.goOut ? "Go out in one turn. " + r.tip : r.tip),
+      chase.length > 0 && ce(List, { header: "Still in it" }, chase.map(c => ce(Row, { key: c.id, lead: ce(Peg, { color: pl(c.id).color, name: pl(c.id).name, size: 32 }), title: pl(c.id).name, sub: c.text }))),
       wide && ce(RoundGrid, { game, pl })),
     ce("footer", { className: "dock" }, action), overlays);
 }
@@ -1185,13 +1495,14 @@ function RoundStrip({ game, pl, onPick }) {
       out ? ce("span", { className: "rs-dot", style: { background: peg(pl(out).color).c } }) : done ? ce(Icon, { n: "check", size: 11, stroke: 3 }) : ce("span", { className: "rs-dot empty" }));
   }));
 }
-function Seat({ i, p, total, isLead, isDealer, gap, hasAny, board, buys, limit, value, changeBuy, onEdit }) {
+function Seat({ i, p, total, isLead, isDealer, gap, hasAny, board, buys, limit, value, changeBuy, onEdit, move }) {
   const shown = useCount(total), has = typeof value === "number", atLimit = limit !== Infinity && buys >= limit;
   return ce("li", { className: "seat" + (isLead ? " lead" : ""), style: { "--i": i } },
     ce("span", { className: "seat-av" }, ce(Peg, { color: p.color, name: p.name, size: board ? 60 : 42, ring: isLead }), isDealer && ce("span", { className: "dealer", title: "Dealer" }, "D")),
     ce("span", { className: "seat-main" },
       ce("b", null, p.name, isLead && ce("span", { className: "crown-ic" }, ce(Icon, { n: "crown", size: 15 }))),
-      ce("small", null, !hasAny ? (isDealer ? "Dealing" : "Ready") : isLead ? "Leading" : gap + " behind")),
+      ce("small", null, !hasAny ? (isDealer ? "Dealing" : "Ready") : isLead ? "Leading" : gap + " behind",
+        move ? ce("span", { className: "mv " + (move > 0 ? "up" : "down") }, (move > 0 ? " ▲ up " : " ▼ down ") + Math.abs(move)) : null)),
     has && !board && ce("button", { className: "chip" + (value === 0 ? " out" : ""), onClick: onEdit, "aria-label": "Change " + p.name + "'s score this round" }, value === 0 ? "Out" : "+" + value),
     ce("span", { className: "seat-total" }, shown),
     !board && ce("span", { className: "buy" },
@@ -1288,11 +1599,37 @@ function RoundGrid({ game, pl }) {
       ce("td", { className: "t" }, t.total))))));
 }
 
+// Racing pegs: each player's peg sits on a lane; the lowest total is closest to the finish.
+function RaceTrack({ game, pl, big }) {
+  const t = totalsOf(game), lo = Math.min(...t.map(x => x.total)), hi = Math.max(...t.map(x => x.total)), span = Math.max(1, hi - lo);
+  const moves = rankMoves(game), ranked = [...t].sort((a, b) => a.total - b.total);
+  return ce("div", { className: "race" + (big ? " big" : ""), role: "list", "aria-label": "Standings as a race" }, ranked.map((x, i) => {
+    const p = pl(x.id), k = hi === lo ? 1 : 1 - (x.total - lo) / span, mv = moves[x.id] || 0;
+    return ce("div", { key: x.id, className: "lane", role: "listitem", "aria-label": p.name + ", " + x.total + " points" },
+      ce("span", { className: "lane-name" }, p.name, mv !== 0 && ce("i", { className: "mv " + (mv > 0 ? "up" : "down"), "aria-label": mv > 0 ? "up " + mv : "down " + -mv }, mv > 0 ? "▲" : "▼")),
+      ce("span", { className: "lane-track" }, ce("span", { className: "lane-fill", style: { width: "calc(" + (k * 100) + "% - " + (k * 34) + "px + 17px)", "--peg": peg(p.color).c } }),
+        ce("span", { className: "lane-peg", style: { left: "calc(" + (k * 100) + "% - " + (k * 34) + "px)" } }, ce(Peg, { color: p.color, name: p.name, size: big ? 44 : 34, ring: i === 0 && x.total === lo && t.some(y => y.total > 0) }))),
+      ce("b", { className: "lane-total" }, x.total));
+  }));
+}
+function CaughtCard({ caught }) {
+  const tok = c => c === "JOKER" ? "Jokers" : c === "A" ? "Aces" : c === "J" ? "Jacks" : c === "Q" ? "Queens" : c === "K" ? "Kings" : c + "s";
+  return ce("section", { className: "group" }, ce("h2", { className: "group-h" }, "What got people caught"),
+    ce("div", { className: "list pad" },
+      caught.cats.map(c => ce("div", { key: c.key, className: "bar-row" }, ce("span", null, c.label), ce("span", { className: "bar" }, ce("i", { style: { width: c.pct + "%" } })), ce("b", null, c.pct + "%"))),
+      ce("ul", { className: "facts-list" },
+        caught.topCard && ce("li", null, "Most caught: ", ce("b", null, tok(caught.topCard.token)), ", " + caught.topCard.count + " times for " + caught.topCard.pts + " points"),
+        caught.toughest && ce("li", null, "Toughest round: ", ce("b", null, "Round " + (caught.toughest.round + 1) + " · " + ROUNDS[caught.toughest.round].name), ", " + caught.toughest.total + " points between you"),
+        caught.buyWarning && ce("li", null, caught.buyWarning)),
+      !caught.cats.length && null),
+    caught.cats.length === 0 && ce("p", { className: "group-f" }, "Count cards with Tap cards or the scanner to see which cards cost the most."));
+}
+
 // ── Recap ─────────────────────────────────────────────────────────
 function Recap({ s, game, go, setToast, rematch, onDelete }) {
   const group = s.groups[game.groupId], pl = plOf(group, game);
   const ranked = rankOf(game), best = ranked[0].total, top = ranked.filter(t => t.total === best);
-  const ins = insights(game, game.rules), fresh = game.endedAt && now() - game.endedAt < 8000;
+  const awards = gameAwards(game), caught = caughtStats(game), fresh = game.endedAt && now() - game.endedAt < 8000;
   const place = t => 1 + ranked.filter(q => q.total < t.total).length, pod = ranked.slice(0, 3);
   async function share() {
     const text = "May I? · " + group.name + "\n" + ranked.map(t => place(t) + ". " + pl(t.id).name + " · " + t.total).join("\n");
@@ -1327,7 +1664,9 @@ function Recap({ s, game, go, setToast, rematch, onDelete }) {
           ce("b", null, pp.name), ce("span", null, t.total), ce("div", { className: "pod-block" }, n)); }))),
     ranked.length > 3 && ce(List, { header: "Everyone else" }, ranked.slice(3).map(t => ce(Row, { key: t.id, lead: ce(Peg, { color: pl(t.id).color, name: pl(t.id).name, size: 32 }),
       title: pl(t.id).name, sub: (t.total - best) + " behind the winner", trail: ce("span", { className: "num-trail" }, ce("b", null, t.total)) }))),
-    ins.awards.length > 0 && ce(List, { header: "Highlights" }, ins.awards.map(a => ce(Row, { key: a.t, lead: ce("span", { className: "row-ic soft" }, ce(Icon, { n: a.ic, size: 20 })), title: a.t + ": " + pl(a.id).name, sub: a.d }))),
+    ce("section", { className: "group" }, ce("h2", { className: "group-h" }, "The race"), ce(RaceTrack, { game, pl })),
+    awards.length > 0 && ce(List, { header: "Awards" }, awards.map(a => ce(Row, { key: a.key, lead: ce("span", { className: "row-ic award " + a.key }, ce(Icon, { n: a.ic, size: 20 })), title: a.t, sub: pl(a.id).name + " · " + a.d }))),
+    (caught.cats.length > 0 || caught.toughest) && ce(CaughtCard, { caught, pl }),
     ce("section", { className: "group" }, ce("h2", { className: "group-h" }, "Round by round"), ce(RoundGrid, { game: { ...game, round: -1 }, pl })),
     ce(List, null, ce("button", { className: "row tap danger", onClick: onDelete }, ce("span", { className: "row-main" }, ce("b", null, "Delete this game")))));
 }
@@ -1952,6 +2291,40 @@ input { caret-color: var(--accent); }
 .coach-head { display: flex; gap: 12px; align-items: flex-start; } .coach-head b { display: block; font-weight: 600; } .coach-head small { color: var(--ink2); line-height: 1.35; }
 .coach-out { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; margin: 0; }
 .coach-out dt { font-size: .8rem; font-weight: 600; color: var(--ink3); padding-top: 2px; } .coach-out dd { margin: 0; line-height: 1.4; }
+
+/* Stats: race, awards, caught bars, profiles */
+.race { display: grid; gap: 4px; padding: 14px 16px; border-radius: 14px; background: var(--surface); box-shadow: 0 0 0 var(--hair) var(--line); }
+.lane { display: grid; grid-template-columns: minmax(64px, 22%) 1fr 44px; align-items: center; gap: 10px; min-height: 44px; }
+.lane-name { font-weight: 600; font-size: .92rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lane-track { position: relative; height: 36px; border-radius: 18px; background: var(--fill); }
+.lane-track::after { content: ""; position: absolute; right: 0; top: 4px; bottom: 4px; width: 3px; border-radius: 2px; background: repeating-linear-gradient(var(--ink) 0 4px, transparent 4px 8px); opacity: .35; }
+.lane-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 18px; background: color-mix(in srgb, var(--peg) 18%, transparent); transition: width .7s var(--out-e); }
+.lane-peg { position: absolute; top: 50%; transform: translateY(-50%); transition: left .7s var(--spring); }
+.lane-total { font: 700 1.1rem var(--num); text-align: right; font-variant-numeric: tabular-nums; }
+.race.big { background: transparent; box-shadow: none; padding: 0; gap: 10px; flex: 1; align-content: center; }
+.race.big .lane { grid-template-columns: minmax(120px, 18%) 1fr 90px; min-height: 64px; }
+.race.big .lane-name { font-size: clamp(1.2rem, 2.2vw, 2rem); color: var(--band-ink); } .race.big .lane-total { font-size: clamp(1.6rem, 3.4vw, 3rem); color: var(--band-ink); }
+.race.big .lane-track { height: 52px; border-radius: 26px; background: rgba(255,255,255,.1); } .race.big .lane-track::after { background: repeating-linear-gradient(var(--band-ink) 0 6px, transparent 6px 12px); }
+.race.big .lane-fill { border-radius: 26px; background: color-mix(in srgb, var(--peg) 40%, transparent); }
+.mv { font-style: normal; font-size: .72em; margin-left: 5px; } .mv.up { color: var(--out); } .mv.down { color: var(--red); }
+.seat-main small .mv { font-size: .95em; margin-left: 2px; }
+.sb-chase { margin: 0; color: var(--band-ink2); font-size: clamp(1rem, 1.6vw, 1.4rem); text-align: center; }
+.row-ic.award { background: var(--gold-soft); color: var(--gold); }
+.row-ic.award.comeback, .row-ic.award.clean { background: var(--out-soft); color: var(--out); }
+.list.pad { padding: 14px 16px; display: grid; gap: 10px; }
+.bar-row { display: grid; grid-template-columns: 110px 1fr 40px; gap: 10px; align-items: center; font-size: .88rem; }
+.bar { height: 10px; border-radius: 5px; background: var(--fill); overflow: hidden; } .bar i { display: block; height: 100%; border-radius: 5px; background: var(--accent); }
+.bar-row b { text-align: right; font: 600 .9rem var(--num); }
+.facts-list { margin: 4px 0 0; padding: 10px 0 0 18px; border-top: var(--hair) solid var(--line); display: grid; gap: 6px; color: var(--ink2); font-size: .9rem; line-height: 1.4; } .facts-list:empty { display: none; }
+.facts-list b { color: var(--ink); font-weight: 600; }
+.profile-head { display: grid; justify-items: center; gap: 8px; text-align: center; } .profile-head p { margin: 0; color: var(--ink2); }
+.tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.tiles div { display: grid; justify-items: center; gap: 2px; padding: 12px 4px; border-radius: 14px; background: var(--surface); box-shadow: 0 0 0 var(--hair) var(--line); }
+.tiles b { font: 700 1.3rem var(--num); } .tiles span { font-size: .72rem; color: var(--ink3); font-weight: 600; text-align: center; }
+.badges { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+.badge { display: grid; justify-items: center; gap: 4px; padding: 12px 6px; border-radius: 14px; background: var(--surface); box-shadow: 0 0 0 var(--hair) var(--line); text-align: center; }
+.badge b { font-size: .82rem; font-weight: 600; } .badge small { color: var(--ink3); font: 600 .8rem var(--num); }
+.h2h b { font: 700 1.1rem var(--num); } .h2h b.up { color: var(--out); } .h2h b.down { color: var(--red); }
 @keyframes fade { from { opacity: 0; } }
 @keyframes up { from { transform: translateY(100%); } }
 @keyframes down { to { transform: translateY(100%); } }
