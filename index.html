@@ -1063,6 +1063,13 @@ function Crown({ place, size, cls, quiet }) {
   return ce("span", { className: "crown-b" + (cls ? " " + cls : ""), role: quiet ? undefined : "img", "aria-hidden": quiet || undefined, "aria-label": quiet ? undefined : ["", "1st", "2nd", "3rd"][place] + " place",
     style: size ? { width: size, height: Math.round(size * .8) } : undefined, dangerouslySetInnerHTML: { __html: crownSVG(place) } });
 }
+// A whole 3D figure for the dressing room and its cards. The soft silhouette shows until it loads.
+function FigImg({ av, cls }) {
+  const f = toFig(av);
+  return ce("span", { className: "fig" + (cls ? " " + cls : ""), "aria-hidden": true },
+    ce("img", { src: figSrc(f.who, f.tone), alt: "", crossOrigin: "anonymous", loading: "lazy", decoding: "async", draggable: false,
+      onLoad: e => e.currentTarget.parentNode.classList.add("in") }));
+}
 function Peg({ color, name, size, ring, av }) {
   const p = peg(color), cls = "peg" + (ring ? " ring" : ""), style = { "--peg": p.c, "--peg-ink": p.ink, width: size, height: size, fontSize: size * .42 };
   if (av && av.type === "photo" && av.src) return ce("span", { className: cls + " photo", "aria-hidden": true, style: { ...style, backgroundImage: "url(" + av.src + ")" } });
@@ -1455,7 +1462,12 @@ function App() {
       onRename: name => api.group(tg.id, x => ({ ...x, name })),
       onDelete: () => { close(); withUndo(tg.name + " deleted", () => { api.set(x => { const groups = { ...x.groups }, games = { ...x.games }; delete groups[tg.id];
         Object.values(games).forEach(gm => { if (gm.groupId === tg.id) delete games[gm.id]; }); return { ...x, groups, games, groupOrder: x.groupOrder.filter(i => i !== tg.id) }; }); go({ at: "home" }); }); } }); }
-    if (sheet.type === "profile" && s.groups[sheet.groupId]) sheetEl = ce(ProfileSheet, { onClose: close, s, group: s.groups[sheet.groupId], playerId: sheet.playerId });
+    if (sheet.type === "profile" && s.groups[sheet.groupId]) sheetEl = ce(ProfileSheet, { onClose: close, s, group: s.groups[sheet.groupId], playerId: sheet.playerId,
+      onDress: () => open("dress", { groupId: sheet.groupId, playerId: sheet.playerId, back: true }) });
+    if (sheet.type === "dress" && s.groups[sheet.groupId]) { const dg = s.groups[sheet.groupId], dp = dg.players.find(q => q.id === sheet.playerId);
+      const done = () => sheet.back ? open("profile", { groupId: dg.id, playerId: dp.id }) : close();
+      sheetEl = dp && ce(AvatarSheet, { dress: true, player: dp, taken: dg.players.filter(q => q.id !== dp.id).map(q => q.color), onClose: done,
+        onSave: (color, avatar) => { api.group(dg.id, x => ({ ...x, players: x.players.map(q => q.id === dp.id ? { ...q, color, avatar } : q) })); haptic(12); sound("save"); done(); } }); }
     if (sheet.type === "level") sheetEl = ce(LevelSheet, { onClose: close, onPick: lv => { setSettings(x => ({ ...x, level: lv })); if (lv === "new" && sg) open("rules", { gameId: sg.id }); else close(); } });
     if (sheet.type === "rules") sheetEl = ce(RulesSheet, { onClose: close, round: sg ? sg.round : 0, rules: sg ? sg.rules : DEFAULT_RULES, level: settings.level, initialTab: sheet.tab,
       setRules: sg && sg.status === "live" ? fn => api.game(sg.id, x => ({ ...x, rules: fn(x.rules) })) : null });
@@ -1581,13 +1593,15 @@ function Records({ s, group }) {
   return rows.length ? ce(List, { header: "Records" }, rows.map(([ic, t, v, who]) => ce(Row, { key: t, lead: ce("span", { className: "row-ic soft" }, ce(Icon, { n: ic, size: 19 })), title: t, sub: who, trail: ce("span", { className: "num-trail" }, ce("b", null, v)) }))) : null;
 }
 const AWARD_META = { clean: ["out", "Clean hands"], bargain: ["mayi", "Bargain hunter"], comeback: ["bolt", "Comeback kid"], steady: ["chart", "Steady hand"], heavy: ["calc", "Heavy pockets"], joker: ["flag", "Joker juggler"] };
-function ProfileSheet({ onClose, s, group, playerId }) {
+function ProfileSheet({ onClose, s, group, playerId, onDress }) {
   const p = plOf(group, null)(playerId), pr = playerProfile(s, group.id, playerId), name = id => plOf(group, null)(id).name;
   const tiles = [["Games", pr.games], ["Wins", pr.wins], ["Win rate", Math.round(pr.winRate * 100) + "%"], ["Average", Math.round(pr.avg)],
     ["Best game", pr.bestGame ? pr.bestGame.total : "–"], ["Times out", pr.outs], ["Buys", pr.buys], ["Best streak", pr.streak.best]];
   const badges = Object.entries(pr.badges);
   return ce(Sheet, { title: p.name, onClose, tall: true },
-    ce("div", { className: "profile-head" }, ce(Peg, { color: p.color, name: p.name, av: p.avatar, size: 64, ring: pr.streak.current > 1 }),
+    ce("div", { className: "profile-head" + (p.avatar && p.avatar.type === "face" ? " has-fig" : ""), style: { "--peg": peg(p.color).c } },
+      p.avatar && p.avatar.type === "face" ? ce(FigImg, { av: p.avatar, cls: "profile-fig" }) : ce(Peg, { color: p.color, name: p.name, av: p.avatar, size: 64, ring: pr.streak.current > 1 }),
+      onDress && ce("button", { className: "btn tonal sm profile-dress", onClick: onDress }, ce(Icon, { n: "spark", size: 16 }), "Dress up"),
       ce("p", null, pr.streak.current > 1 ? "On a " + pr.streak.current + "-game winning streak" : pr.wins ? pr.wins + (pr.wins === 1 ? " win" : " wins") + " at " + group.name : "Still chasing a first win at " + group.name)),
     ce("div", { className: "tiles" }, tiles.map(([k, v]) => ce("div", { key: k }, ce("b", null, v), ce("span", null, k)))),
     badges.length > 0 && ce(Fragment, null, ce("h3", { className: "group-h" }, "Awards won"),
@@ -1648,7 +1662,7 @@ function GameScreen({ s, api, game, open, go, wide, setToast, level }) {
   const seats = ce("ol", { className: "seats", "aria-label": "Players" }, totals.map((t, i) => {
     const p = pl(t.id), isLead = hasAny && t.total === lead, buys = (game.buys[game.round] && game.buys[game.round][t.id]) || 0;
     const place = hasAny ? 1 + totals.filter(o => o.total < t.total).length : 0;   // ties share a place
-    return ce(Seat, { key: t.id, i, p, total: t.total, isLead, place: place <= 3 && totals.length > 2 || place === 1 ? place : 0, isDealer: dealer === t.id, gap: t.total - lead, hasAny, board, buys, limit, value: rs[t.id], changeBuy, onEdit: () => setPad(i), move: scored ? 0 : moves[t.id] || 0 });
+    return ce(Seat, { key: t.id, i, p, total: t.total, isLead, place: place <= 3 && totals.length > 2 || place === 1 ? place : 0, isDealer: dealer === t.id, gap: t.total - lead, hasAny, board, buys, limit, value: rs[t.id], changeBuy, onEdit: () => setPad(i), onDress: () => open("dress", { groupId: game.groupId, playerId: t.id }), move: scored ? 0 : moves[t.id] || 0 });
   }));
   const action = allDone ? ce("button", { className: "btn primary lg grow", onClick: finish }, ce(Icon, { n: "trophy", size: 20 }), "See who won")
     : complete ? ce("button", { className: "btn primary lg grow", onClick: nextRound }, game.round < 6 ? "Next round" : "Finish game")
@@ -1705,10 +1719,10 @@ function RoundStrip({ game, pl, onPick }) {
       out ? ce("span", { className: "rs-dot", style: { background: peg(pl(out).color).c } }) : done ? ce(Icon, { n: "check", size: 11, stroke: 3 }) : ce("span", { className: "rs-dot empty" }));
   }));
 }
-function Seat({ i, p, total, isLead, place, isDealer, gap, hasAny, board, buys, limit, value, changeBuy, onEdit, move }) {
+function Seat({ i, p, total, isLead, place, isDealer, gap, hasAny, board, buys, limit, value, changeBuy, onEdit, onDress, move }) {
   const shown = useCount(total), has = typeof value === "number", atLimit = limit !== Infinity && buys >= limit;
   return ce("li", { className: "seat" + (isLead ? " lead" : ""), style: { "--i": i } },
-    ce("span", { className: "seat-av" }, ce(Peg, { color: p.color, name: p.name, av: p.avatar, size: board ? 60 : 42, ring: isLead }),
+    ce(board ? "span" : "button", { className: "seat-av", onClick: board ? undefined : onDress, "aria-label": board ? undefined : "Dress up " + p.name }, ce(Peg, { color: p.color, name: p.name, av: p.avatar, size: board ? 60 : 42, ring: isLead }),
       place > 0 && ce(Crown, { key: "m" + place, place, cls: "medal m" + place }), isDealer && ce("span", { className: "dealer", title: "Dealer" }, "D")),
     ce("span", { className: "seat-main" },
       ce("b", null, p.name),
@@ -1965,9 +1979,9 @@ function PlayerEditor({ players, setPlayers, autoFocus }) {
 const AV_CATS = [["looks", "Looks"], ["costumes", "Costumes"], ["moods", "Moods"], ["tones", "Skin tone"], ["color", "Colour"]];
 const avShuffle = () => { const r = a => a[Math.floor(Math.random() * a.length)], g = r(["Woman", "Man", "Person"]), k = Math.random();
   return { type: "face", v: 4, who: k < .7 ? r(FIG.looks.slice(0, -1)) : k < .9 ? figRole(g, r(FIG.costumes)) : figMood(g, r(FIG.moods.slice(0, 5))), tone: r(FIG.tones.slice(0, 5)) }; };
-function AvatarSheet({ player, taken, onClose, onSave }) {
+function AvatarSheet({ player, taken, onClose, onSave, dress }) {
   const a0 = player.avatar || null;
-  const [color, setColor] = useState(player.color), [mode, setMode] = useState(a0 ? a0.type : "initials"), [cat, setCat] = useState("looks");
+  const [color, setColor] = useState(player.color), [mode, setMode] = useState(a0 ? a0.type : dress ? "face" : "initials"), [cat, setCat] = useState("looks");
   const [face, setFace] = useState(a0 && a0.type === "face" ? toFig(a0) : avSeed(player.name)), [magic, setMagic] = useState(null), magicRef = useRef(null);
   // From a photo: Claude picks the closest character. Without a key, the key card opens here first.
   const fromPhoto = () => { if (!getAiKey()) { setMagic({ key: true }); return; } magicRef.current.click(); };
@@ -2016,14 +2030,20 @@ function AvatarSheet({ player, taken, onClose, onSave }) {
       footer: ce("button", { className: "btn primary block lg", disabled: mode === "photo" && !raw && !photo, onClick: () => onSave(color, result()) }, "Save") },
     ce("div", { className: "av-head" },
     ce(Seg, { label: "Avatar type", value: mode, onChange: m => { haptic(6); setMode(m); }, options: [["initials", "Initials"], ["photo", "Photo"], ["face", "Character"]] }),
-    ce("div", { className: "av-stage" + (magic && magic.busy ? " busy" : "") },
+    ce("div", { className: "av-stage" + (mode === "face" ? " dress" : "") + (magic && magic.busy ? " busy" : ""), style: mode === "face" ? { "--peg": peg(color).c } : undefined },
       mode === "photo" && raw
         ? ce("div", { className: "av-crop", style: { width: VIEW, height: VIEW, "--peg": peg(color).c }, onPointerDown: down, onPointerMove: move, onPointerUp: up, onPointerCancel: up, "aria-label": "Drag to position the photo" },
             ce("img", { src: raw.url, alt: "", draggable: false, style: { width: raw.w * zoom, height: raw.h * zoom, transform: "translate(calc(-50% + " + pos.x + "px), calc(-50% + " + pos.y + "px))" } }))
-        : ce("span", { key: mode + JSON.stringify(preview && preview.type === "face" ? preview : "") + color, className: "av-pop" }, ce(Peg, { color, name: player.name, av: preview, size: 128, ring: true })),
-      mode === "face" && ce("button", { className: "av-magic", onClick: fromPhoto, disabled: !!(magic && magic.busy) }, ce(Icon, { n: "camera", size: 18 }), magic && magic.busy ? "Looking…" : "From a photo"),
-      mode === "face" && ce("input", { ref: magicRef, type: "file", accept: "image/*", capture: "user", hidden: true, onChange: onMagicFile }),
-      mode === "face" && ce("button", { className: "av-shuffle", onClick: () => { setFace(avShuffle()); setMagic(null); haptic(10); sound("chip"); }, "aria-label": "Surprise me with a random character" }, ce(Icon, { n: "die", size: 20 }))),
+        : mode === "face"
+          ? ce(Fragment, null,
+              // How it looks at the table, beside the whole figure
+              ce("span", { className: "av-peek", title: "At the table" }, ce(Peg, { color, name: player.name, av: face, size: 50 })),
+              ce("span", { key: face.who + face.tone, className: "av-figure" }, ce(FigImg, { av: face })),
+              ce("div", { className: "av-rail" },
+                ce("button", { onClick: fromPhoto, disabled: !!(magic && magic.busy), "aria-label": "Make a character from a photo" }, ce(Icon, { n: "camera", size: 20 }), ce("span", null, magic && magic.busy ? "Looking" : "Photo")),
+                ce("button", { onClick: () => { setFace(avShuffle()); setMagic(null); haptic(10); sound("chip"); }, "aria-label": "Surprise me with a random character" }, ce(Icon, { n: "die", size: 20 }), ce("span", null, "Shuffle"))),
+              ce("input", { ref: magicRef, type: "file", accept: "image/*", capture: "user", hidden: true, onChange: onMagicFile }))
+          : ce("span", { key: mode + color, className: "av-pop" }, ce(Peg, { color, name: player.name, av: preview, size: 128, ring: true }))),
     mode === "face" && ce("div", { className: "av-cats", role: "tablist", "aria-label": "Character parts" }, AV_CATS.map(([k, label]) =>
       ce("button", { key: k, role: "tab", "aria-selected": cat === k, className: "av-cat" + (cat === k ? " on" : ""), onClick: e => { setCat(k); haptic(4); e.currentTarget.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" }); } }, label)))),
     mode === "photo" && raw && ce("label", { className: "av-zoom" }, ce("span", null, "Zoom"),
@@ -2040,10 +2060,10 @@ function AvatarSheet({ player, taken, onClose, onSave }) {
     mode === "face" && magic && !magic.busy && (magic.key
       ? ce(AiKeyCard, { open: true, cta: "Save key and choose a photo", onSaved: () => { setMagic(null); magicRef.current && magicRef.current.click(); } })
       : ce("p", { className: "av-note" + (magic.err ? " err" : ""), role: "status" }, magic.err || "Made from your photo, which wasn't saved. Change anything below.")),
-    mode === "face" && (cat === "color" ? colours : ce("div", { key: cat, className: "av-grid" + (opts.length > 8 ? " dense" : ""), role: "radiogroup", "aria-label": C[1] }, opts.map(([label, f]) => {
+    mode === "face" && (cat === "color" ? colours : ce("div", { key: cat, className: "av-grid cards", role: "radiogroup", "aria-label": C[1], style: { "--peg": peg(color).c } }, opts.map(([label, f]) => {
       const on = f.who === face.who && f.tone === face.tone;
-      return ce("button", { key: label, role: "radio", "aria-checked": on, "aria-label": label, className: "av-tile" + (on ? " on" : ""), onClick: () => { setMagic(null); pick(f); } },
-        ce(Peg, { color, name: player.name, av: f, size: 62 })); }))));
+      return ce("button", { key: label, role: "radio", "aria-checked": on, "aria-label": label, className: "av-card" + (on ? " on" : ""), onClick: () => { setMagic(null); pick(f); } },
+        ce(FigImg, { av: f })); }))));
 }
 function NewGroupSheet({ onClose, onCreate }) {
   const [name, setName] = useState(""), [players, setPlayers] = useState([]);
@@ -2912,14 +2932,43 @@ html.locked, html.locked body { overflow: hidden; overscroll-behavior: none; }
 .av-head { position: sticky; top: -8px; z-index: 2; display: grid; gap: 12px; margin: -8px -16px 0; padding: 8px 16px 10px; background: var(--bg); }
 .av-stage { position: relative; display: grid; place-items: center; min-height: 208px; border-radius: 22px; }
 .av-stage .peg.ring { box-shadow: 0 0 0 4px #fff, 0 6px 16px -2px rgba(10,20,60,.35); }
-.av-magic { position: absolute; left: 10px; bottom: 10px; height: 44px; padding: 0 14px 0 11px; border-radius: 22px; display: inline-flex; align-items: center; gap: 7px; background: var(--surface); color: var(--accent); font-weight: 650; font-size: .9rem; box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--line) 70%, transparent); }
-.av-magic:disabled { opacity: 1; color: var(--ink3); }
 .av-stage.busy .av-pop { animation: avThink 1.1s ease-in-out infinite; }
 @keyframes avThink { 50% { transform: scale(.94) rotate(-4deg); } }
 .av-note { margin: 0 4px; font-size: .84rem; color: var(--ink2); text-align: center; }
+/* The dressing room: the whole figure on a stage in the player's own colour */
+.fig { position: relative; display: grid; place-items: end center; }
+.fig img { position: relative; width: 100%; height: 100%; object-fit: contain; display: block; pointer-events: none; opacity: 0; transition: opacity .25s ease; }
+.fig.in img { opacity: 1; }
+.fig::before { content: ""; position: absolute; inset: 8% 10% 0; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='42' r='21' fill='%23fff'/%3E%3Cpath d='M12 100c0-22 17-35 38-35s38 13 38 35z' fill='%23fff'/%3E%3C/svg%3E") center bottom / contain no-repeat; opacity: .4; transition: opacity .25s ease; }
+.fig.in::before { opacity: 0; }
+.av-stage.dress { min-height: 252px; place-items: end center; overflow: hidden; background-color: var(--peg);
+  background-image: radial-gradient(circle, rgba(255,255,255,.22) 0 2.6px, transparent 3.1px), radial-gradient(circle, rgba(255,255,255,.12) 0 2.6px, transparent 3.1px), linear-gradient(180deg, color-mix(in srgb, var(--peg) 78%, #fff) 0%, var(--peg) 55%, color-mix(in srgb, var(--peg) 84%, #000) 100%);
+  background-size: 22px 22px, 22px 22px, auto; background-position: 0 0, 11px 11px, 0 0; box-shadow: inset 0 2px 0 rgba(255,255,255,.25), inset 0 -6px 0 color-mix(in srgb, var(--peg) 70%, #000); }
+.av-figure { position: relative; width: 184px; height: 184px; margin-bottom: 16px; animation: avHop .55s var(--spring) both; }
+.av-figure .fig { width: 100%; height: 100%; }
+.av-figure .fig img { filter: drop-shadow(0 10px 14px rgba(10,20,60,.28)); }
+.av-figure::before { content: ""; position: absolute; left: 16%; right: 16%; bottom: -4px; height: 22px; border-radius: 50%; background: radial-gradient(closest-side, rgba(10,20,60,.3), transparent); }
+@keyframes avHop { 0% { transform: translateY(16px) scale(.9); opacity: 0; } 60% { transform: translateY(-8px) scale(1.03); opacity: 1; } 100% { transform: none; } }
+.av-stage.busy .av-figure { animation: avThink 1.1s ease-in-out infinite; }
+.av-peek { position: absolute; top: 12px; left: 12px; }
+.av-peek .peg { box-shadow: 0 0 0 3px #fff, 0 4px 10px -2px rgba(10,20,60,.3); }
+.av-rail { position: absolute; top: 12px; right: 12px; display: grid; gap: 8px; }
+.av-rail button { width: 58px; height: 58px; border-radius: 18px; display: grid; place-items: center; align-content: center; gap: 2px; background: var(--surface); color: var(--accent); font-size: .68rem; font-weight: 700;
+  box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--line) 80%, transparent); transition: transform .2s var(--spring); }
+.av-rail button:active { transform: translateY(2px); }
+.av-rail button:disabled { opacity: 1; color: var(--ink3); }
+.av-grid.cards { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.av-card { aspect-ratio: 1; border-radius: 18px; overflow: hidden; display: grid; place-items: end center; padding: 6px 4px 0;
+  background: color-mix(in srgb, var(--peg) 16%, var(--surface)); box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--peg) 26%, var(--line)); transition: transform .25s var(--spring), box-shadow .15s; }
+.av-card .fig { width: 100%; height: 100%; }
+.av-card.on { box-shadow: inset 0 0 0 3px var(--accent), inset 0 -3px 0 color-mix(in srgb, var(--peg) 26%, var(--line)); transform: translateY(-2px); }
+.av-card:active { transform: scale(.96); }
+button.seat-av { padding: 0; border-radius: 50%; }
+.profile-head.has-fig { position: relative; display: grid; justify-items: center; gap: 6px; padding: 14px 12px 12px; border-radius: 22px; background: color-mix(in srgb, var(--peg) 16%, var(--surface)); text-align: center; }
+.profile-fig { width: 150px; height: 150px; }
+.profile-dress { justify-self: center; }
 .av-note.err { color: var(--red); }
 .av-pop { display: grid; animation: pop .35s var(--spring) both; }
-.av-shuffle { position: absolute; right: 10px; bottom: 10px; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--surface); color: var(--accent); box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--line) 70%, transparent); }
 .av-cats { display: flex; gap: 6px; overflow-x: auto; margin: 0 -16px; padding: 2px 16px; scrollbar-width: none; scroll-padding-inline: 16px; scroll-snap-type: x proximity; } .av-cats::-webkit-scrollbar { display: none; }
 .av-cat { flex: none; scroll-snap-align: start; min-height: 40px; padding: 0 14px; border-radius: 99px; font-weight: 600; font-size: .9rem; color: var(--ink2); background: var(--fill); }
 .av-cat.on { background: var(--ink); color: var(--bg); }

@@ -112,7 +112,8 @@ const SCENARIOS = [
   } },
   { name: "Fits the screen with nothing clipped", run: async c => {
     const over = c.d.documentElement.scrollWidth - c.w.innerWidth;
-    const clipped = c.$$("button, .seat b, .contract h2, .large-title").filter(el => c.visible(el) && el.scrollWidth > el.clientWidth + 2 && c.w.getComputedStyle(el).textOverflow !== "ellipsis");
+    // The seat avatar is a button whose crown and dealer badges hang outside it on purpose.
+    const clipped = c.$$("button:not(.seat-av), .seat b, .contract h2, .large-title").filter(el => c.visible(el) && el.scrollWidth > el.clientWidth + 2 && c.w.getComputedStyle(el).textOverflow !== "ellipsis");
     if (over > 1) return { ok: false, note: "Scrolls sideways by " + over + "px" };
     if (clipped.length) return { ok: false, note: "Clipped: " + clipped.slice(0, 3).map(e => (e.textContent || e.className).trim().slice(0, 24)).join(", ") };
     return { ok: true, note: "No sideways scroll" };
