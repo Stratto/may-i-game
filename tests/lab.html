@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Play-test lab</title>
+<style>
+  :root { --bg: #F1F2EE; --surface: #fff; --ink: #15181A; --ink2: #5B6460; --line: rgba(20,24,26,.12); --pass: #12703C; --fail: #B42828; --warn: #8A5700; --accent: #145A40; --accent-ink: #fff; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #0B0E0C; --surface: #161A18; --ink: #ECEFEC; --ink2: #9AA39F; --line: rgba(255,255,255,.12); --pass: #46C08A; --fail: #FF7B7B; --warn: #F2C766; --accent: #46C08A; --accent-ink: #0B0E0C; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  main { max-width: 1200px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 1.8rem; margin: 0 0 4px; letter-spacing: -.01em; }
+  p.lede { margin: 0 0 20px; color: var(--ink2); max-width: 64ch; }
+  .bar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; }
+  button { font: inherit; font-weight: 600; min-height: 44px; padding: 0 18px; border: 0; border-radius: 12px; background: var(--accent); color: var(--accent-ink); cursor: pointer; }
+  button:disabled { opacity: .5; cursor: default; }
+  #status { color: var(--ink2); font-variant-numeric: tabular-nums; }
+  .wrap { overflow-x: auto; background: var(--surface); border-radius: 14px; box-shadow: 0 0 0 1px var(--line); }
+  table { border-collapse: collapse; width: 100%; min-width: 720px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: .8rem; color: var(--ink2); font-weight: 600; }
+  td.r { font-weight: 600; white-space: nowrap; }
+  td.r.pass { color: var(--pass); } td.r.fail { color: var(--fail); } td.r.warn { color: var(--warn); } td.r.skip { color: var(--ink2); font-weight: 400; }
+  td small { display: block; color: var(--ink2); font-weight: 400; max-width: 26ch; }
+  tr:last-child td { border-bottom: 0; }
+  .stage { margin-top: 24px; display: flex; gap: 16px; align-items: flex-start; }
+  .stage figure { margin: 0; }
+  .stage figcaption { font-size: .8rem; color: var(--ink2); margin-bottom: 6px; }
+  .viewport { overflow: hidden; border-radius: 12px; box-shadow: 0 0 0 1px var(--line); background: #000; }
+  iframe { border: 0; display: block; transform-origin: 0 0; background: #fff; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Play-test lab</h1>
+  <p class="lede">Plays scripted scenarios against the real app at phone, tablet and TV sizes. It seeds a known table, then puts your own saved tables and settings back when it finishes.</p>
+  <div class="bar"><button id="run">Run all scenarios</button><span id="status" aria-live="polite">Ready</span></div>
+  <div class="wrap"><table id="grid"></table></div>
+  <div class="stage"><figure><figcaption id="cap">Live view</figcaption><div class="viewport" id="vp"></div></figure></div>
+</main>
+<script>
+const SIZES = [
+  { key: "se", label: "Small phone", w: 375, h: 667 },
+  { key: "phone", label: "Phone", w: 390, h: 844 },
+  { key: "tabP", label: "Tablet portrait", w: 820, h: 1180 },
+  { key: "tabL", label: "Tablet landscape", w: 1180, h: 820 },
+  { key: "tv", label: "TV", w: 1920, h: 1080 },
+];
+
+// ── A known table: four players, three finished games, one live at round 4 ──
+function seed() {
+  const P = [["a", "Ana", "red"], ["b", "Ben", "blue"], ["c", "Cy", "green"], ["d", "Dee", "amber"]];
+  const ids = P.map(p => p[0]), names = Object.fromEntries(P.map(([id, name, color]) => [id, { name, color }]));
+  const rules = { buyLimit: "3", customBuyLimit: 3, jokersWild: true, acesPosition: "low", twosWild: false };
+  const sc = rows => Object.fromEntries(rows.map((row, i) => [i, Object.fromEntries(ids.map((id, k) => [id, row[k]]))]));
+  const day = 864e5, t = Date.now();
+  const done = (id, ago, rows, extra) => ({ id, groupId: "g1", players: ids, names, dealer: 0, rules, round: 6, status: "done",
+    startedAt: t - ago * day, endedAt: t - ago * day + 36e5, updatedAt: t - ago * day, scores: sc(rows), buys: {}, hands: {}, ...extra });
+  const games = {
+    d1: done("d1", 9, [[0, 15, 20, 30], [5, 0, 25, 10], [0, 10, 30, 15], [10, 0, 35, 20], [0, 20, 5, 10], [5, 10, 0, 25], [0, 25, 40, 5]], { buys: { 3: { b: 2 } } }),
+    d2: done("d2", 5, [[10, 0, 20, 5], [0, 10, 25, 30], [20, 0, 15, 10], [0, 5, 40, 20], [15, 0, 10, 25], [10, 20, 0, 5], [0, 30, 45, 10]],
+      { hands: { 0: { c: ["KS", "QH", "JOKER"] }, 3: { c: ["10D", "10H", "KC", "QS", "5H"] } } }),
+    d3: done("d3", 1, [[0, 25, 40, 12], [18, 0, 30, 22], [35, 10, 0, 9], [0, 45, 60, 20], [22, 0, 15, 31], [14, 26, 0, 8], [0, 55, 70, 40]]),
+    live: { id: "live", groupId: "g1", players: ids, names, dealer: 1, rules, round: 3, status: "live", startedAt: t - 36e5, updatedAt: t,
+      scores: sc([[0, 30, 60, 40], [5, 0, 70, 40], [10, 20, 0, 30]]), buys: { 2: { c: 1 } }, hands: {} },
+  };
+  const group = { id: "g1", name: "Family", code: "LAB234", players: P.map(([id, name, color]) => ({ id, name, color })), createdAt: t - 30 * day, updatedAt: t };
+  return { "mayi:v5": JSON.stringify({ groups: { g1: group }, games, groupOrder: ["g1"] }),
+    "mayi:settings:v6": JSON.stringify({ look: "table", level: "pro", sound: false }) };
+}
+
+// ── Keep the person's own data safe ──
+let backup = null;
+function saveMine() { backup = {}; for (const k of Object.keys(localStorage)) if (k.startsWith("mayi:")) backup[k] = localStorage.getItem(k); }
+function putMineBack() {
+  if (!backup) return;
+  for (const k of Object.keys(localStorage)) if (k.startsWith("mayi:")) localStorage.removeItem(k);
+  for (const [k, v] of Object.entries(backup)) localStorage.setItem(k, v);
+  backup = null;
+}
+addEventListener("pagehide", putMineBack);
+
+// ── Driving the app ──
+const wait = ms => new Promise(r => setTimeout(r, ms));
+async function until(fn, ms = 4000, what = "condition") {
+  const end = Date.now() + ms;
+  for (;;) { let v; try { v = fn(); } catch (e) {} if (v) return v; if (Date.now() > end) throw new Error("Timed out waiting for " + what); await wait(40); }
+}
+function ctx(frame) {
+  const d = frame.contentDocument, w = frame.contentWindow;
+  const $ = s => d.querySelector(s), $$ = s => [...d.querySelectorAll(s)];
+  const visible = el => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 && w.getComputedStyle(el).visibility !== "hidden"; };
+  const button = (re, root = d) => [...root.querySelectorAll("button")].find(b => visible(b) && re.test((b.getAttribute("aria-label") || "") + " " + b.textContent));
+  const tap = async el => { if (!el) throw new Error("Nothing to tap"); el.click(); await wait(120); };
+  const store = () => JSON.parse(w.localStorage.getItem("mayi:v5"));
+  const closeSheet = async () => { const c = d.querySelector('.sheet button[aria-label="Close"]'); if (c) { await tap(c); await until(() => !d.querySelector(".sheet"), 2000, "sheet to close").catch(() => {}); } };
+  return { d, w, $, $$, visible, button, tap, store, closeSheet };
+}
+
+// Each scenario returns { ok, warn?, note } or throws. `skip` means not applicable at this size.
+const SCENARIOS = [
+  { name: "Opens straight into the live game", run: async c => {
+    await until(() => c.$(".band") && c.$$(".seat").length, 5000, "the game screen");
+    const seats = c.$$(".seat").length, tiles = c.$$(".rstrip button, .rstrip > *").length, dock = c.$$(".dock button").filter(c.visible).length;
+    const bad = [seats !== 4 && seats + " seats", tiles < 7 && tiles + " round tiles", dock !== 1 && dock + " dock buttons"].filter(Boolean);
+    return bad.length ? { ok: false, note: bad.join(", ") } : { ok: true, note: "4 seats, 7 rounds, one next step" };
+  } },
+  { name: "Fits the screen with nothing clipped", run: async c => {
+    const over = c.d.documentElement.scrollWidth - c.w.innerWidth;
+    const clipped = c.$$("button, .seat b, .contract h2, .large-title").filter(el => c.visible(el) && el.scrollWidth > el.clientWidth + 2 && c.w.getComputedStyle(el).textOverflow !== "ellipsis");
+    if (over > 1) return { ok: false, note: "Scrolls sideways by " + over + "px" };
+    if (clipped.length) return { ok: false, note: "Clipped: " + clipped.slice(0, 3).map(e => (e.textContent || e.className).trim().slice(0, 24)).join(", ") };
+    return { ok: true, note: "No sideways scroll" };
+  } },
+  { name: "Tap targets are at least 44px", run: async c => {
+    const small = c.$$("button, input, [role=tab]").filter(c.visible).filter(el => { const r = el.getBoundingClientRect(); return Math.min(r.height, r.width) < 44 && !el.closest(".sheet"); });
+    const tiny = small.filter(el => { const r = el.getBoundingClientRect(); return Math.min(r.height, r.width) < 32; });
+    if (tiny.length) return { ok: false, note: tiny.length + " under 32px: " + tiny.slice(0, 2).map(e => (e.getAttribute("aria-label") || e.textContent).trim().slice(0, 20)).join(", ") };
+    return small.length ? { ok: true, warn: true, note: small.length + " between 32 and 44px" } : { ok: true, note: "All 44px or more" };
+  } },
+  { name: "The contract opens the rules", run: async c => {
+    await c.tap(c.$(".contract"));
+    const sheet = await until(() => c.$(".sheet"), 2000, "the rules sheet");
+    const txt = sheet.textContent, tabs = ["Rounds", "Basics", "Q&A", "House"].filter(t => !txt.includes(t));
+    await c.closeSheet();
+    return tabs.length ? { ok: false, note: "Missing tabs: " + tabs.join(", ") } : { ok: true, note: "Rounds, Basics, Q&A and House" };
+  } },
+  { name: "A May I? buy is counted", run: async c => {
+    const before = c.store().games.live.buys[3] || {};
+    await c.tap(c.button(/May I\?/, c.$(".seat")));
+    await wait(150);
+    const after = c.store().games.live.buys[3] || {}, sum = o => Object.values(o).reduce((s, v) => s + v, 0);
+    return sum(after) === sum(before) + 1 ? { ok: true, note: "Buy saved for round 4" } : { ok: false, note: "Buys went " + sum(before) + " → " + sum(after) };
+  } },
+  { name: "Scoring a round moves the game on", run: async c => {
+    await c.tap(c.$(".dock button"));
+    await until(() => c.$(".sheet .keys, .sheet .who-strip"), 2000, "the score pad");
+    await c.tap(c.button(/Went out/, c.$(".sheet")));
+    for (const n of ["2", "7", "4"]) {
+      await c.tap([...c.$$(".sheet button")].find(b => b.textContent.trim() === n));
+      const btns = c.$$(".sheet button"); await c.tap(btns[btns.length - 1]);
+    }
+    await until(() => c.store().games.live.round === 4, 3000, "round 5");
+    const intro = await until(() => c.$(".intro"), 2000, "the round intro").catch(() => null);
+    if (intro) { await c.tap(intro); await until(() => !c.$(".intro"), 2000, "the intro to close").catch(() => {}); }
+    const r = c.store().games.live.scores[3];
+    return { ok: !!intro, note: intro ? "Saved 0, 2, 7, 4 and dealt round 5" : "Round saved but no intro" + JSON.stringify(r) };
+  } },
+  { name: "TV scoreboard with the race track", size: s => s.w >= 900, run: async c => {
+    const b = c.button(/scoreboard/i);
+    if (!b) return { ok: false, note: "No scoreboard button (screen: " + [c.$(".intro") && "intro", c.$(".sheet") && "sheet", c.$(".band") && "game", c.$(".tablepage") && "table"].filter(Boolean).join(", ") + ", " + c.w.innerWidth + "px)" };
+    await c.tap(b);
+    await until(() => c.$(".scoreboard"), 2000, "the scoreboard");
+    const race = !!c.$(".scoreboard .race");
+    await c.tap(c.button(/close|exit|back|done/i, c.$(".scoreboard")) || c.$(".scoreboard"));
+    c.w.dispatchEvent(new c.w.KeyboardEvent("keydown", { key: "Escape" }));
+    await wait(200);
+    return race ? { ok: true, note: "Board and race track shown" } : { ok: false, note: "Scoreboard has no race track" };
+  } },
+  { name: "Table page: champion, standings, records", run: async c => {
+    if (c.$(".scoreboard")) c.w.dispatchEvent(new c.w.KeyboardEvent("keydown", { key: "Escape" }));
+    await c.tap(c.$(".band button"));
+    await until(() => c.$(".tablepage"), 2000, "the table page");
+    const champ = !!c.$(".hero-champ"), rows = c.$$(".tablepage .list .row, .tablepage .list > button").length, records = c.d.body.textContent.includes("Records");
+    const bad = [!champ && "no champion hero", rows < 4 && "standings short", !records && "no records"].filter(Boolean);
+    return bad.length ? { ok: false, note: bad.join(", ") } : { ok: true, note: "Champion, standings and records" };
+  } },
+  { name: "A player's profile opens", run: async c => {
+    const row = c.$$(".tablepage button").find(b => /Ana|Ben|Cy|Dee/.test(b.textContent) && /games/.test(b.textContent));
+    if (!row) return { ok: false, note: "No standings row to tap" };
+    await c.tap(row);
+    const sheet = await until(() => c.$(".sheet"), 2000, "the profile");
+    const ok = /win|games/i.test(sheet.textContent);
+    await c.closeSheet();
+    return ok ? { ok: true, note: "Profile with stats" } : { ok: false, note: "Profile is empty" };
+  } },
+  { name: "A finished game opens its recap", run: async c => {
+    const past = c.$$(".tablepage button").find(b => /won/.test(b.textContent));
+    if (!past) return { ok: false, note: "No past game listed" };
+    await c.tap(past);
+    await until(() => c.$(".finale"), 2000, "the recap");
+    const ok = !!c.$(".podium");
+    await c.tap(c.button(/back|Family/i));
+    await until(() => c.$(".tablepage"), 2000, "the table page").catch(() => {});
+    return ok ? { ok: true, note: "Finale and podium" } : { ok: false, note: "No podium" };
+  } },
+  { name: "Home shows the hero and Playing now", run: async c => {
+    await c.tap(c.button(/Tables/));
+    await until(() => c.$(".home"), 2000, "Home");
+    const hero = !!c.$(".home .hero"), now = !!c.$(".now-card"), over = c.d.documentElement.scrollWidth - c.w.innerWidth;
+    const bad = [!hero && "no hero", !now && "no Playing now card", over > 1 && "scrolls sideways"].filter(Boolean);
+    return bad.length ? { ok: false, note: bad.join(", ") } : { ok: true, note: "Hero, Playing now and tables" };
+  } },
+];
+
+// ── Runner and report ──
+const grid = document.getElementById("grid"), statusEl = document.getElementById("status"), vp = document.getElementById("vp"), cap = document.getElementById("cap");
+const results = {};
+function draw() {
+  const head = "<tr><th>Scenario</th>" + SIZES.map(s => "<th>" + s.label + "<br><small>" + s.w + "×" + s.h + "</small></th>").join("") + "</tr>";
+  const rows = SCENARIOS.map(sc => "<tr><td>" + sc.name + "</td>" + SIZES.map(s => {
+    const r = (results[s.key] || {})[sc.name];
+    if (!r) return "<td class=\"r skip\">–</td>";
+    const cls = r.skip ? "skip" : !r.ok ? "fail" : r.warn ? "warn" : "pass", label = r.skip ? "n/a" : !r.ok ? "Fail" : r.warn ? "Check" : "Pass";
+    return "<td class=\"r " + cls + "\">" + label + "<small>" + (r.note || "").replace(/</g, "&lt;") + "</small></td>";
+  }).join("") + "</tr>");
+  grid.innerHTML = head + rows.join("");
+}
+draw();
+
+async function runSize(s) {
+  for (const [k, v] of Object.entries(seed())) localStorage.setItem(k, v);
+  vp.innerHTML = "";
+  const scale = Math.min(1, 560 / s.w, 600 / s.h);
+  vp.style.width = Math.round(s.w * scale) + "px"; vp.style.height = Math.round(s.h * scale) + "px";
+  const frame = document.createElement("iframe");
+  frame.width = s.w; frame.height = s.h; frame.style.transform = "scale(" + scale + ")";
+  frame.src = "../index.html?lab=" + Date.now();
+  vp.appendChild(frame);
+  cap.textContent = s.label + " · " + s.w + "×" + s.h;
+  await new Promise(r => frame.addEventListener("load", r, { once: true }));
+  const st = frame.contentDocument.createElement("style");
+  st.textContent = "*,*::before,*::after{animation-duration:1ms!important;animation-delay:0ms!important;transition-duration:1ms!important}";
+  frame.contentDocument.head.appendChild(st);
+  const c = ctx(frame);
+  results[s.key] = {};
+  for (const sc of SCENARIOS) {
+    if (sc.size && !sc.size(s)) { results[s.key][sc.name] = { skip: true, note: "Wide screens only" }; draw(); continue; }
+    statusEl.textContent = s.label + ": " + sc.name;
+    try { results[s.key][sc.name] = await sc.run(c); }
+    catch (e) { results[s.key][sc.name] = { ok: false, note: e.message }; }
+    draw();
+  }
+}
+
+async function runAll() {
+  const btn = document.getElementById("run"); btn.disabled = true;
+  saveMine();
+  try { for (const s of SIZES) await runSize(s); }
+  finally { putMineBack(); vp.innerHTML = ""; cap.textContent = "Live view"; btn.disabled = false; }
+  const all = Object.values(results).flatMap(r => Object.values(r)).filter(r => !r.skip);
+  const failed = all.filter(r => !r.ok).length, checks = all.filter(r => r.ok && r.warn).length;
+  statusEl.textContent = (all.length - failed) + " of " + all.length + " passed" + (checks ? ", " + checks + " to check" : "") + (failed ? ", " + failed + " failed" : "") + ". Your own tables are back.";
+  window.__lab = { done: true, failed, checks, total: all.length, results };
+}
+document.getElementById("run").addEventListener("click", runAll);
+if (new URLSearchParams(location.search).has("auto")) runAll();
+</script>
+</body>
+</html>

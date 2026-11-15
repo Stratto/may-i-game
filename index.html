@@ -980,7 +980,7 @@ function useCount(value) {
 }
 function useMedia(q) {
   const [m, setM] = useState(() => matchMedia(q).matches);
-  useEffect(() => { const mq = matchMedia(q), h = () => setM(mq.matches); mq.addEventListener("change", h); return () => mq.removeEventListener("change", h); }, [q]);
+  useEffect(() => { const mq = matchMedia(q), h = () => setM(mq.matches); h(); mq.addEventListener("change", h); return () => mq.removeEventListener("change", h); }, [q]);
   return m;
 }
 function Sheet({ title, onClose, children, footer, tall }) {
@@ -2262,6 +2262,7 @@ input { caret-color: var(--accent); }
 
 /* Round strip: seven rounds, tap to score or fix */
 .rstrip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin: 0 0 14px; }
+@media (max-width: 380px) { .rstrip { gap: 4px; } }
 .rs { display: grid; justify-items: center; gap: 4px; min-height: 48px; padding: 7px 0 6px; border-radius: 12px; background: var(--surface); color: var(--ink3);
   box-shadow: 0 0 0 var(--hair) var(--line); font: 600 .95rem/1 var(--num); transition: transform .15s var(--out-e); }
 .rs b { font-weight: 700; }

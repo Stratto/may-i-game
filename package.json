@@ -1,0 +1,8 @@
+{
+  "name": "may-i-game",
+  "private": true,
+  "description": "May I? score keeper. A single-file PWA; no build step.",
+  "scripts": {
+    "test": "node --test tests/*.test.js"
+  }
+}

@@ -54,5 +54,8 @@ Content max 720px. At 900px and up the game shows seats on the left and the roun
 ## Motion
 `--out-e: cubic-bezier(.16,.84,.3,1)` and `--spring: cubic-bezier(.34,1.3,.64,1)`. Seats rise in a stagger, totals count up, the intro card is dealt in with a spring and flips face up, the May I? pill pops on each buy, and confetti plays on a fresh recap only. Everything collapses under `prefers-reduced-motion`.
 
+## Testing
+`npm test` runs unit tests against the real script in index.html (rules, scoring, stats, coaching content). `tests/lab.html` plays scripted scenarios at small phone, phone, tablet portrait, tablet landscape and TV sizes, and checks for sideways scrolling, clipped text and tap targets under 44px.
+
 ## Don't
 Two controls for one action. Deep or offset shadows on buttons. Gradient text. Emoji icons. Fonts beyond SF and Fraunces. Colour that isn't a look token, a player or a state.
