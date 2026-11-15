@@ -20,6 +20,7 @@
 </style>
 </head>
 <body>
+<div class="ambient" aria-hidden="true"><i class="suits"></i><i class="glow g1"></i><i class="glow g2"></i></div>
 <div id="root"></div>
 <script>/**
  * @license React
@@ -390,7 +391,7 @@ async function copyText(t) {
 }
 // A player in a game: the table's current player, else the name saved with the game.
 const plOf = (group, game) => id => (group && group.players.find(p => p.id === id)) || (game && game.names && game.names[id] && { id, ...game.names[id] }) || { id, name: "Former player", color: "red" };
-const namesOf = (group, ids) => Object.fromEntries(ids.map(id => { const p = group.players.find(x => x.id === id); return [id, p ? { name: p.name, color: p.color } : { name: "Former player", color: "red" }]; }));
+const namesOf = (group, ids) => Object.fromEntries(ids.map(id => { const p = group.players.find(x => x.id === id); return [id, p ? { name: p.name, color: p.color, ...(p.avatar && p.avatar.type === "face" ? { avatar: p.avatar } : {}) } : { name: "Former player", color: "red" }]; }));
 
 // Peg colours: each player keeps one for life in a group.
 const PEGS = [
@@ -947,9 +948,61 @@ function Icon({ n, size, stroke }) {
 }
 
 // ── Primitives ────────────────────────────────────────────────────
-function Peg({ color, name, size, ring }) {
-  const p = peg(color);
-  return ce("span", { className: "peg" + (ring ? " ring" : ""), "aria-hidden": true, style: { "--peg": p.c, "--peg-ink": p.ink, width: size, height: size, fontSize: size * .42 } }, (name || "?").trim()[0].toUpperCase());
+// Player avatars: initials (default), a photo, or a drawn character on the player's colour.
+const AV = {
+  skin: ["#F7D7BA", "#EDBB93", "#D49D6E", "#AE7048", "#7E4C2E", "#4F301D"],
+  hair: ["short", "long", "curly", "bun", "spiky", "none"],
+  hairColor: ["#211B17", "#5B3A22", "#A2662E", "#DDB052", "#B9472F", "#A3A8AE"],
+  face: ["smile", "grin", "wink", "calm", "cool"],
+  extra: ["none", "glasses", "cap", "bow", "band"],
+  top: ["#FFFFFF", "#23272C", "#F2C766", "#E6DCCB"],
+};
+const AV_NAMES = { hair: { short: "Short", long: "Long", curly: "Curly", bun: "Bun", spiky: "Spiky", none: "None" },
+  face: { smile: "Smile", grin: "Grin", wink: "Wink", calm: "Calm", cool: "Shades" }, extra: { none: "Nothing", glasses: "Glasses", cap: "Cap", bow: "Bow", band: "Headband" } };
+function avSeed(name) {
+  let h = 7; for (const ch of name || "?") h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  const pick = (a, k) => a[(h >>> k) % a.length];
+  return { type: "face", skin: pick(AV.skin, 1), hair: pick(AV.hair.slice(0, 5), 4), hairColor: pick(AV.hairColor, 7), face: pick(AV.face.slice(0, 4), 10), extra: "none", top: pick(AV.top, 13) };
+}
+function faceSVG(a) {
+  const S = a.skin, H = a.hairColor, ink = "#1F1A17", st = 'stroke="' + ink + '" stroke-width="1.6" fill="none" stroke-linecap="round"';
+  const back = a.hair === "long" ? '<path d="M18.5 31c0-11 6-17.5 13.5-17.5S45.5 20 45.5 31v15c-2.6 2-5.4 2-8 0V33h-11v13c-2.6 2-5.4 2-8 0z" fill="' + H + '"/>' : "";
+  const hair = {
+    short: '<path d="M19.6 29c-.8-10.4 5.2-15.6 12.4-15.6S45.2 18.6 44.4 29c-1.6-4.2-4.6-6.6-8-7.2-4.2 1.6-9.2 1.6-13.4 0-1.8 1.4-3 3.8-3.4 7.2z" fill="' + H + '"/>',
+    long: '<path d="M19.6 28c1-9.6 6-14.2 12.4-14.2S43.4 18.4 44.4 28c-5.8-1-9.8-3.8-12.4-7.4-2.4 4-7 6.4-12.4 7.4z" fill="' + H + '"/>',
+    curly: [[21, 23], [26, 18], [32, 16], [38, 18], [43, 23], [19.5, 29], [44.5, 29]].map(([x, y]) => '<circle cx="' + x + '" cy="' + y + '" r="4.8" fill="' + H + '"/>').join(""),
+    bun: '<circle cx="32" cy="12.5" r="5.6" fill="' + H + '"/><path d="M19.6 29c-.6-9.8 5.4-14.8 12.4-14.8S45 19.2 44.4 29c-3-4.6-7.6-6.6-12.4-6.6S22.6 24.4 19.6 29z" fill="' + H + '"/>',
+    spiky: '<path d="M19.2 29l.8-9 4.2 3 1.6-8.6 4.4 5.4 1.8-7.4 3.2 7.4 4-5.4 1.4 8.4 4.2-2.8.2 9c-4-3.2-8.6-4.6-13-4.6s-9 1.4-12.8 4.6z" fill="' + H + '"/>',
+    none: "" }[a.hair] || "";
+  const eyesOpen = '<circle cx="27" cy="30.5" r="1.7" fill="' + ink + '"/><circle cx="37" cy="30.5" r="1.7" fill="' + ink + '"/>';
+  const smile = '<path d="M27.6 36c2.5 2.4 6.3 2.4 8.8 0" ' + st + '/>';
+  const face = {
+    smile: eyesOpen + smile,
+    grin: eyesOpen + '<path d="M27 35h10c0 3.6-2.2 5.6-5 5.6S27 38.6 27 35z" fill="' + ink + '"/><path d="M28.4 35.2h7.2v1.4h-7.2z" fill="#fff"/>',
+    wink: '<path d="M25.3 31c1-1.1 2.4-1.1 3.4 0" ' + st + '/><circle cx="37" cy="30.5" r="1.7" fill="' + ink + '"/>' + smile,
+    calm: '<path d="M25.3 30.4c1 1.1 2.4 1.1 3.4 0M35.3 30.4c1 1.1 2.4 1.1 3.4 0" ' + st + '/><path d="M29 36.4c1.8 1.2 4.2 1.2 6 0" ' + st + '/>',
+    cool: '<path d="M22.4 28h19.2v2.6c0 2.6-1.9 4.1-4.4 4.1s-4-1.9-4.4-4.1h-1.6c-.4 2.2-1.9 4.1-4.4 4.1s-4.4-1.5-4.4-4.1z" fill="' + ink + '"/>' + smile,
+  }[a.face] || eyesOpen + smile;
+  const extra = {
+    glasses: a.face === "cool" ? "" : '<g stroke="' + ink + '" stroke-width="1.4" fill="none"><circle cx="27" cy="30.5" r="3.8"/><circle cx="37" cy="30.5" r="3.8"/><path d="M30.8 30.3h2.4"/></g>',
+    cap: '<path d="M19 25.5c0-7.4 5.8-12 13-12s13 4.6 13 12z" fill="#2E4A7A"/><path d="M32 25.5h17.5c0 1.8-1.6 3-3.6 3H32z" fill="#223A62"/>',
+    bow: '<path d="M41 15.5l6.4-4v8zM41 15.5l-6.4-4v8z" fill="#D13F93"/><circle cx="41" cy="15.5" r="1.9" fill="#A82E76"/>',
+    band: '<path d="M19.7 25.2c3.9-3 8.1-4.2 12.3-4.2s8.4 1.2 12.3 4.2v3.2c-3.9-3-8.1-4.2-12.3-4.2s-8.4 1.2-12.3 4.2z" fill="#F2C766"/>',
+  }[a.extra] || "";
+  return '<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">' + back +
+    '<path d="M7 66c2-12.6 12-19.4 25-19.4S55 53.4 57 66z" fill="' + (a.top || "#fff") + '"/>' +
+    '<path d="M27 39h10v8.6c-3 2.4-7 2.4-10 0z" fill="' + S + '"/><path d="M27 43c3 1.4 7 1.4 10 0v-3H27z" fill="#000" opacity=".12"/>' +
+    '<circle cx="19.6" cy="31" r="3.1" fill="' + S + '"/><circle cx="44.4" cy="31" r="3.1" fill="' + S + '"/>' +
+    '<ellipse cx="32" cy="30" rx="12.6" ry="13.6" fill="' + S + '"/>' + hair +
+    '<circle cx="23.8" cy="35" r="2.2" fill="#E8826A" opacity=".3"/><circle cx="40.2" cy="35" r="2.2" fill="#E8826A" opacity=".3"/>' + face + extra + "</svg>";
+}
+// A data URL for the avatar, used by the share image.
+const avatarSrc = av => av && av.type === "photo" ? av.src : av && av.type === "face" ? "data:image/svg+xml;charset=utf-8," + encodeURIComponent(faceSVG(av)) : null;
+function Peg({ color, name, size, ring, av }) {
+  const p = peg(color), cls = "peg" + (ring ? " ring" : ""), style = { "--peg": p.c, "--peg-ink": p.ink, width: size, height: size, fontSize: size * .42 };
+  if (av && av.type === "photo" && av.src) return ce("span", { className: cls + " photo", "aria-hidden": true, style: { ...style, backgroundImage: "url(" + av.src + ")" } });
+  if (av && av.type === "face") return ce("span", { className: cls + " face", "aria-hidden": true, style, dangerouslySetInnerHTML: { __html: faceSVG(av) } });
+  return ce("span", { className: cls, "aria-hidden": true, style }, (name || "?").trim()[0].toUpperCase());
 }
 function Card({ code }) {
   if (code === "JKR" || code === "JOKER") return ce("span", { className: "pc joker", role: "img", "aria-label": "Joker" },
@@ -983,15 +1036,16 @@ function useMedia(q) {
   useEffect(() => { const mq = matchMedia(q), h = () => setM(mq.matches); h(); mq.addEventListener("change", h); return () => mq.removeEventListener("change", h); }, [q]);
   return m;
 }
-function Sheet({ title, onClose, children, footer, tall }) {
+function Sheet({ title, onClose, children, footer, tall, cls }) {
   const [closing, setClosing] = useState(false), [drag, setDrag] = useState(0), d = useRef(null);
   const close = () => { if (closing) return; if (reducedMotion()) return onClose(); setClosing(true); setTimeout(onClose, 200); };
-  useEffect(() => { const k = e => e.key === "Escape" && close(); addEventListener("keydown", k); return () => removeEventListener("keydown", k); });
+  const me = useRef(null);
+  useEffect(() => { const k = e => { if (e.key !== "Escape") return; const all = document.querySelectorAll(".scrim"); if (all[all.length - 1] === me.current) close(); }; addEventListener("keydown", k); return () => removeEventListener("keydown", k); });
   const start = e => { if (e.target.closest("button")) return; d.current = { y: e.clientY, t: performance.now() }; e.currentTarget.setPointerCapture && e.currentTarget.setPointerCapture(e.pointerId); };
   const move = e => d.current && setDrag(Math.max(0, e.clientY - d.current.y));
   const end = e => { if (!d.current) return; const dy = Math.max(0, e.clientY - d.current.y), v = dy / (performance.now() - d.current.t); d.current = null; if (dy > 100 || v > .6) close(); else setDrag(0); };
-  return ce("div", { className: "scrim" + (closing ? " out" : ""), onClick: close },
-    ce("div", { className: "sheet" + (closing ? " out" : "") + (drag ? " drag" : "") + (tall ? " tall" : ""), role: "dialog", "aria-modal": true, "aria-label": title,
+  return ce("div", { ref: me, className: "scrim" + (closing ? " out" : ""), onClick: close },
+    ce("div", { className: "sheet" + (closing ? " out" : "") + (drag ? " drag" : "") + (tall ? " tall" : "") + (cls ? " " + cls : ""), role: "dialog", "aria-modal": true, "aria-label": title,
         style: drag ? { transform: "translateY(" + drag + "px)" } : null, onClick: e => e.stopPropagation() },
       ce("div", { className: "sheet-head", onPointerDown: start, onPointerMove: move, onPointerUp: end, onPointerCancel: end },
         ce("span", { className: "grab", "aria-hidden": true }), ce("h2", null, title),
@@ -1038,11 +1092,21 @@ function sb() {
   return sbPromise;
 }
 const docOf = (s, gid) => ({ group: s.groups[gid], games: Object.values(s.games).filter(g => g.groupId === gid), updatedAt: s.groups[gid].updatedAt });
+// Two phones scoring the same game: the newer copy wins a clash, but a score,
+// buy or counted hand that only one side has is kept, so no round is lost.
+function mergeGame(a, b) {
+  if (!a) return b; if (!b) return a;
+  const [base, other] = (b.updatedAt || 0) > (a.updatedAt || 0) ? [b, a] : [a, b];
+  const fill = (x, y) => { const out = { ...(x || {}) }; Object.entries(y || {}).forEach(([r, row]) => { out[r] = { ...(row || {}), ...(out[r] || {}) }; }); return out; };
+  const g = { ...base, scores: fill(base.scores, other.scores), buys: fill(base.buys, other.buys), hands: fill(base.hands, other.hands), round: Math.max(base.round || 0, other.round || 0) };
+  if (other.status === "done" && base.status === "live") { g.status = "done"; g.endedAt = other.endedAt; }
+  return g;
+}
 function applyDoc(x, doc) {
   const gid = doc.group.id, cur = x.groups[gid];
-  if (cur && cur.updatedAt >= doc.updatedAt) return x;
-  const games = { ...x.games }; doc.games.forEach(g => { if (!games[g.id] || games[g.id].updatedAt < g.updatedAt) games[g.id] = g; });
-  return { ...x, groups: { ...x.groups, [gid]: doc.group }, games, groupOrder: x.groupOrder.includes(gid) ? x.groupOrder : [...x.groupOrder, gid] };
+  const games = { ...x.games }; doc.games.forEach(g => { games[g.id] = mergeGame(games[g.id], g); });
+  const group = cur && cur.updatedAt >= doc.updatedAt ? cur : doc.group;
+  return { ...x, groups: { ...x.groups, [gid]: group }, games, groupOrder: x.groupOrder.includes(gid) ? x.groupOrder : [...x.groupOrder, gid] };
 }
 function useSync(s, api) {
   const [status, setStatus] = useState(syncOn ? "connecting" : "local");
@@ -1320,7 +1384,7 @@ function groupStats(s, gid) {
   return { games, wins, live };
 }
 const ago = t => { if (!t) return ""; const d = Math.floor((now() - t) / 864e5); return d < 1 ? "today" : d === 1 ? "yesterday" : d < 7 ? d + " days ago" : new Date(t).toLocaleDateString(undefined, { day: "numeric", month: "short" }); };
-function Avatars({ players, size }) { return ce("span", { className: "avs" }, players.slice(0, 4).map(p => ce(Peg, { key: p.id, color: p.color, name: p.name, size: size || 30 }))); }
+function Avatars({ players, size }) { return ce("span", { className: "avs" }, players.slice(0, 4).map(p => ce(Peg, { key: p.id, color: p.color, name: p.name, av: p.avatar, size: size || 30 }))); }
 function Home({ s, open, go, sync, rematch }) {
   const groups = s.groupOrder.map(id => s.groups[id]).filter(Boolean);
   const lives = groups.map(g => ({ g, game: groupStats(s, g.id).live })).filter(x => x.game);
@@ -1373,7 +1437,7 @@ function GroupPage({ s, group, open, go, sync, rematch }) {
   const lastRules = st.games[0] && st.games[0].rules;
   return ce(Page, { title: group.name, back: "Tables", onBack: () => go({ at: "home" }), className: "tablepage",
       hero: ce("div", { className: "hero-champ" },
-        champ ? ce(Fragment, null, ce("span", { className: "champ-peg" }, ce("span", { className: "crown" }, ce(Icon, { n: "crown", size: 22 })), ce(Peg, { color: champ.color, name: champ.name, size: 52, ring: true })),
+        champ ? ce(Fragment, null, ce("span", { className: "champ-peg" }, ce("span", { className: "crown" }, ce(Icon, { n: "crown", size: 22 })), ce(Peg, { color: champ.color, name: champ.name, av: champ.avatar, size: 52, ring: true })),
             ce("p", null, ce("b", null, champ.name), " is the champion", ce("small", null, champ.wins + (champ.wins === 1 ? " win" : " wins") + " · " + st.games.length + (st.games.length === 1 ? " game" : " games") + " played")))
           : ce(Fragment, null, ce(Avatars, { players: group.players, size: 40 }), ce("p", null, st.games.length ? "It's all square at the top." : group.players.length + " players. Deal the first game to crown a champion."))),
       actions: ce(Fragment, null, ce(SyncPill, { sync }), ce(NavIcon, { n: "share", label: "Share this table", onClick: () => open("share", { groupId: group.id }) }), ce(NavIcon, { n: "gear", label: "Table settings", onClick: () => open("table", { groupId: group.id }) })),
@@ -1382,14 +1446,14 @@ function GroupPage({ s, group, open, go, sync, rematch }) {
         : ce("button", { className: "btn primary lg grow", disabled: group.players.length < 2, onClick: () => open("start", { groupId: group.id, rules: lastRules }) },
             group.players.length < 2 ? "Add 2 players to start" : "Deal a new game")) },
     ce(List, { header: "Standings", footer: st.games.length ? "Ranked by wins, then average score. Lowest score wins a game." : null },
-      board.map((p, i) => ce(Row, { key: p.id, lead: ce(Peg, { color: p.color, name: p.name, size: 36, ring: champ && champ.id === p.id }), title: p.name, chevron: p.played > 0, onClick: p.played ? () => open("profile", { groupId: group.id, playerId: p.id }) : null,
+      board.map((p, i) => ce(Row, { key: p.id, lead: ce(Peg, { color: p.color, name: p.name, av: p.avatar, size: 36, ring: champ && champ.id === p.id }), title: p.name, chevron: p.played > 0, onClick: p.played ? () => open("profile", { groupId: group.id, playerId: p.id }) : null,
         sub: p.played ? p.played + (p.played === 1 ? " game" : " games") + " · average " + p.avg : "No games yet",
         trail: ce("span", { className: "num-trail" }, ce("b", null, p.wins), ce("small", null, p.wins === 1 ? "win" : "wins")) })),
       ce(Row, { lead: ce("span", { className: "row-ic" }, ce(Icon, { n: "edit", size: 19 })), title: "Edit players", tone: "accent", onClick: () => open("players", { groupId: group.id }) })),
     st.games.length > 1 && ce(Records, { s, group }),
     st.games.length > 0 && ce(List, { header: "Past games" }, st.games.slice(0, 25).map(g => {
       const r = rankOf(g), best = r[0].total, top = r.filter(x => x.total === best).map(x => plOf(group, g)(x.id));
-      return ce(Row, { key: g.id, lead: ce(Peg, { color: top[0].color, name: top[0].name, size: 32 }), title: top.map(p => p.name).join(" & ") + " won with " + best, chevron: true,
+      return ce(Row, { key: g.id, lead: ce(Peg, { color: top[0].color, name: top[0].name, av: top[0].avatar, size: 32 }), title: top.map(p => p.name).join(" & ") + " won with " + best, chevron: true,
         sub: new Date(g.endedAt).toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" }) + " · " + g.players.length + " players", onClick: () => go({ at: "recap", gameId: g.id }) });
     })));
 }
@@ -1411,14 +1475,14 @@ function ProfileSheet({ onClose, s, group, playerId }) {
     ["Best game", pr.bestGame ? pr.bestGame.total : "–"], ["Times out", pr.outs], ["Buys", pr.buys], ["Best streak", pr.streak.best]];
   const badges = Object.entries(pr.badges);
   return ce(Sheet, { title: p.name, onClose, tall: true },
-    ce("div", { className: "profile-head" }, ce(Peg, { color: p.color, name: p.name, size: 64, ring: pr.streak.current > 1 }),
+    ce("div", { className: "profile-head" }, ce(Peg, { color: p.color, name: p.name, av: p.avatar, size: 64, ring: pr.streak.current > 1 }),
       ce("p", null, pr.streak.current > 1 ? "On a " + pr.streak.current + "-game winning streak" : pr.wins ? pr.wins + (pr.wins === 1 ? " win" : " wins") + " at " + group.name : "Still chasing a first win at " + group.name)),
     ce("div", { className: "tiles" }, tiles.map(([k, v]) => ce("div", { key: k }, ce("b", null, v), ce("span", null, k)))),
     badges.length > 0 && ce(Fragment, null, ce("h3", { className: "group-h" }, "Awards won"),
       ce("div", { className: "badges" }, badges.map(([k, n]) => ce("div", { key: k, className: "badge" }, ce("span", { className: "row-ic award " + k }, ce(Icon, { n: AWARD_META[k][0], size: 20 })), ce("b", null, AWARD_META[k][1]), ce("small", null, "× " + n))))),
     pr.h2h.length > 0 && ce(Fragment, null, ce("h3", { className: "group-h" }, "Head to head"),
       ce("div", { className: "list" }, pr.h2h.map(h => { const o = plOf(group, null)(h.id);
-        return ce(Row, { key: h.id, lead: ce(Peg, { color: o.color, name: o.name, size: 32 }), title: "vs " + name(h.id), sub: h.played + (h.played === 1 ? " game" : " games"),
+        return ce(Row, { key: h.id, lead: ce(Peg, { color: o.color, name: o.name, av: o.avatar, size: 32 }), title: "vs " + name(h.id), sub: h.played + (h.played === 1 ? " game" : " games"),
           trail: ce("span", { className: "h2h" }, ce("b", { className: h.wins > h.losses ? "up" : h.wins < h.losses ? "down" : "" }, h.wins + "–" + h.losses)) }); }))),
     ce("p", { className: "group-f" }, "Head to head counts the games where both of you played and who finished lower."));
 }
@@ -1469,7 +1533,8 @@ function GameScreen({ s, api, game, open, go, wide, setToast, level }) {
   const chase = scored ? [] : chaseNotes(game, id => pl(id).name), moves = rankMoves(game);
   const seats = ce("ol", { className: "seats", "aria-label": "Players" }, totals.map((t, i) => {
     const p = pl(t.id), isLead = hasAny && t.total === lead, buys = (game.buys[game.round] && game.buys[game.round][t.id]) || 0;
-    return ce(Seat, { key: t.id, i, p, total: t.total, isLead, isDealer: dealer === t.id, gap: t.total - lead, hasAny, board, buys, limit, value: rs[t.id], changeBuy, onEdit: () => setPad(i), move: scored ? 0 : moves[t.id] || 0 });
+    const place = hasAny ? 1 + totals.filter(o => o.total < t.total).length : 0;   // ties share a place
+    return ce(Seat, { key: t.id, i, p, total: t.total, isLead, place: place <= 3 && totals.length > 2 || place === 1 ? place : 0, isDealer: dealer === t.id, gap: t.total - lead, hasAny, board, buys, limit, value: rs[t.id], changeBuy, onEdit: () => setPad(i), move: scored ? 0 : moves[t.id] || 0 });
   }));
   const action = allDone ? ce("button", { className: "btn primary lg grow", onClick: finish }, ce(Icon, { n: "trophy", size: 20 }), "See who won")
     : complete ? ce("button", { className: "btn primary lg grow", onClick: nextRound }, game.round < 6 ? "Next round" : "Finish game")
@@ -1503,7 +1568,7 @@ function GameScreen({ s, api, game, open, go, wide, setToast, level }) {
       ce("div", { className: "seats-head" }, ce("span", null, scored ? "Scoring round " + r.n : "Players"), ce("span", null, scored ? scored + " of " + game.players.length + " in" : limit === Infinity ? "Unlimited buys" : limit + " buys each")),
       seats,
       ce("p", { className: "tip" }, ce(Icon, { n: "bolt", size: 16 }), r.goOut ? "Go out in one turn. " + r.tip : r.tip),
-      chase.length > 0 && ce(List, { header: "Still in it" }, chase.map(c => ce(Row, { key: c.id, lead: ce(Peg, { color: pl(c.id).color, name: pl(c.id).name, size: 32 }), title: pl(c.id).name, sub: c.text }))),
+      chase.length > 0 && ce(List, { header: "Still in it" }, chase.map(c => ce(Row, { key: c.id, lead: ce(Peg, { color: pl(c.id).color, name: pl(c.id).name, av: pl(c.id).avatar, size: 32 }), title: pl(c.id).name, sub: c.text }))),
       wide && ce(RoundGrid, { game, pl })),
     ce("footer", { className: "dock" }, action), overlays);
 }
@@ -1519,12 +1584,13 @@ function RoundStrip({ game, pl, onPick }) {
       out ? ce("span", { className: "rs-dot", style: { background: peg(pl(out).color).c } }) : done ? ce(Icon, { n: "check", size: 11, stroke: 3 }) : ce("span", { className: "rs-dot empty" }));
   }));
 }
-function Seat({ i, p, total, isLead, isDealer, gap, hasAny, board, buys, limit, value, changeBuy, onEdit, move }) {
+function Seat({ i, p, total, isLead, place, isDealer, gap, hasAny, board, buys, limit, value, changeBuy, onEdit, move }) {
   const shown = useCount(total), has = typeof value === "number", atLimit = limit !== Infinity && buys >= limit;
   return ce("li", { className: "seat" + (isLead ? " lead" : ""), style: { "--i": i } },
-    ce("span", { className: "seat-av" }, ce(Peg, { color: p.color, name: p.name, size: board ? 60 : 42, ring: isLead }), isDealer && ce("span", { className: "dealer", title: "Dealer" }, "D")),
+    ce("span", { className: "seat-av" }, ce(Peg, { color: p.color, name: p.name, av: p.avatar, size: board ? 60 : 42, ring: isLead }),
+      place > 0 && ce("span", { key: "m" + place, className: "medal m" + place, role: "img", "aria-label": ["", "1st", "2nd", "3rd"][place] + " place" }, place), isDealer && ce("span", { className: "dealer", title: "Dealer" }, "D")),
     ce("span", { className: "seat-main" },
-      ce("b", null, p.name, isLead && ce("span", { className: "crown-ic" }, ce(Icon, { n: "crown", size: 15 }))),
+      ce("b", null, p.name),
       ce("small", null, !hasAny ? (isDealer ? "Dealing" : "Ready") : isLead ? "Leading" : gap + " behind",
         move ? ce("span", { className: "mv " + (move > 0 ? "up" : "down") }, (move > 0 ? " ▲ up " : " ▼ down ") + Math.abs(move)) : null)),
     has && !board && ce("button", { className: "chip" + (value === 0 ? " out" : ""), onClick: onEdit, "aria-label": "Change " + p.name + "'s score this round" }, value === 0 ? "Out" : "+" + value),
@@ -1576,7 +1642,7 @@ function ScorePad({ game, pl, start, round, rs, setScore, onClose, onDone }) {
       ce("button", { className: "btn primary grow", disabled: val == null && typeof cur !== "number", onClick: () => val != null ? save(val) : move({ v: null }) }, primary)) },
     ce("div", { className: "who-strip", role: "tablist", "aria-label": "Players" }, ids.map((x, k) => { const v = rs[x];
       return ce("button", { key: x, role: "tab", "aria-selected": k === idx, className: "who" + (k === idx ? " on" : "") + (typeof v === "number" ? " done" : ""), onClick: () => openPlayer(k) },
-        ce(Peg, { color: pl(x).color, name: pl(x).name, size: 36 }), ce("span", null, pl(x).name), ce("b", null, typeof v === "number" ? (v === 0 ? "Out" : v) : "–")); })),
+        ce(Peg, { color: pl(x).color, name: pl(x).name, av: pl(x).avatar, size: 36 }), ce("span", null, pl(x).name), ce("b", null, typeof v === "number" ? (v === 0 ? "Out" : v) : "–")); })),
     ce("div", { className: "pad-display" + (shown === 0 ? " zero" : "") + (shown == null ? " empty" : ""), "aria-live": "polite" },
       ce("b", null, shown == null ? "0" : shown === 0 && val == null ? "Out" : shown),
       ce("small", null, mode === "cards" ? hand.length + (hand.length === 1 ? " card" : " cards") + " left in hand" : "points left in hand")),
@@ -1632,7 +1698,7 @@ function RaceTrack({ game, pl, big }) {
     return ce("div", { key: x.id, className: "lane", role: "listitem", "aria-label": p.name + ", " + x.total + " points" },
       ce("span", { className: "lane-name" }, p.name, mv !== 0 && ce("i", { className: "mv " + (mv > 0 ? "up" : "down"), "aria-label": mv > 0 ? "up " + mv : "down " + -mv }, mv > 0 ? "▲" : "▼")),
       ce("span", { className: "lane-track" }, ce("span", { className: "lane-fill", style: { width: "calc(" + (k * 100) + "% - " + (k * 34) + "px + 17px)", "--peg": peg(p.color).c } }),
-        ce("span", { className: "lane-peg", style: { left: "calc(" + (k * 100) + "% - " + (k * 34) + "px)" } }, ce(Peg, { color: p.color, name: p.name, size: big ? 44 : 34, ring: i === 0 && x.total === lo && t.some(y => y.total > 0) }))),
+        ce("span", { className: "lane-peg", style: { left: "calc(" + (k * 100) + "% - " + (k * 34) + "px)" } }, ce(Peg, { color: p.color, name: p.name, av: p.avatar, size: big ? 44 : 34, ring: i === 0 && x.total === lo && t.some(y => y.total > 0) }))),
       ce("b", { className: "lane-total" }, x.total));
   }));
 }
@@ -1684,9 +1750,9 @@ function Recap({ s, game, go, setToast, rematch, onDelete }) {
       ce("div", { className: "podium" }, [1, 0, 2].filter(i => pod[i]).map(i => { const t = pod[i], pp = pl(t.id), n = place(t);
         return ce("div", { key: t.id, className: "pod p" + n, style: { "--i": i } },
           n === 1 && ce("span", { className: "crown" }, ce(Icon, { n: "crown", size: 30 })),
-          ce(Peg, { color: pp.color, name: pp.name, size: n === 1 ? 64 : 48, ring: n === 1 }),
+          ce(Peg, { color: pp.color, name: pp.name, av: pp.avatar, size: n === 1 ? 64 : 48, ring: n === 1 }),
           ce("b", null, pp.name), ce("span", null, t.total), ce("div", { className: "pod-block" }, n)); }))),
-    ranked.length > 3 && ce(List, { header: "Everyone else" }, ranked.slice(3).map(t => ce(Row, { key: t.id, lead: ce(Peg, { color: pl(t.id).color, name: pl(t.id).name, size: 32 }),
+    ranked.length > 3 && ce(List, { header: "Everyone else" }, ranked.slice(3).map(t => ce(Row, { key: t.id, lead: ce(Peg, { color: pl(t.id).color, name: pl(t.id).name, av: pl(t.id).avatar, size: 32 }),
       title: pl(t.id).name, sub: (t.total - best) + " behind the winner", trail: ce("span", { className: "num-trail" }, ce("b", null, t.total)) }))),
     ce("section", { className: "group" }, ce("h2", { className: "group-h" }, "The race"), ce(RaceTrack, { game, pl })),
     awards.length > 0 && ce(List, { header: "Awards" }, awards.map(a => ce(Row, { key: a.key, lead: ce("span", { className: "row-ic award " + a.key }, ce(Icon, { n: a.ic, size: 20 })), title: a.t, sub: pl(a.id).name + " · " + a.d }))),
@@ -1695,7 +1761,8 @@ function Recap({ s, game, go, setToast, rematch, onDelete }) {
     ce(List, null, ce("button", { className: "row tap danger", onClick: onDelete }, ce("span", { className: "row-main" }, ce("b", null, "Delete this game")))));
 }
 function resultsImage(name, rows, endedAt) {
-  return new Promise(res => { try {
+  const load = src => new Promise(r => { if (!src) return r(null); const im = new Image(); im.onload = () => r(im); im.onerror = () => r(null); im.src = src; });
+  return Promise.all(rows.map(r => load(avatarSrc(r.avatar)))).then(imgs => new Promise(res => { try {
     const css = getComputedStyle(document.documentElement), band = css.getPropertyValue("--band").trim() || "#17644A", band2 = css.getPropertyValue("--band2").trim() || "#0B3D2B";
     const W = 1080, H = 1350, c = document.createElement("canvas"); c.width = W; c.height = H; const x = c.getContext("2d");
     const g = x.createRadialGradient(W * .3, 0, 50, W * .5, H * .4, H); g.addColorStop(0, band); g.addColorStop(1, band2);
@@ -1711,13 +1778,14 @@ function resultsImage(name, rows, endedAt) {
     rows.forEach((r, i) => { const y = top + i * rowH, p = peg(r.color);
       x.fillStyle = i % 2 ? "rgba(255,255,255,0)" : "rgba(128,128,128,.1)"; x.fillRect(110, y - rowH * .62, W - 220, rowH);
       x.textAlign = "left"; x.fillStyle = ink2; x.font = "700 40px " + sans; x.fillText(r.place, 140, y);
-      x.beginPath(); x.arc(240, y - 14, 30, 0, 7); x.fillStyle = p.c; x.fill(); if (r.place === 1) { x.lineWidth = 6; x.strokeStyle = "#D9A63A"; x.beginPath(); x.arc(240, y - 14, 39, 0, 7); x.stroke(); }
+      x.beginPath(); x.arc(240, y - 14, 30, 0, 7); x.fillStyle = p.c; x.fill();
+      if (imgs[i]) { x.save(); x.beginPath(); x.arc(240, y - 14, 30, 0, 7); x.clip(); x.drawImage(imgs[i], 210, y - 44, 60, 60); x.restore(); } if (r.place === 1) { x.lineWidth = 6; x.strokeStyle = "#D9A63A"; x.beginPath(); x.arc(240, y - 14, 39, 0, 7); x.stroke(); }
       x.fillStyle = ink; x.font = "700 48px " + sans; x.fillText(r.name, 300, y, 480);
       x.textAlign = "right"; x.font = "800 56px " + sans; x.fillText(r.total, W - 140, y); });
     x.textAlign = "center"; x.fillStyle = ink2; x.font = "500 32px " + sans;
     x.fillText((endedAt ? new Date(endedAt).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" }) + "  ·  " : "") + "7 rounds of contract rummy", W / 2, H - 120);
     c.toBlob(b => res(b), "image/png");
-  } catch (e) { res(null); } });
+  } catch (e) { res(null); } }));
 }
 function PlayOnce({ fn }) { useEffect(() => { fn(); }, []); return null; }
 function Confetti() {
@@ -1726,10 +1794,13 @@ function Confetti() {
     if (reducedMotion()) return;
     const c = ref.current, x = c.getContext("2d"), dpr = Math.min(2, devicePixelRatio || 1);
     const W = c.width = innerWidth * dpr, H = c.height = innerHeight * dpr;
-    const bits = Array.from({ length: 140 }, (_, i) => ({ x: W * Math.random(), y: -H * Math.random() * .6, w: (5 + Math.random() * 5) * dpr, vy: (2 + Math.random() * 3) * dpr, vx: (Math.random() - .5) * 2 * dpr, c: ["#D9A63A", "#F3D98B", "#FFFFFF", PEGS[i % 8].c][i % 4], a: Math.random() * 6 }));
+    const bits = Array.from({ length: 140 }, (_, i) => ({ x: W * Math.random(), y: -H * Math.random() * .6, w: (5 + Math.random() * 5) * dpr, vy: (2 + Math.random() * 3) * dpr, vx: (Math.random() - .5) * 2 * dpr, c: ["#D9A63A", "#F3D98B", "#FFFFFF", PEGS[i % 8].c][i % 4], a: Math.random() * 6, suit: i % 3 === 0 ? "♠♥♦♣"[i % 4] : null }));
     let raf; const t0 = performance.now();
     const frame = t => { x.clearRect(0, 0, W, H); const fade = Math.max(0, 1 - (t - t0 - 2400) / 900); x.globalAlpha = fade;
-      bits.forEach(b => { b.y += b.vy; b.x += b.vx + Math.sin(b.a += .05) * .6 * dpr; x.fillStyle = b.c; x.save(); x.translate(b.x, b.y); x.rotate(b.a); x.fillRect(-b.w / 2, -b.w / 4, b.w, b.w / 2); x.restore(); });
+      bits.forEach(b => { b.y += b.vy; b.x += b.vx + Math.sin(b.a += .05) * .6 * dpr; x.save(); x.translate(b.x, b.y); x.rotate(b.a);
+        if (b.suit) { x.fillStyle = b.suit === "♥" || b.suit === "♦" ? "#D6403A" : b.c === "#FFFFFF" ? "#FFFFFF" : "#1B1E21"; x.font = (b.w * 2.6) + "px Georgia, serif"; x.textAlign = "center"; x.fillText(b.suit, 0, b.w); }
+        else { x.fillStyle = b.c; x.fillRect(-b.w / 2, -b.w / 4, b.w, b.w / 2); }
+        x.restore(); });
       if (fade > 0) raf = requestAnimationFrame(frame); else x.clearRect(0, 0, W, H); };
     raf = requestAnimationFrame(frame); return () => cancelAnimationFrame(raf);
   }, []);
@@ -1743,18 +1814,70 @@ function PlayerEditor({ players, setPlayers, autoFocus }) {
   const add = () => { const n = draft.trim().slice(0, 20); if (!n || players.length >= MAX_PLAYERS) return;
     const color = (PEGS.find(p => !used.includes(p.k)) || PEGS[players.length % 8]).k;
     haptic(8); setPlayers([...players, { id: uid(), name: n, color }]); setDraft(""); ref.current && ref.current.focus(); };
-  const cycle = id => setPlayers(players.map(p => { if (p.id !== id) return p; const free = PEGS.filter(x => !used.includes(x.k) || x.k === p.color), i = free.findIndex(x => x.k === p.color); return { ...p, color: free[(i + 1) % free.length].k }; }));
+  const [editing, setEditing] = useState(null), ed = players.find(p => p.id === editing);
   return ce(Fragment, null,
+    // Rendered on the page, not inside the open sheet, so it can sit on top of it.
+    ed && ReactDOM.createPortal(ce(AvatarSheet, { player: ed, taken: used.filter(c => c !== ed.color), onClose: () => setEditing(null),
+      onSave: (color, avatar) => { setPlayers(players.map(p => p.id === ed.id ? { ...p, color, avatar } : p)); setEditing(null); } }), document.body),
     ce("div", { className: "list" },
       players.map(p => ce("div", { key: p.id, className: "row edit" },
-        ce("button", { className: "peg-btn", onClick: () => cycle(p.id), "aria-label": "Change " + p.name + "'s colour" }, ce(Peg, { color: p.color, name: p.name, size: 34 })),
+        ce("button", { className: "peg-btn", onClick: () => setEditing(p.id), "aria-label": "Change " + p.name + "'s avatar and colour" }, ce(Peg, { color: p.color, name: p.name, av: p.avatar, size: 34 })),
         ce("input", { className: "row-input", value: p.name, "aria-label": "Player name", maxLength: 20, onChange: e => setPlayers(players.map(x => x.id === p.id ? { ...x, name: e.target.value } : x)) }),
         ce("button", { className: "nav-icon danger", onClick: () => setPlayers(players.filter(x => x.id !== p.id)), "aria-label": "Remove " + p.name }, ce(Icon, { n: "trash", size: 19 })))),
       players.length < MAX_PLAYERS && ce("form", { className: "row edit", onSubmit: e => { e.preventDefault(); add(); } },
         ce("span", { className: "row-ic add" }, ce(Icon, { n: "plus", size: 20 })),
         ce("input", { ref, className: "row-input", value: draft, placeholder: "Add a player", "aria-label": "New player name", maxLength: 20, autoFocus, onChange: e => setDraft(e.target.value), enterKeyHint: "done" }),
         draft.trim() && ce("button", { className: "btn tonal sm", type: "submit" }, "Add"))),
-    ce("p", { className: "group-f" }, "Tap a colour to change it. Up to " + MAX_PLAYERS + " players."));
+    ce("p", { className: "group-f" }, "Tap a player's circle to add a photo, make a character or change their colour. Up to " + MAX_PLAYERS + " players."));
+}
+// ── Avatar maker: initials, a photo framed by dragging and zooming, or a drawn character ──
+function AvatarSheet({ player, taken, onClose, onSave }) {
+  const a0 = player.avatar || null;
+  const [color, setColor] = useState(player.color), [mode, setMode] = useState(a0 ? a0.type : "initials");
+  const [face, setFace] = useState(a0 && a0.type === "face" ? a0 : avSeed(player.name));
+  const [photo, setPhoto] = useState(a0 && a0.type === "photo" ? a0.src : null), [raw, setRaw] = useState(null);
+  const [zoom, setZoom] = useState(1), [pos, setPos] = useState({ x: 0, y: 0 }), drag = useRef(null), camRef = useRef(null), libRef = useRef(null);
+  const VIEW = 220;
+  const onFile = e => { const f = e.target.files && e.target.files[0]; e.target.value = ""; if (!f) return;
+    const url = URL.createObjectURL(f), img = new Image();
+    img.onload = () => { const k = VIEW / Math.min(img.width, img.height); setRaw({ img, url, w: img.width * k, h: img.height * k }); setZoom(1); setPos({ x: 0, y: 0 }); };
+    img.src = url; };
+  const clamp = (p, z) => { if (!raw) return p; const mx = Math.max(0, (raw.w * z - VIEW) / 2), my = Math.max(0, (raw.h * z - VIEW) / 2); return { x: Math.max(-mx, Math.min(mx, p.x)), y: Math.max(-my, Math.min(my, p.y)) }; };
+  const down = e => { drag.current = { x: e.clientX - pos.x, y: e.clientY - pos.y }; e.currentTarget.setPointerCapture && e.currentTarget.setPointerCapture(e.pointerId); };
+  const move = e => { if (drag.current) setPos(clamp({ x: e.clientX - drag.current.x, y: e.clientY - drag.current.y }, zoom)); };
+  const up = () => { drag.current = null; };
+  const cropped = () => { const c = document.createElement("canvas"), OUT = 192; c.width = c.height = OUT; const x = c.getContext("2d"), k = OUT / VIEW;
+    const w = raw.w * zoom * k, h = raw.h * zoom * k; x.drawImage(raw.img, (OUT - w) / 2 + pos.x * k, (OUT - h) / 2 + pos.y * k, w, h); return c.toDataURL("image/jpeg", .82); };
+  const result = () => mode === "photo" ? (raw ? { type: "photo", src: cropped() } : photo ? { type: "photo", src: photo } : null) : mode === "face" ? face : null;
+  const preview = mode === "photo" ? (photo && !raw ? { type: "photo", src: photo } : null) : mode === "face" ? face : null;
+  const opt = (key, values, render) => ce("div", { className: "av-opt" },
+    ce("span", { className: "group-h" }, { skin: "Skin", hair: "Hair", hairColor: "Hair colour", face: "Face", extra: "Extra", top: "Top" }[key]),
+    ce("div", { className: "av-row", role: "radiogroup", "aria-label": key }, values.map(v => ce("button", { key: v, role: "radio", "aria-checked": face[key] === v, className: "av-choice" + (face[key] === v ? " on" : ""),
+      "aria-label": (AV_NAMES[key] && AV_NAMES[key][v]) || v, onClick: () => { setFace({ ...face, [key]: v }); haptic(6); } }, render(v)))));
+  const mini = patch => ce(Peg, { color, name: player.name, av: { ...face, ...patch }, size: 44 });
+  const swatch = c => ce("span", { className: "av-sw", style: { background: c } });
+  return ce(Sheet, { title: player.name, onClose, tall: true,
+      footer: ce("button", { className: "btn primary block lg", disabled: mode === "photo" && !raw && !photo, onClick: () => onSave(color, result()) }, "Save") },
+    ce("div", { className: "av-stage" },
+      mode === "photo" && raw
+        ? ce("div", { className: "av-crop", style: { width: VIEW, height: VIEW, "--peg": peg(color).c }, onPointerDown: down, onPointerMove: move, onPointerUp: up, onPointerCancel: up, "aria-label": "Drag to position the photo" },
+            ce("img", { src: raw.url, alt: "", draggable: false, style: { width: raw.w * zoom, height: raw.h * zoom, transform: "translate(calc(-50% + " + pos.x + "px), calc(-50% + " + pos.y + "px))" } }))
+        : ce(Peg, { color, name: player.name, av: preview, size: 120, ring: true })),
+    mode === "photo" && raw && ce("label", { className: "av-zoom" }, ce("span", null, "Zoom"),
+      ce("input", { type: "range", min: 1, max: 3, step: .01, value: zoom, onChange: e => { const z = +e.target.value; setZoom(z); setPos(p => clamp(p, z)); } })),
+    ce(Seg, { label: "Avatar type", value: mode, onChange: setMode, options: [["initials", "Initials"], ["photo", "Photo"], ["face", "Character"]] }),
+    mode === "photo" && ce("div", { className: "av-photo-btns" },
+      ce("input", { ref: camRef, type: "file", accept: "image/*", capture: "user", hidden: true, onChange: onFile }),
+      ce("input", { ref: libRef, type: "file", accept: "image/*", hidden: true, onChange: onFile }),
+      ce("button", { className: "btn tonal grow", onClick: () => camRef.current.click() }, ce(Icon, { n: "camera", size: 18 }), "Take photo"),
+      ce("button", { className: "btn tonal grow", onClick: () => libRef.current.click() }, "Choose photo")),
+    mode === "photo" && ce("p", { className: "group-f" }, raw ? "Drag to frame the face, then save." : "The photo stays small and is saved with this table."),
+    mode === "face" && ce("div", { className: "av-maker" },
+      opt("skin", AV.skin, swatch), opt("hair", AV.hair, v => mini({ hair: v })), opt("hairColor", AV.hairColor, swatch),
+      opt("face", AV.face, v => mini({ face: v })), opt("extra", AV.extra, v => mini({ extra: v })), opt("top", AV.top, swatch)),
+    ce("span", { className: "group-h" }, "Colour"),
+    ce("div", { className: "av-row colours", role: "radiogroup", "aria-label": "Colour" }, PEGS.map(c => ce("button", { key: c.k, role: "radio", "aria-checked": color === c.k, "aria-label": c.k,
+      disabled: taken.includes(c.k), className: "av-choice" + (color === c.k ? " on" : ""), onClick: () => setColor(c.k) }, ce("span", { className: "av-sw big", style: { background: c.c } })))));
 }
 function NewGroupSheet({ onClose, onCreate }) {
   const [name, setName] = useState(""), [players, setPlayers] = useState([]);
@@ -1788,7 +1911,7 @@ function StartSheet({ onClose, group, onStart, lastRules }) {
     ce("div", { className: "list" + (rolling ? " rolling" : "") }, group.players.map(p => { const on = sel.includes(p.id), idx = chosen.findIndex(c => c.id === p.id);
       return ce("div", { key: p.id, className: "row" },
         ce("button", { className: "pick", role: "checkbox", "aria-checked": on, onClick: () => setSel(on ? sel.filter(x => x !== p.id) : [...sel, p.id]) },
-          ce("span", { className: "check" + (on ? " on" : "") }, on && ce(Icon, { n: "check", size: 15, stroke: 3 })), ce(Peg, { color: p.color, name: p.name, size: 32 }), ce("b", null, p.name)),
+          ce("span", { className: "check" + (on ? " on" : "") }, on && ce(Icon, { n: "check", size: 15, stroke: 3 })), ce(Peg, { color: p.color, name: p.name, av: p.avatar, size: 32 }), ce("b", null, p.name)),
         on && ce("button", { className: "deal-chip" + (idx === d ? " on" : ""), onClick: () => setDealer(idx), "aria-pressed": idx === d }, idx === d ? "Deals first" : "Deal first")); })),
     ce("h3", { className: "group-h" }, "House rules"),
     ce(HouseRules, { rules, up: (k, v) => setRules(x => ({ ...x, [k]: v })) }));
@@ -1887,7 +2010,10 @@ function SettingsSheet({ onClose, settings, setSettings, game, onEnd, onHelp }) 
         ce("span", { className: "look-sw", "data-look-sw": k, style: { background: "linear-gradient(135deg," + L.swatch[0] + " 50%," + L.swatch[1] + " 50%)" } }), ce("b", null, L.name), ce("small", null, L.desc))),
       ce("button", { className: "look surprise" + (rolling ? " rolling" : ""), onClick: surprise }, ce("span", { className: "look-sw die" }, ce(Icon, { n: "die", size: 26 })), ce("b", null, "Surprise me"), ce("small", null, "Roll for a look"))),
     ce("p", { className: "group-f" }, "Table, Midnight and Parlour follow your phone's dark mode. Daylight stays bright for sunshine."),
-    ce("div", { className: "list gap" }, ce("div", { className: "row" }, ce("span", { className: "row-main" }, ce("b", null, "Sounds"), ce("small", null, "Chips, chimes and a fanfare for the winner")),
+    ce("div", { className: "list gap" },
+      ce("div", { className: "row" }, ce("span", { className: "row-main" }, ce("b", null, "New look each time"), ce("small", null, "Opens on a different look every time you start the app")),
+        ce(Switch, { on: !!settings.surprise, onChange: v => setSettings(x => ({ ...x, surprise: v })), label: "New look each time" })),
+      ce("div", { className: "row" }, ce("span", { className: "row-main" }, ce("b", null, "Sounds"), ce("small", null, "Chips, chimes and a fanfare for the winner")),
       ce(Switch, { on: settings.sound !== false, onChange: v => setSettings(x => ({ ...x, sound: v })), label: "Sounds" }))),
     ce("h3", { className: "group-h" }, "Coaching"),
     ce("div", { className: "list" },
@@ -1944,11 +2070,11 @@ function RoundGuide({ round, level, coach, rules }) {
 function RulesSheet({ onClose, round, rules, setRules, level, initialTab }) {
   const [tab, setTab] = useState(initialTab || "round"), [r, setR] = useState(round || 0);
   const limit = buyLimitOf(rules), limitText = limit === Infinity ? "unlimited buys" : limit + (limit === 1 ? " buy" : " buys");
-  return ce(Sheet, { title: tab === "round" ? "Round guide" : "How to play", onClose, tall: true },
+  return ce(Sheet, { title: tab === "round" ? "Round guide" : "How to play", onClose, tall: true, cls: "rules" },
     ce(Seg, { label: "Rules section", value: tab, onChange: setTab, options: [["round", "Rounds"], ["how", "Basics"], ["faq", "Q&A"], ["house", "House"]] }),
-    tab === "round" && ce(Fragment, null,
-      ce("div", { className: "rpick", role: "tablist", "aria-label": "Round" }, ROUNDS.map((x, i) => ce("button", { key: i, role: "tab", "aria-selected": i === r, className: "rnum" + (i === r ? " on" : ""), onClick: () => setR(i) }, x.n))),
-      ce(RoundGuide, { key: r, round: r, level, rules, coach: !!setRules && r === (round || 0) })),
+    tab === "round" && ce("div", { className: "rounds-pane" },
+      ce("div", { className: "rpick", role: "tablist", "aria-label": "Round" }, ROUNDS.map((x, i) => ce("button", { key: i, role: "tab", "aria-selected": i === r, "aria-label": "Round " + x.n + ", " + x.name, className: "rnum" + (i === r ? " on" : ""), onClick: () => setR(i) }, x.n, ce("span", { className: "rname" }, x.name)))),
+      ce("div", null, ce(RoundGuide, { key: r, round: r, level, rules, coach: !!setRules && r === (round || 0) }))),
     tab === "how" && ce(Fragment, null,
       ce("h3", { className: "group-h" }, "Learn in 60 seconds"), ce(Steps, { items: QUICK_START }),
       ce("h3", { className: "group-h" }, "Your turn"), ce(Steps, { items: TURN_STEPS }),
@@ -2415,6 +2541,60 @@ input { caret-color: var(--accent); }
   .home .nav-row, .tablepage .nav-row { max-width: 1040px; }
   .hero.felt { padding: 26px 28px 22px; } .hero.felt .large-title { font-size: 3rem; } .home .hero .fan { height: 130px; width: 150px; } .home .hero .fan > span { font-size: 17px; }
 }
+
+/* Ambient table: a field of suits and two slow glows behind every screen, tinted by the look */
+:root { --suit-tile: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cg font-family='Georgia,serif' fill='black'%3E%3Ctext x='14' y='52' font-size='34' transform='rotate(-14 30 40)'%3E%E2%99%A0%3C/text%3E%3Ctext x='118' y='40' font-size='26' transform='rotate(12 130 30)'%3E%E2%99%A5%3C/text%3E%3Ctext x='70' y='120' font-size='30' transform='rotate(-8 84 108)'%3E%E2%99%A6%3C/text%3E%3Ctext x='150' y='150' font-size='36' transform='rotate(18 165 138)'%3E%E2%99%A3%3C/text%3E%3Ctext x='22' y='178' font-size='22' transform='rotate(10 30 172)'%3E%E2%99%A5%3C/text%3E%3Ctext x='112' y='196' font-size='20' transform='rotate(-20 120 190)'%3E%E2%99%A0%3C/text%3E%3C/g%3E%3C/svg%3E"); --suit-ink: #145A40; --suit-op: .06; --glow1: #2FA372; --glow2: #E2BE6E; --glow-op: .34; }
+[data-look="midnight"] { --suit-ink: #1F3D6B; --glow1: #3F6FD8; --glow2: #9A7BEA; }
+[data-look="parlour"] { --suit-ink: #6E1F2B; --glow1: #C4425B; --glow2: #E6A04E; }
+[data-scheme="dark"] { --suit-ink: #FFFFFF; --suit-op: .045; --glow-op: .4; }
+[data-look="daylight"] { --suit-ink: #000; --suit-op: .035; --glow-op: 0; }
+.ambient { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+#root { position: relative; z-index: 1; }
+.ambient .suits { position: absolute; inset: -200px; background: var(--suit-ink); opacity: var(--suit-op);
+  -webkit-mask: var(--suit-tile) 0 0 / 200px 200px repeat; mask: var(--suit-tile) 0 0 / 200px 200px repeat; animation: suitDrift 160s linear infinite; }
+@keyframes suitDrift { to { transform: translate(200px, 200px); } }
+.ambient .glow { position: absolute; left: 50%; top: 45%; width: 130vmax; height: 130vmax; margin: -65vmax 0 0 -65vmax; opacity: var(--glow-op); will-change: transform; }
+.ambient .g1 { background: radial-gradient(circle at 32% 30%, var(--glow1) 0, transparent 40%); animation: glowSpin 34s linear infinite; }
+.ambient .g2 { background: radial-gradient(circle at 70% 66%, var(--glow2) 0, transparent 36%); animation: glowSpin 46s linear infinite reverse; }
+@keyframes glowSpin { to { transform: rotate(360deg); } }
+/* The same light moves across the felt */
+.band, .hero.felt, .now-card:not(.again), .finale, .scoreboard { position: relative; isolation: isolate; overflow: hidden; }
+.band::after, .hero.felt::after, .now-card:not(.again)::after, .finale::after, .scoreboard::after { content: ""; position: absolute; left: 50%; top: 50%; width: 240%; aspect-ratio: 1; margin: -120% 0 0 -120%; z-index: -1; pointer-events: none;
+  background: radial-gradient(circle at 34% 32%, color-mix(in srgb, var(--glow2) 55%, transparent) 0, transparent 22%), radial-gradient(circle at 68% 70%, color-mix(in srgb, var(--glow1) 70%, #fff 0%) 0, transparent 24%);
+  opacity: .32; mix-blend-mode: soft-light; animation: glowSpin 40s linear infinite; }
+[data-look="daylight"] .band::after, [data-look="daylight"] .hero.felt::after, [data-look="daylight"] .now-card::after, [data-look="daylight"] .finale::after, [data-look="daylight"] .scoreboard::after { display: none; }
+@media (prefers-reduced-motion: reduce) { .ambient .suits, .ambient .glow, .band::after, .hero.felt::after, .now-card::after, .finale::after, .scoreboard::after { animation: none !important; } }
+/* Place medals on seats: 1st gold, 2nd silver, 3rd bronze */
+.medal { position: absolute; left: -5px; top: -4px; width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font: 800 .66rem/1 var(--num); box-shadow: 0 0 0 2px var(--surface); animation: pop .35s var(--spring) both; }
+.medal.m1 { background: linear-gradient(150deg, #FBE29A, #D9A63A); color: #4A3305; }
+.medal.m2 { background: linear-gradient(150deg, #F3F5F7, #A9B1B9); color: #2B3138; }
+.medal.m3 { background: linear-gradient(150deg, #F2C2A0, #B87345); color: #3E2110; }
+.scoreboard .medal { width: 28px; height: 28px; font-size: .9rem; left: -6px; top: -6px; box-shadow: 0 0 0 3px var(--band); }
+/* Avatars */
+.peg.photo { background: var(--peg) center / cover no-repeat; }
+.peg.face { overflow: hidden; } .peg.face svg { width: 100%; height: 100%; display: block; }
+.av-stage { display: grid; place-items: center; min-height: 236px; }
+.av-crop { position: relative; border-radius: 50%; overflow: hidden; background: var(--peg); touch-action: none; cursor: grab; box-shadow: 0 0 0 3px var(--surface), 0 0 0 6px var(--gold-ring); }
+.av-crop img { position: absolute; left: 50%; top: 50%; max-width: none; user-select: none; pointer-events: none; }
+.av-zoom { display: flex; align-items: center; gap: 12px; color: var(--ink2); font-size: .9rem; } .av-zoom input { flex: 1; accent-color: var(--accent); min-height: 44px; }
+.av-photo-btns { display: flex; gap: 10px; }
+.av-maker { display: grid; gap: 10px; min-width: 0; } .av-opt, .av-row { min-width: 0; }
+.av-opt .group-h { display: block; margin: 0 0 6px; }
+.av-row { display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px 6px; scrollbar-width: none; } .av-row::-webkit-scrollbar { display: none; }
+.av-choice { flex: none; width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; background: var(--surface); box-shadow: 0 0 0 var(--hair) var(--line); }
+.av-choice.on { box-shadow: 0 0 0 2.5px var(--accent); }
+.av-choice:disabled { opacity: .3; }
+.av-sw { width: 34px; height: 34px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); } .av-sw.big { width: 38px; height: 38px; }
+.av-row.colours { flex-wrap: wrap; overflow: visible; }
+/* Rules on tablets: the rounds sit in a list beside the guide */
+.rname { display: none; }
+@media (min-width: 900px) {
+  .sheet.rules { max-width: 880px; }
+  .rounds-pane { display: grid; grid-template-columns: 200px 1fr; gap: 20px; align-items: start; }
+  .rounds-pane .rpick { flex-direction: column; justify-content: flex-start; position: sticky; top: 0; }
+  .rounds-pane .rpick .rnum { width: auto; height: 48px; display: flex; align-items: center; gap: 10px; padding: 0 12px; border-radius: 12px; text-align: left; font-size: .95rem; }
+  .rounds-pane .rname { display: inline; font-weight: 500; }
+}
 @keyframes fade { from { opacity: 0; } }
 @keyframes up { from { transform: translateY(100%); } }
 @keyframes down { to { transform: translateY(100%); } }
@@ -2428,7 +2608,11 @@ input { caret-color: var(--accent); }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0ms !important; transition-duration: .01ms !important; } }
 `;
 (function () { const el = document.createElement("style"); el.textContent = CSS; document.head.appendChild(el); })();
-applyLook(loadSettings().look);
+(function launchLook() {
+  const st = loadSettings();
+  if (st.surprise) { const others = Object.keys(LOOKS).filter(k => k !== st.look); st.look = others[Math.floor(Math.random() * others.length)]; saveJSON(SETTINGS_KEY, st); }
+  applyLook(st.look);
+})();
 ReactDOM.createRoot(document.getElementById("root")).render(ce(App));
 })();
 </script>

@@ -106,6 +106,10 @@ const SCENARIOS = [
     const bad = [seats !== 4 && seats + " seats", tiles < 7 && tiles + " round tiles", dock !== 1 && dock + " dock buttons"].filter(Boolean);
     return bad.length ? { ok: false, note: bad.join(", ") } : { ok: true, note: "4 seats, 7 rounds, one next step" };
   } },
+  { name: "Top three wear medals", run: async c => {
+    const medals = c.$$(".seat .medal").map(m => m.textContent).sort().join(",");
+    return medals === "1,2,3" ? { ok: true, note: "1st, 2nd and 3rd at a glance" } : { ok: false, note: "Medals: " + (medals || "none") };
+  } },
   { name: "Fits the screen with nothing clipped", run: async c => {
     const over = c.d.documentElement.scrollWidth - c.w.innerWidth;
     const clipped = c.$$("button, .seat b, .contract h2, .large-title").filter(el => c.visible(el) && el.scrollWidth > el.clientWidth + 2 && c.w.getComputedStyle(el).textOverflow !== "ellipsis");
@@ -184,6 +188,21 @@ const SCENARIOS = [
     await c.tap(c.button(/back|Family/i));
     await until(() => c.$(".tablepage"), 2000, "the table page").catch(() => {});
     return ok ? { ok: true, note: "Finale and podium" } : { ok: false, note: "No podium" };
+  } },
+  { name: "Avatar maker saves a character", run: async c => {
+    await c.tap(c.button(/Edit players/));
+    await until(() => c.$(".sheet .peg-btn"), 2000, "the players sheet");
+    await c.tap(c.$$(".sheet .peg-btn")[2]);
+    await until(() => c.$$(".sheet").length === 2, 2000, "the avatar maker");
+    const top = () => c.$$(".sheet").pop();
+    await c.tap(c.button(/Character/, top()));
+    await c.tap(top().querySelector('[aria-label="Glasses"]'));
+    await c.tap([...top().querySelectorAll("button")].find(b => b.textContent.trim() === "Save"));
+    await until(() => c.$$(".sheet").length === 1, 2000, "the avatar maker to close");
+    await c.tap([...c.$(".sheet").querySelectorAll("button")].find(b => b.textContent.trim().startsWith("Save")));
+    await until(() => !c.$(".sheet"), 2000, "the players sheet to close").catch(() => {});
+    const saved = c.store().groups.g1.players[2].avatar, shown = c.$$(".tablepage .peg.face").length;
+    return saved && saved.extra === "glasses" && shown ? { ok: true, note: "Cy's character saved and shown" } : { ok: false, note: "Saved " + JSON.stringify(saved) + ", shown " + shown };
   } },
   { name: "Home shows the hero and Playing now", run: async c => {
     await c.tap(c.button(/Tables/));

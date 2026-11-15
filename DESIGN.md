@@ -12,7 +12,7 @@ Four looks, chosen in Settings and stored per device (`mayi:settings:v6`). `appl
 | Parlour | #6E1F2B → #360B12 | #F4EFEA | #5E1A25 | yes (#100809, accent #F0A0AC) |
 | Daylight | white with a 2px black frame | #FFFFFF | #000000 | no, built for sunlight |
 
-Each look is a world, not just a colour swap. Every felt surface (the game band, the home and table heroes, the Playing now card, the recap finale and the TV scoreboard) carries a fine grain and a faint suit pattern at 5% opacity. Each look also has its own card back (`--back`): a green lattice for Table, navy with gold dots for Midnight, burgundy rosettes for Parlour, and black and white stripes for Daylight. Daylight drops the texture entirely. "Surprise me" in Settings rolls through the looks and lands on a random one.
+Each look is a world, not just a colour swap. Every felt surface (the game band, the home and table heroes, the Playing now card, the recap finale and the TV scoreboard) carries a fine grain and a faint suit pattern at 5% opacity. Each look also has its own card back (`--back`): a green lattice for Table, navy with gold dots for Midnight, burgundy rosettes for Parlour, and black and white stripes for Daylight. Daylight drops the texture entirely. Behind every screen sits the same table: a field of all four suits drifting very slowly, and two soft glows that circle in opposite directions (emerald and gold for Table, blue and violet for Midnight, rose and amber for Parlour). The same light moves across the felt surfaces. Daylight keeps a faint black suit field and no glow. "Surprise me" in Settings rolls through the looks, and "New look each time" opens the app on a different look every launch.
 
 ## Colors
 Tokens: `--bg`, `--surface`, `--fill`, `--line`, `--ink` / `--ink2` / `--ink3`, `--band` / `--band2` / `--band-ink`, `--accent` / `--accent-ink` / `--accent-soft`, `--gold` / `--gold-ring` / `--gold-soft` (leader only), `--out` / `--out-soft` (went out), `--red`, `--focus`. Text pairs meet 4.5:1 in every look. Peg colours (red, blue, green, amber, purple, teal, pink, orange) identify a player for life and never mean anything else.
@@ -26,7 +26,7 @@ Inset grouped lists: radius 14, 56px rows, hairline separators inset to the text
 ## Components
 - **Page:** a large Fraunces title that collapses into a blurred 48px nav bar after 44px of scroll. The nav holds back, title and up to two icons.
 - **Felt band (game):** back with the group name; gear (game settings); screen icon (scoreboard, wide screens only); "Round n of 7", contract name, mini meld cards; pips (current one in gold), dealer tag, "Rules ›". Tapping the contract is the only way into the rules.
-- **Seat:** 42px avatar (gold ring if leading, gold "D" if dealing), name with a crown, status line ("Leading", "12 behind"), this round's "+12" or "Out" chip (tap to edit), count-up total, "May I?" buy pill with one dot per allowed buy.
+- **Seat:** 42px avatar (gold ring if leading, gold "D" if dealing, and a 1st/2nd/3rd medal in gold, silver or bronze once a round is scored; ties share a medal), name, status line ("Leading", "12 behind"), this round's "+12" or "Out" chip (tap to edit), count-up total, "May I?" buy pill with one dot per allowed buy.
 - **Dock:** a single primary button for the next step: Score round n, Keep scoring, Next round, or See who won.
 - **Score pad:** player strip, big display, Type points / Tap cards, keypad, Went out (one per round), Save · next player.
 - **Round intro:** the next contract on a giant 5:7 playing card with corner indices, dealer and tip; Undo round n and Let's play; closes itself after 4.6s.
@@ -46,13 +46,14 @@ Inset grouped lists: radius 14, 56px rows, hairline separators inset to the text
 - **Round intro flip:** the card is dealt face down in the look's card back, then turns over to reveal the contract.
 - **Roll for dealer:** a link in the New game sheet's header. The dealer chip hops between players and slows to a stop.
 - **Sounds:** short WebAudio tones (tap, chip, save, deal, out and a winner's fanfare), on by default with a switch in Settings. Haptics stay on regardless.
+- **Avatars:** every player is initials, a photo or a drawn character, always on their own colour. Tap a player's circle in Edit players to open the avatar maker: take or choose a photo and drag and zoom to frame it (saved as a 192px JPEG, about 5–10 KB), or build a character from skin, hair, hair colour, face, an extra and a top. Avatars show everywhere a player does, including the share image.
 - **Sheets:** bottom sheets on phones (swipe down, scrim, Escape), centred at 700px and up.
 
 ## Layout
-Content max 720px. At 900px and up the game shows seats on the left and the round grid on the right, and Home and the table page widen to 1040px in two columns: the hero spans both, then Playing now beside Tables, and Standings beside Records. Scoreboard mode fills the screen with the band and large seats.
+Content max 720px. At 900px and up the game shows seats on the left and the round grid on the right, the Rules sheet lists the rounds by name beside the guide, and Home and the table page widen to 1040px in two columns: the hero spans both, then Playing now beside Tables, and Standings beside Records. Scoreboard mode fills the screen with the band and large seats.
 
 ## Motion
-`--out-e: cubic-bezier(.16,.84,.3,1)` and `--spring: cubic-bezier(.34,1.3,.64,1)`. Seats rise in a stagger, totals count up, the intro card is dealt in with a spring and flips face up, the May I? pill pops on each buy, and confetti plays on a fresh recap only. Everything collapses under `prefers-reduced-motion`.
+`--out-e: cubic-bezier(.16,.84,.3,1)` and `--spring: cubic-bezier(.34,1.3,.64,1)`. Seats rise in a stagger, totals count up, the intro card is dealt in with a spring and flips face up, the May I? pill pops on each buy, and confetti, with suits mixed in, plays on a fresh recap only. The suit field drifts over 160 seconds and the glows turn over 34 and 46 seconds. Everything collapses under `prefers-reduced-motion`.
 
 ## Testing
 `npm test` runs unit tests against the real script in index.html (rules, scoring, stats, coaching content). `tests/lab.html` plays scripted scenarios at small phone, phone, tablet portrait, tablet landscape and TV sizes, and checks for sideways scrolling, clipped text and tap targets under 44px.
