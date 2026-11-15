@@ -407,6 +407,189 @@ const HOW_TO = [
   ["mayi", "Say “May I?”", "Want a discard out of turn? Take it plus one penalty card from the stock."],
   ["out", "Go out", "First with no cards ends the round. Everyone else counts what's left. Lowest total after 7 rounds wins."],
 ];
+// ── Rules & coaching content ──────────────────────────────────────
+// Ported from builds 039ea2e (round coaching, quick start, FAQ, glossary)
+// and d1be84c ("Why this rule?" notes, live rule hints, May I? timeline).
+// Index 0 of GUIDE is round 1 and lines up with ROUNDS.
+
+const GUIDE = [
+  { // 1 · Two Sets · deal 10
+    goal: "Collect two sets: three cards of the same rank, twice. Suits don't matter.",
+    inContract: 6,
+    after: "You can't lay down any more sets or runs this round. Lay off on melds already on the table and discard each turn until you're out.",
+    tips: [
+      "Hold on to pairs. Every pair is one card away from a set.",
+      "If a discard would finish a set and it isn't your turn, say “May I?”",
+    ],
+    pro: [
+      "Sets are the fastest contract. Go down early, then lay off your high cards on everyone's sets.",
+      "Watch which ranks other players pick up, and don't discard those ranks.",
+    ],
+  },
+  { // 2 · Set & Run · deal 10
+    goal: "One set of three matching ranks, plus a run of four cards in a row in one suit.",
+    inContract: 7,
+    after: "No more new melds this round. Runs on the table are easy homes for your cards, so lay off at either end and discard until you're out.",
+    tips: [
+      "A run is one suit, in order, like 8♥ 9♥ 10♥ J♥.",
+      "Keep cards that touch, like 8♥ 9♥, rather than lone cards.",
+      "Three in a row isn't a run yet. You need four.",
+    ],
+    pro: [
+      "Middle cards (5 to 9) can grow a run at either end. Aces and kings only grow one way.",
+      "Once you're down, every run on the table is a place to shed cards.",
+    ],
+  },
+  { // 3 · Two Runs · deal 10
+    goal: "Two separate runs of four or more, each in a single suit.",
+    inContract: 8,
+    after: "You can't lay down a third run, even if you hold one. Lay off on the table and discard until you're out.",
+    tips: [
+      "Pick your two suits early and commit to them.",
+      "Both runs can be the same suit if they're separate, like 3–6♠ and 9–Q♠.",
+      "One long run of eight is still one run. You need two.",
+    ],
+    pro: [
+      "Save wild cards to fill gaps in the middle of a run.",
+      "Discard from suits you've given up on. It hides your plan.",
+    ],
+  },
+  { // 4 · Three Sets · deal 12
+    goal: "Three sets of three matching ranks. From this round on, everyone gets 12 cards.",
+    inContract: 9,
+    after: "You'll usually be left with just a few cards. Lay off on any set on the table and discard each turn to finish fast.",
+    tips: [
+      "Aim for three pairs. Keep pairs, let single cards go.",
+      "Buying is strong here. One “May I?” can finish a set.",
+    ],
+    pro: [
+      "Go down with exactly nine and you're holding about three cards, so you can go out quickly.",
+      "Late in the round, dump 10s and face cards. They cost 10 each if you're caught.",
+    ],
+  },
+  { // 5 · Two Sets & a Run · deal 12
+    goal: "Two sets of three matching ranks, plus a run of four in one suit.",
+    inContract: 10,
+    after: "No more new melds. Lay off on any set or run on the table, discard each turn, and race to empty your hand.",
+    tips: [
+      "Build the run first. It's harder, and sets often arrive on their own.",
+      "Keep one spare pair in case a set falls through.",
+      "The run must be one suit. A mixed-suit sequence doesn't count.",
+    ],
+    pro: [
+      "Buy for the run, not the sets. Run cards are harder to find later.",
+      "Ten of your 12 cards must fit the contract, so commit early.",
+    ],
+  },
+  { // 6 · Set & Two Runs · deal 12
+    goal: "One set of three matching ranks, plus two separate runs of four in a row.",
+    inContract: 11,
+    after: "You'll hold very little once you're down. Lay off what fits and discard until you're out.",
+    tips: [
+      "Runs are the hard part. Settle on two suits by your third turn.",
+      "Wild cards are worth the most this round, but they can't outnumber natural cards in a meld.",
+    ],
+    pro: [
+      "Eleven of your 12 cards must fit, so there's little room to wait.",
+      "If you're far off, stop chasing and shed high cards to limit the damage.",
+    ],
+  },
+  { // 7 · Three Runs · deal 12 · go out
+    goal: "Three runs of four, using every card in your hand. There's no final discard, so you go down and go out in one move.",
+    inContract: 12,
+    after: "There is no after. In round 7, going down means going out: you lay all three runs and every card in your hand at once, with no discard.",
+    tips: [
+      "Every card has to fit. Plan your whole hand, including the card you draw, not just the runs.",
+      "Each “May I?” adds two cards you'll also have to place, so buy carefully.",
+      "Runs can be longer than four. That's where extra cards go.",
+    ],
+    pro: [
+      "If you can't make it, shed high cards early to limit the damage.",
+      "Everyone is chasing runs, so middle cards vanish from the discard pile fast.",
+    ],
+  },
+];
+
+const QUICK_START = [
+  { t: "Deal", d: "Shuffle two decks together, with jokers if you play them wild. Deal 10 cards in rounds 1–3 and 12 in rounds 4–7. Flip one card face up to start the discard pile." },
+  { t: "Take a turn", d: "Draw one card, from the stock or the top of the discard pile. Then discard one card face up." },
+  { t: "Go down, once", d: "When your hand holds the round's contract, lay it face up on your turn. You only go down once per round. After that you play cards by laying them off on melds already on the table." },
+  { t: "Say “May I?”", d: "Want a discard on someone else's turn? Ask “May I?” If the next player doesn't take it, you get it plus one penalty card from the stock." },
+  { t: "Score", d: "The round ends when someone runs out of cards. Everyone else adds up what's left in their hand. Lowest total after 7 rounds wins." },
+];
+
+const TURN_STEPS = [
+  { t: "Draw", d: "Take the top card of the stock or the discard pile." },
+  { t: "Go down (once, optional)", d: "If you hold the contract, lay it down. Only once per round, and only the contract. No extra melds." },
+  { t: "Lay off (after going down)", d: "Add cards to any meld on the table, yours or anyone else's. Once you're down, this is the only way to play cards." },
+  { t: "Discard", d: "End your turn by putting one card face up on the discard pile. If it was your last card, you're out. In round 7 there's no final discard: you must go out by laying down every card." },
+];
+
+const MAYI_STEPS = [
+  { t: "A card is discarded", d: "It isn't your turn, but you want that card." },
+  { t: "Ask “May I?”", d: "Speak up before the next player draws. Once they pick up, the chance is gone." },
+  { t: "Next player chooses", d: "The player whose turn is next gets first refusal. If they take it as their draw, you don't get it." },
+  { t: "You take two", d: "Otherwise the discard is yours, plus one face-down penalty card from the stock. Your hand grows by two." },
+  { t: "Buy limit", d: "Your table allows {limit} per player, per round. The count resets each round." },
+];
+
+const FAQ = [
+  { q: "I've gone down. Can I lay down another set or run?",
+    a: "No. You go down once per round, with the contract and nothing more. After that you can't start new melds, not even another copy of the contract. You shed cards by laying off on melds already on the table, plus your discard each turn." },
+  { q: "So how do I go out after going down?",
+    a: "Keep drawing, lay off every card that fits a meld on the table, and discard one card each turn. When your last card is laid off or discarded, you're out and the round ends." },
+  { q: "Can my contract melds be longer than required?",
+    a: "Yes. A set of four or a run of six still counts, so pack extra matching cards in when you go down. What you can't do is add melds the contract doesn't ask for." },
+  { q: "Can I lay off before I've gone down?",
+    a: "No. You must go down with the full contract before you can add cards to anyone's melds." },
+  { q: "Do I have to go down as soon as I can?",
+    a: "No, you can wait. But every turn you wait risks someone going out while you're holding a full hand of points." },
+  { q: "How many wild cards can go in one meld?",
+    a: "Wilds can't outnumber the natural cards. A set of three can hold one wild, and a run of four can hold two. Jokers are worth 15 if they're left in your hand." },
+  { q: "What if two people say “May I?” at once?",
+    a: "The next player still gets first refusal. If they pass, the card usually goes to whoever is closest to them in turn order." },
+  { q: "What's different in round 7?",
+    a: "There's no final discard, so going down means going out. You lay down all three runs and every card in your hand in one move." },
+];
+
+const GLOSSARY = [
+  { term: "Set", d: "Three or more cards of the same rank, any suits.", ex: ["7S", "7H", "7C"] },
+  { term: "Run", d: "Four or more cards in a row, all the same suit.", ex: ["8H", "9H", "10H", "JH"] },
+  { term: "Meld", d: "Any set or run laid face up on the table.", ex: null },
+  { term: "Contract", d: "The exact melds you must lay down to go down this round.", ex: null },
+  { term: "Go down", d: "Lay your contract face up. Once per round. Afterwards you can't make new melds.", ex: null },
+  { term: "Lay off", d: "Add cards to a meld already on the table. Only allowed after you've gone down, and then it's your only way to play cards.", ex: null },
+  { term: "Go out", d: "Get rid of your last card. This ends the round.", ex: null },
+  { term: "Wild card", d: "A joker, and 2s if your table plays them wild. It stands in for any card, but wilds can't outnumber natural cards in a meld.", ex: ["8H", "JOKER", "10H", "JH"] },
+  { term: "Buy", d: "Taking a discard out of turn with “May I?”, plus one penalty card from the stock.", ex: null },
+];
+
+const RULE_WHY = {
+  buyLimit: "The classic rule is 3 buys per round. It keeps the game moving without letting one player take over. Unlimited suits a more relaxed, social game.",
+  jokersWild: "Some families take the jokers out to keep scoring simple and cut down on luck. With jokers in, you can rescue almost any hand.",
+  twosWild: "Making 2s wild came from families who found runs hard to build. They score 15 in hand, the same as a joker, so holding one is risky.",
+  acesPosition: "Aces low is the original rule. High and both ends came from families who wanted more ways to build runs. J–Q–K–A feels good to lay down.",
+};
+
+function ruleHint(key, rules) {
+  if (key === "buyLimit") {
+    const n = buyLimitOf(rules);
+    if (n === Infinity) return "Players can say “May I?” as many times as they like each round.";
+    return "Each player can buy up to " + n + " time" + (n === 1 ? "" : "s") + " per round. Resets each round.";
+  }
+  if (key === "jokersWild") return rules.jokersWild
+    ? "Jokers stand in for any card. Worth 15 points in hand."
+    : "No jokers. Take them out of the deck before dealing.";
+  if (key === "twosWild") return rules.twosWild
+    ? "2s are wild too. Worth 15 points in hand."
+    : "2s are ordinary cards. Only jokers are wild.";
+  if (key === "acesPosition") return rules.acesPosition === "high"
+    ? "Aces only end a run (J–Q–K–A). Worth 15 points in hand."
+    : rules.acesPosition === "both"
+      ? "Aces can start or end a run, but a run can't wrap round (K–A–2). Worth 1 or 15 points in hand."
+      : "Aces only start a run (A–2–3–4). Worth 1 point in hand.";
+  return "";
+}
 const RANKS = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
 const SUIT = { S:["♠",0], H:["♥",1], D:["♦",1], C:["♣",0] };
 const DEFAULT_RULES = { buyLimit: "3", customBuyLimit: 3, jokersWild: true, acesPosition: "low", twosWild: false };
@@ -471,6 +654,8 @@ function Peg({ color, name, size, ring }) {
   return ce("span", { className: "peg" + (ring ? " ring" : ""), "aria-hidden": true, style: { "--peg": p.c, "--peg-ink": p.ink, width: size, height: size, fontSize: size * .42 } }, (name || "?").trim()[0].toUpperCase());
 }
 function Card({ code }) {
+  if (code === "JKR" || code === "JOKER") return ce("span", { className: "pc joker", role: "img", "aria-label": "Joker" },
+    ce("span", { className: "pc-corner", "aria-hidden": true }, ce("b", null, "J"), ce("i", null, "★")), ce("span", { className: "pc-pip", "aria-hidden": true }, "★"));
   const rank = code.slice(0, -1), [ch, red] = SUIT[code.slice(-1)];
   return ce("span", { className: "pc" + (red ? " red" : ""), role: "img", "aria-label": rank + ch },
     ce("span", { className: "pc-corner", "aria-hidden": true }, ce("b", null, rank), ce("i", null, ch)),
@@ -717,7 +902,7 @@ function App() {
   let screen;
   const g = view.gameId && s.games[view.gameId], grp = view.groupId && s.groups[view.groupId];
   if (view.at === "group" && grp) screen = ce(GroupPage, { s, group: grp, open, go, sync, rematch });
-  else if (view.at === "game" && g) screen = ce(GameScreen, { s, api, game: g, open, go, wide, setToast });
+  else if (view.at === "game" && g) screen = ce(GameScreen, { s, api, game: g, open, go, wide, setToast, level: settings.level });
   else if (view.at === "recap" && g) screen = ce(Recap, { s, game: g, go, setToast, rematch,
     onDelete: () => withUndo("Game deleted", () => { api.set(x => { const games = { ...x.games }; delete games[g.id]; return { ...x, games }; }); go({ at: "group", groupId: g.groupId }); }) });
   else screen = ce(Home, { s, open, go, sync, rematch });
@@ -741,9 +926,10 @@ function App() {
       onRename: name => api.group(tg.id, x => ({ ...x, name })),
       onDelete: () => { close(); withUndo(tg.name + " deleted", () => { api.set(x => { const groups = { ...x.groups }, games = { ...x.games }; delete groups[tg.id];
         Object.values(games).forEach(gm => { if (gm.groupId === tg.id) delete games[gm.id]; }); return { ...x, groups, games, groupOrder: x.groupOrder.filter(i => i !== tg.id) }; }); go({ at: "home" }); }); } }); }
-    if (sheet.type === "rules") sheetEl = ce(RulesSheet, { onClose: close, round: sg ? sg.round : 0, rules: sg ? sg.rules : DEFAULT_RULES,
+    if (sheet.type === "level") sheetEl = ce(LevelSheet, { onClose: close, onPick: lv => { setSettings(x => ({ ...x, level: lv })); if (lv === "new" && sg) open("rules", { gameId: sg.id }); else close(); } });
+    if (sheet.type === "rules") sheetEl = ce(RulesSheet, { onClose: close, round: sg ? sg.round : 0, rules: sg ? sg.rules : DEFAULT_RULES, level: settings.level, initialTab: sheet.tab,
       setRules: sg && sg.status === "live" ? fn => api.game(sg.id, x => ({ ...x, rules: fn(x.rules) })) : null });
-    if (sheet.type === "settings") sheetEl = ce(SettingsSheet, { onClose: close, settings, setSettings, game: sg,
+    if (sheet.type === "settings") sheetEl = ce(SettingsSheet, { onClose: close, settings, setSettings, game: sg, onHelp: () => open("rules", { gameId: sheet.gameId, tab: sg ? "round" : "how" }),
       onEnd: sg ? () => { close(); withUndo("Game ended without saving", () => { api.game(sg.id, x => ({ ...x, status: "abandoned" })); go({ at: "group", groupId: sg.groupId }); }); } : null });
   }
   return ce(Fragment, null, screen, sheetEl,
@@ -790,7 +976,8 @@ function Home({ s, open, go, sync, rematch }) {
         ce("h2", null, "Keep score at the table"),
         ce("p", null, "May I? knows all seven contracts, counts the cards and tracks every buy. Add who's playing and deal. Your table remembers every game and crowns a champion."),
         ce("button", { className: "btn primary lg block", onClick: () => open("quick") }, "Start a game"),
-        ce("button", { className: "btn plain block", onClick: () => open("join") }, "Join a table with a code"))
+        ce("button", { className: "btn plain block", onClick: () => open("join") }, "Join a table with a code"),
+        ce("button", { className: "btn plain block", onClick: () => open("rules", { tab: "how" }) }, "New to May I? Learn in 60 seconds"))
       : ce(List, { header: "Tables", footer: "Each table keeps its own players, games and champion." },
           groups.map(g => { const st = groupStats(s, g.id), lead = Object.entries(st.wins).sort((a, b) => b[1] - a[1]), lp = lead[0] && !(lead[1] && lead[1][1] === lead[0][1]) && g.players.find(p => p.id === lead[0][0]);
             return ce(Row, { key: g.id, lead: ce(Avatars, { players: g.players }), title: g.name, chevron: true, onClick: () => go({ at: "group", groupId: g.id }),
@@ -833,7 +1020,7 @@ function GroupPage({ s, group, open, go, sync, rematch }) {
 }
 
 // ── Game: the table ───────────────────────────────────────────────
-function GameScreen({ s, api, game, open, go, wide, setToast }) {
+function GameScreen({ s, api, game, open, go, wide, setToast, level }) {
   const group = s.groups[game.groupId];
   const [board, setBoard] = useState(false);
   const [pad, setPad] = useState(null), [advance, setAdvance] = useState(false), [fix, setFix] = useState(null);
@@ -887,7 +1074,7 @@ function GameScreen({ s, api, game, open, go, wide, setToast }) {
     fix != null && ce(ScorePad, { game, pl, start: 0, round: fix, rs: game.scores[fix] || {}, setScore: (pid, v, cards) => setScore(pid, v, cards, fix), onClose: () => setFix(null),
       onDone: () => { setFix(null); setToast({ text: "Round " + (fix + 1) + " updated" }); } }),
     intro && ce(RoundIntro, { r: ROUNDS[intro.round], winners: intro.winners, fromN: intro.from != null ? intro.from + 1 : null, dealerName: pl(game.players[dealerIdx(game, intro.round)]).name,
-      onDone: () => setIntro(null), onUndo: intro.from != null ? () => { upd(g => ({ ...g, round: intro.from })); setIntro(null); } : null }));
+      onDone: () => { setIntro(null); if (!level) open("level", { gameId: game.id }); else if (level === "new") open("rules", { gameId: game.id }); }, onUndo: intro.from != null ? () => { upd(g => ({ ...g, round: intro.from })); setIntro(null); } : null }));
   if (board) return ce("div", { className: "scoreboard" },
     ce("div", { className: "sb-head" }, ce("span", null, "Round " + r.n + " of 7"), ce("h1", null, r.name), ce(Melds, { ex: r.ex }), ce("span", { className: "grow" }),
       ce("button", { className: "btn on-band", onClick: () => setBoard(false) }, "Done")), seats, overlays);
@@ -1149,17 +1336,23 @@ function StartSheet({ onClose, group, onStart, lastRules }) {
     ce(HouseRules, { rules, up: (k, v) => setRules(x => ({ ...x, [k]: v })) }));
 }
 function HouseRules({ rules, up }) {
+  const [why, setWhy] = useState(null);
+  // Each rule says what it means right now, with the story behind it one tap away.
+  const meta = k => ce("div", { className: "rule-meta" }, ce("small", null, ruleHint(k, rules)),
+    ce("button", { className: "why", "aria-expanded": why === k, onClick: () => setWhy(why === k ? null : k) }, why === k ? "Hide" : "Why?"),
+    why === k && ce("p", { className: "why-text" }, RULE_WHY[k]));
   return ce("div", { className: "list" },
     ce("div", { className: "row col" }, ce("b", null, "“May I?” buys per round"),
       ce(Seg, { label: "Buys", value: rules.buyLimit, onChange: v => up("buyLimit", v), options: [["3", "3"], ["custom", "Custom"], ["unlimited", "No limit"]] }),
       rules.buyLimit === "custom" && ce("div", { className: "stepper" },
         ce("button", { className: "round-btn", onClick: () => up("customBuyLimit", Math.max(1, (rules.customBuyLimit || 3) - 1)), "aria-label": "Fewer buys" }, ce(Icon, { n: "minus", size: 18 })),
         ce("b", null, rules.customBuyLimit || 3),
-        ce("button", { className: "round-btn", onClick: () => up("customBuyLimit", Math.min(10, (rules.customBuyLimit || 3) + 1)), "aria-label": "More buys" }, ce(Icon, { n: "plus", size: 18 })))),
-    ce("div", { className: "row" }, ce("span", { className: "row-main" }, ce("b", null, "Jokers wild")), ce(Switch, { on: rules.jokersWild, onChange: v => up("jokersWild", v), label: "Jokers wild" })),
-    ce("div", { className: "row" }, ce("span", { className: "row-main" }, ce("b", null, "2s wild too")), ce(Switch, { on: rules.twosWild, onChange: v => up("twosWild", v), label: "Twos wild" })),
+        ce("button", { className: "round-btn", onClick: () => up("customBuyLimit", Math.min(10, (rules.customBuyLimit || 3) + 1)), "aria-label": "More buys" }, ce(Icon, { n: "plus", size: 18 }))),
+      meta("buyLimit")),
+    ce("div", { className: "row col" }, ce("div", { className: "rule-top" }, ce("b", null, "Jokers wild"), ce(Switch, { on: rules.jokersWild, onChange: v => up("jokersWild", v), label: "Jokers wild" })), meta("jokersWild")),
+    ce("div", { className: "row col" }, ce("div", { className: "rule-top" }, ce("b", null, "2s wild too"), ce(Switch, { on: rules.twosWild, onChange: v => up("twosWild", v), label: "Twos wild" })), meta("twosWild")),
     ce("div", { className: "row col" }, ce("b", null, "Aces in runs"),
-      ce(Seg, { label: "Aces", value: rules.acesPosition, onChange: v => up("acesPosition", v), options: [["low", "A-2-3"], ["high", "Q-K-A"], ["both", "Either"]] })));
+      ce(Seg, { label: "Aces", value: rules.acesPosition, onChange: v => up("acesPosition", v), options: [["low", "A-2-3-4"], ["high", "J-Q-K-A"], ["both", "Either"]] }), meta("acesPosition")));
 }
 function ShareSheet({ onClose, group, setToast }) {
   const link = location.origin + location.pathname + "?join=" + group.code;
@@ -1200,36 +1393,77 @@ function TableSheet({ onClose, group, onRename, onDelete }) {
     ce("div", { className: "list gap" }, ce("button", { className: "row tap danger", onClick: onDelete },
       ce("span", { className: "row-main" }, ce("b", null, "Delete table"), ce("small", null, "Removes its players and every game. You can undo this for a few seconds.")))));
 }
-function SettingsSheet({ onClose, settings, setSettings, game, onEnd }) {
+function LevelSheet({ onClose, onPick }) {
+  return ce(Sheet, { title: "Have you played before?", onClose },
+    ce("p", { className: "sheet-lede" }, "We'll set the coaching to suit you. You can change it in Settings."),
+    ce("div", { className: "level-pick" },
+      ce("button", { className: "level", onClick: () => onPick("new") }, ce("span", { className: "row-ic soft" }, ce(Icon, { n: "book", size: 22 })),
+        ce("b", null, "I'm still learning"), ce("small", null, "A short guide opens at the start of every round, with tips for that contract.")),
+      ce("button", { className: "level", onClick: () => onPick("pro") }, ce("span", { className: "row-ic soft" }, ce(Icon, { n: "crown", size: 22 })),
+        ce("b", null, "I know the game"), ce("small", null, "Guides stay out of the way. Tap the contract whenever you want one."))));
+}
+function SettingsSheet({ onClose, settings, setSettings, game, onEnd, onHelp }) {
   return ce(Sheet, { title: game ? "Game settings" : "Settings", onClose },
     ce("h3", { className: "group-h" }, "Look"),
     ce("div", { className: "looks", role: "radiogroup", "aria-label": "Look" }, Object.entries(LOOKS).map(([k, L]) =>
       ce("button", { key: k, role: "radio", "aria-checked": settings.look === k, className: "look" + (settings.look === k ? " on" : ""), onClick: () => { haptic(6); setSettings(x => ({ ...x, look: k })); } },
         ce("span", { className: "look-sw", style: { background: "linear-gradient(135deg," + L.swatch[0] + " 50%," + L.swatch[1] + " 50%)" } }), ce("b", null, L.name), ce("small", null, L.desc)))),
     ce("p", { className: "group-f" }, "Table, Midnight and Parlour follow your phone's dark mode. Daylight stays bright for sunshine."),
+    ce("h3", { className: "group-h" }, "Coaching"),
+    ce("div", { className: "list" },
+      ce("div", { className: "row col" }, ce("b", null, "How well do you know May I?"),
+        ce(Seg, { label: "Experience", value: settings.level || "new", onChange: v => setSettings(x => ({ ...x, level: v })), options: [["new", "Still learning"], ["pro", "I know it well"]] }),
+        ce("small", { className: "rule-hint" }, (settings.level || "new") === "new" ? "The round guide opens at the start of each round." : "Guides stay closed. Tap the contract any time to open one.")),
+      ce(Row, { lead: ce("span", { className: "row-ic" }, ce(Icon, { n: "book", size: 19 })), title: game ? "Round guide and rules" : "How to play", tone: "accent", chevron: true, onClick: onHelp })),
     game && ce(Fragment, null,
       ce("h3", { className: "group-h" }, "This game"),
       ce("div", { className: "list" }, ce("button", { className: "row tap danger", onClick: onEnd },
         ce("span", { className: "row-main" }, ce("b", null, "End game without saving"), ce("small", null, "You can undo this for a few seconds."))))),
     SUPPORT_URL && ce("a", { className: "tip-link", href: SUPPORT_URL, target: "_blank", rel: "noopener" }, "Enjoying May I? ", ce("b", null, "Tip the dealer")));
 }
-function RulesSheet({ onClose, round, rules, setRules }) {
-  const [tab, setTab] = useState("round");
-  const r = ROUNDS[round];
-  return ce(Sheet, { title: "Rules", onClose, tall: true },
-    ce(Seg, { label: "Rules section", value: tab, onChange: setTab, options: [["round", "Round " + r.n], ["how", "How to play"], ["house", "House rules"]] }),
-    tab === "round" && ce("div", { className: "rule-card" },
-      ce("span", { className: "rc-n" }, "Round " + r.n + " of 7"), ce("h3", null, r.name), ce("p", { className: "rc-line" }, contractLine(r) + " · deal " + r.cards),
+// A numbered timeline, used for Learn in 60 seconds, a turn, and May I?
+function Steps({ items, limitText }) {
+  return ce("ol", { className: "steps" }, items.map((x, i) => ce("li", { key: i }, ce("span", { className: "step-n" }, i + 1),
+    ce("span", null, ce("b", null, x.t), ce("small", null, limitText ? x.d.replace("{limit}", limitText) : x.d)))));
+}
+function RoundGuide({ round, level }) {
+  const r = ROUNDS[round], G = GUIDE[round], [showPro, setShowPro] = useState(level === "pro");
+  return ce(Fragment, null,
+    ce("div", { className: "rule-card" },
+      ce("span", { className: "rc-n" }, "Round " + r.n + " of 7"), ce("h3", null, r.name), ce("p", { className: "rc-line" }, contractLine(r)),
       ce("div", { className: "rc-melds" }, ce(Melds, { ex: r.ex })),
-      ce("ul", { className: "facts" }, ce("li", null, ce(Icon, { n: "bolt", size: 18 }), r.tip), ce("li", null, ce(Icon, { n: "out", size: 18 }), r.watch),
-        ce("li", null, ce(Icon, { n: "down", size: 18 }), r.goOut ? "Lay down every card at once. No discard." : "Once you go down, only lay off. No new melds."))),
-    tab === "round" && ce("div", { className: "list" }, ROUNDS.map(x => ce(Row, { key: x.n, lead: ce("span", { className: "rnum" + (x.n === r.n ? " on" : "") }, x.n), title: x.name, sub: contractLine(x) }))),
+      ce("p", { className: "rc-goal" }, G.goal),
+      ce("div", { className: "rc-facts" }, ce("span", null, ce("b", null, r.cards), " dealt"), ce("span", null, ce("b", null, G.inContract), " in the contract"), ce("span", null, ce("b", null, r.cards - G.inContract), r.goOut ? " to fit in runs" : " spare"))),
+    ce("h3", { className: "group-h" }, "Watch out"),
+    ce("p", { className: "callout warn" }, ce(Icon, { n: "flag", size: 18 }), r.watch),
+    ce("h3", { className: "group-h" }, "After you go down"),
+    ce("p", { className: "callout" }, ce(Icon, { n: "down", size: 18 }), G.after),
+    ce("h3", { className: "group-h" }, "Tips"),
+    ce("ul", { className: "tips" }, G.tips.map(t => ce("li", { key: t }, ce(Icon, { n: "bolt", size: 16 }), t))),
+    showPro ? ce(Fragment, null, ce("h3", { className: "group-h" }, "Pro tips"), ce("ul", { className: "tips pro" }, G.pro.map(t => ce("li", { key: t }, ce(Icon, { n: "crown", size: 16 }), t))))
+      : ce("button", { className: "btn plain block", onClick: () => setShowPro(true) }, "Show pro tips"));
+}
+function RulesSheet({ onClose, round, rules, setRules, level, initialTab }) {
+  const [tab, setTab] = useState(initialTab || "round"), [r, setR] = useState(round || 0);
+  const limit = buyLimitOf(rules), limitText = limit === Infinity ? "unlimited buys" : limit + (limit === 1 ? " buy" : " buys");
+  return ce(Sheet, { title: tab === "round" ? "Round guide" : "How to play", onClose, tall: true },
+    ce(Seg, { label: "Rules section", value: tab, onChange: setTab, options: [["round", "Rounds"], ["how", "Basics"], ["faq", "Q&A"], ["house", "House"]] }),
+    tab === "round" && ce(Fragment, null,
+      ce("div", { className: "rpick", role: "tablist", "aria-label": "Round" }, ROUNDS.map((x, i) => ce("button", { key: i, role: "tab", "aria-selected": i === r, className: "rnum" + (i === r ? " on" : ""), onClick: () => setR(i) }, x.n))),
+      ce(RoundGuide, { key: r, round: r, level })),
     tab === "how" && ce(Fragment, null,
-      ce("div", { className: "list" }, HOW_TO.map(([ic, t, d]) => ce(Row, { key: t, lead: ce("span", { className: "row-ic soft" }, ce(Icon, { n: ic, size: 20 })), title: t, sub: d }))),
+      ce("h3", { className: "group-h" }, "Learn in 60 seconds"), ce(Steps, { items: QUICK_START }),
+      ce("h3", { className: "group-h" }, "Your turn"), ce(Steps, { items: TURN_STEPS }),
+      ce("h3", { className: "group-h" }, "How “May I?” works"), ce(Steps, { items: MAYI_STEPS, limitText }),
       ce("h3", { className: "group-h" }, "Points left in hand"),
-      ce("div", { className: "values" }, [["2–9", "face value"], ["10 J Q K", "10"], ["Ace", rules.acesPosition === "high" ? "15" : rules.acesPosition === "both" ? "1 or 15" : "1"], ["Joker", "15"]]
+      ce("div", { className: "values" }, [["2–9", rules.twosWild ? "3–9 face, 2s 15" : "face value"], ["10 J Q K", "10"], ["Ace", rules.acesPosition === "high" ? "15" : rules.acesPosition === "both" ? "1 or 15" : "1"], ["Joker", "15"]]
         .map(([k, v]) => ce("div", { key: k }, ce("span", null, k), ce("b", null, v))))),
-    tab === "house" && (setRules ? ce(HouseRules, { rules, up: (k, v) => setRules(x => ({ ...x, [k]: v })) }) : ce("p", { className: "group-f" }, rulesLine(rules))));
+    tab === "faq" && ce(Fragment, null,
+      ce("div", { className: "list faq" }, FAQ.map(f => ce("details", { key: f.q, className: "qa" }, ce("summary", null, f.q, ce(Icon, { n: "chevron", size: 16 })), ce("p", null, f.a)))),
+      ce("h3", { className: "group-h" }, "Words at the table"),
+      ce("div", { className: "list" }, GLOSSARY.map(w => ce("div", { key: w.term, className: "row col gloss" }, ce("b", null, w.term), ce("small", null, w.d), w.ex && ce("span", { className: "gloss-ex" }, ce(Melds, { ex: [w.ex] })))))),
+    tab === "house" && (setRules ? ce(Fragment, null, ce(HouseRules, { rules, up: (k, v) => setRules(x => ({ ...x, [k]: v })) }), ce("p", { className: "group-f" }, "Changes apply to this game from now on."))
+      : ce("p", { className: "group-f" }, rulesLine(rules) + ". Set house rules when you deal a new game.")));
 }
 
 // ── Styles ────────────────────────────────────────────────────────
@@ -1486,7 +1720,7 @@ input { caret-color: var(--accent); }
 .grab { position: absolute; top: 6px; left: 50%; width: 36px; height: 5px; border-radius: 3px; background: var(--line); transform: translateX(-50%); }
 .sheet-head h2 { flex: 1; margin: 6px 0 0; font: 650 1.35rem var(--display); letter-spacing: -.015em; }
 .sheet-head .icon-btn { width: 32px; height: 32px; border-radius: 50%; background: var(--fill); color: var(--ink2); display: grid; place-items: center; margin-right: 6px; }
-.sheet-body { padding: 8px 16px 20px; overflow-y: auto; display: grid; gap: 12px; align-content: start; overscroll-behavior: contain; }
+.sheet-body { padding: 8px 16px 20px; overflow-y: auto; display: grid; grid-auto-rows: max-content; gap: 12px; align-content: start; overscroll-behavior: contain; }
 .sheet-body > .group-h { margin-bottom: -5px; } .sheet-body > .group-f { margin-top: -5px; }
 .sheet-foot { padding: 12px 16px calc(14px + env(safe-area-inset-bottom)); border-top: var(--hair) solid var(--line); }
 .seg { display: flex; background: var(--fill); border-radius: 11px; padding: 2px; gap: 2px; }
@@ -1550,6 +1784,41 @@ input { caret-color: var(--accent); }
 .now-card.again .now-foot svg { color: var(--ink3); }
 .now-card.again .now-foot .avs .peg { box-shadow: 0 0 0 2px var(--surface); }
 .list.gap { margin-top: 22px; }
+
+/* Coaching: round guide, steps, Q&A, rule hints */
+.pc.joker { color: #7A4BD8; }
+.rpick { display: flex; justify-content: space-between; gap: 6px; }
+.rpick .rnum { width: 40px; height: 40px; font-size: 1rem; }
+.rc-goal { margin: 4px 0 0; font-size: .98rem; line-height: 1.4; color: #2A2D2F; text-wrap: pretty; }
+.rc-facts { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; margin-top: 8px; font-size: .82rem; color: #555; }
+.rc-facts b { font: 700 1rem var(--num); color: #15181A; }
+.callout { display: flex; gap: 10px; align-items: flex-start; margin: 0; padding: 12px 14px; border-radius: 14px; background: var(--surface); box-shadow: 0 0 0 var(--hair) var(--line); line-height: 1.4; }
+.callout svg { flex: none; margin-top: 1px; color: var(--accent); }
+.callout.warn { background: var(--gold-soft); box-shadow: none; } .callout.warn svg { color: var(--gold); }
+.tips { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.tips li { display: flex; gap: 10px; align-items: flex-start; line-height: 1.4; padding: 0 4px; }
+.tips svg { flex: none; margin-top: 2px; color: var(--accent); } .tips.pro svg { color: var(--gold); }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; position: relative; }
+.steps li { display: grid; grid-template-columns: 30px 1fr; gap: 12px; padding: 0 0 16px; position: relative; }
+.steps li:not(:last-child)::before { content: ""; position: absolute; left: 14.5px; top: 30px; bottom: 2px; width: 1px; background: var(--line); }
+.step-n { width: 30px; height: 30px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font: 700 .9rem var(--num); }
+.steps b { display: block; font-weight: 600; margin-top: 4px; } .steps small { display: block; color: var(--ink2); font-size: .9rem; line-height: 1.4; margin-top: 2px; }
+.qa { border-bottom: var(--hair) solid var(--line); } .qa:last-child { border-bottom: 0; }
+.qa summary { list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 52px; padding: 12px 16px; font-weight: 600; cursor: pointer; }
+.qa summary::-webkit-details-marker { display: none; }
+.qa summary svg { flex: none; color: var(--ink3); transition: transform .2s var(--out-e); } .qa[open] summary svg { transform: rotate(90deg); }
+.qa p { margin: 0; padding: 0 16px 14px; color: var(--ink2); line-height: 1.45; }
+.gloss { gap: 4px; } .gloss small { color: var(--ink2); line-height: 1.4; } .gloss-ex { font-size: 11px; margin-top: 6px; }
+.rule-top { display: flex; justify-content: space-between; align-items: center; }
+.rule-meta { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: start; }
+.rule-meta small, .rule-hint { color: var(--ink2); font-size: .86rem; line-height: 1.35; }
+.why { color: var(--accent); font-weight: 600; font-size: .86rem; padding: 0 2px; min-height: 28px; }
+.why-text { grid-column: 1 / -1; margin: 2px 0 0; padding: 10px 12px; border-radius: 10px; background: var(--fill); font-size: .88rem; line-height: 1.4; color: var(--ink2); }
+.sheet-lede { margin: 0; color: var(--ink2); }
+.level-pick { display: grid; gap: 10px; }
+.level { display: grid; grid-template-columns: 44px 1fr; gap: 2px 12px; text-align: left; padding: 16px; border-radius: 16px; background: var(--surface); box-shadow: 0 0 0 var(--hair) var(--line); }
+.level .row-ic { grid-row: span 2; width: 44px; height: 44px; border-radius: 12px; } .level b { font-weight: 600; font-size: 1.05rem; } .level small { color: var(--ink2); line-height: 1.35; }
+.level:active { transform: scale(.98); }
 @keyframes fade { from { opacity: 0; } }
 @keyframes up { from { transform: translateY(100%); } }
 @keyframes down { to { transform: translateY(100%); } }

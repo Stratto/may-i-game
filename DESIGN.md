@@ -29,6 +29,10 @@ Inset grouped lists: radius 14, 56px rows, hairline separators inset to the text
 - **Score pad:** player strip, big display, Type points / Tap cards, keypad, Went out (one per round), Save · next player.
 - **Round intro:** the next contract on a giant 5:7 playing card with corner indices, dealer and tip; Undo round n and Let's play; closes itself after 4.6s.
 - **Recap:** felt finale with a gold hairline frame, Fraunces winner, podium (2, 1, 3) with a gold first block and crown, then lists for the rest of the field, highlights and the round grid. Share (nav bar) makes a 1080×1350 image in the current look.
+- **Round strip:** seven tiles under the band. The current round is filled with the accent, finished rounds show the colour of whoever went out, and tapping a finished round opens the score pad as "Fix round n". The dock is the only way to score the current round.
+- **Undo toast:** ending, deleting a game and deleting a table act at once and show a toast with Undo for 6 seconds. Nothing asks twice.
+- **Round guide (Rules sheet):** tabs Rounds, Basics, Q&A, House. A round shows the contract card with its goal and card maths, then Watch out (gold callout), After you go down, Tips, and Pro tips (open for seasoned players). Basics uses numbered step timelines. Every house rule shows a live hint and a "Why?" note.
+- **Coaching level:** asked once after the first deal ("Have you played before?"). Learners get the round guide at the start of every round. It can be changed in Settings.
 - **Sheets:** bottom sheets on phones (swipe down, scrim, Escape), centred at 700px and up.
 
 ## Layout
