@@ -357,6 +357,26 @@ const MAX_PLAYERS = 8;
 function loadJSON(k, f) { try { const r = localStorage.getItem(k); return r ? JSON.parse(r) : f; } catch (e) { return f; } }
 function saveJSON(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
 function haptic(ms) { try { if (navigator.userActivation && !navigator.userActivation.hasBeenActive) return; if (navigator.vibrate) navigator.vibrate(ms || 8); } catch (e) {} }
+// Table sounds, made on the fly (no files). iPhones can't vibrate from the web, so sound is the feedback there.
+let audioCtx = null, soundOn = true;
+function sound(kind) {
+  if (!soundOn) return;
+  try {
+    if (navigator.userActivation && !navigator.userActivation.hasBeenActive) return;
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    const t0 = audioCtx.currentTime, out = audioCtx.createGain(); out.gain.value = .16; out.connect(audioCtx.destination);
+    const note = (f, at, len, type, vol) => { const o = audioCtx.createOscillator(), g = audioCtx.createGain(); o.type = type || "sine"; o.frequency.value = f;
+      g.gain.setValueAtTime(0, t0 + at); g.gain.linearRampToValueAtTime(vol || 1, t0 + at + .008); g.gain.exponentialRampToValueAtTime(.001, t0 + at + len);
+      o.connect(g); g.connect(out); o.start(t0 + at); o.stop(t0 + at + len + .02); };
+    if (kind === "tap") note(1800, 0, .03, "triangle", .35);
+    else if (kind === "chip") { note(2400, 0, .05, "square", .18); note(3100, .045, .07, "square", .14); }
+    else if (kind === "save") { note(660, 0, .09, "triangle", .6); note(990, .07, .12, "triangle", .5); }
+    else if (kind === "out") { [784, 988, 1175].forEach((f, i) => note(f, i * .07, .35, "sine", .7)); }
+    else if (kind === "deal") { note(420, 0, .06, "triangle", .4); note(560, .05, .08, "triangle", .35); }
+    else if (kind === "win") { [523, 659, 784, 1047].forEach((f, i) => note(f, i * .11, .5, "triangle", .7)); note(1319, .5, .9, "sine", .5); }
+  } catch (e) {}
+}
 const reducedMotion = () => window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 const CODE_ABC = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
@@ -917,6 +937,7 @@ const IC = {
   out: '<circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/>', bolt: '<path d="M13 3L5 14h6l-1 7 8-11h-6z"/>', users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14a5.5 5.5 0 0 1 3.5 6"/>',
   link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>', screen: '<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/>',
   flag: '<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>', edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/>', trash: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>', copy: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>',
+  die: '<rect x="4" y="4" width="16" height="16" rx="3.5"/><path d="M8.5 8.5h.01M15.5 8.5h.01M12 12h.01M8.5 15.5h.01M15.5 15.5h.01" stroke-width="2.6"/>',
   camera: '<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>', spark: '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M18 6l-2.5 2.5M8.5 15.5L6 18"/>',
   wifi: '<path d="M2 9a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M12 19.5h.01"/>',
 };
@@ -1192,7 +1213,7 @@ function useScrolled(px) {
   useEffect(() => { const h = () => setS(scrollY > px); h(); addEventListener("scroll", h, { passive: true }); return () => removeEventListener("scroll", h); }, []);
   return s;
 }
-function Page({ title, back, onBack, actions, children, className, footer }) {
+function Page({ title, back, onBack, actions, children, className, footer, hero }) {
   const collapsed = useScrolled(44);
   return ce("div", { className: "page " + (className || "") },
     ce("header", { className: "nav" + (collapsed ? " collapsed" : "") },
@@ -1200,7 +1221,7 @@ function Page({ title, back, onBack, actions, children, className, footer }) {
         ce("div", { className: "nav-l" }, onBack && ce("button", { className: "nav-back", onClick: onBack }, ce(Icon, { n: "back", size: 22 }), ce("span", null, back))),
         ce("div", { className: "nav-title", "aria-hidden": !collapsed }, title),
         ce("div", { className: "nav-r" }, actions))),
-    ce("main", { className: "content" }, ce("h1", { className: "large-title" }, title), children),
+    ce("main", { className: "content" }, hero ? ce("section", { className: "hero felt" }, ce("h1", { className: "large-title" }, title), hero) : ce("h1", { className: "large-title" }, title), children),
     footer);
 }
 function NavIcon({ n, label, onClick }) { return ce("button", { className: "nav-icon", onClick, "aria-label": label }, ce(Icon, { n, size: 22 })); }
@@ -1224,7 +1245,7 @@ function App() {
   const sync = useSync(s, api);
   const wide = useMedia("(min-width: 900px)");
   const [settings, setSettings] = useState(loadSettings);
-  useEffect(() => { saveJSON(SETTINGS_KEY, settings); applyLook(settings.look); }, [settings]);
+  useEffect(() => { saveJSON(SETTINGS_KEY, settings); applyLook(settings.look); soundOn = settings.sound !== false; }, [settings]);
   useEffect(() => { const mq = matchMedia("(prefers-color-scheme: dark)"), h = () => applyLook(settings.look); mq.addEventListener("change", h); return () => mq.removeEventListener("change", h); }, [settings.look]);
   const [view, setView] = useState(() => {
     const live = Object.values(s.games).find(g => g.status === "live");
@@ -1304,7 +1325,9 @@ function Home({ s, open, go, sync, rematch }) {
   const groups = s.groupOrder.map(id => s.groups[id]).filter(Boolean);
   const lives = groups.map(g => ({ g, game: groupStats(s, g.id).live })).filter(x => x.game);
   const last = !lives.length && Object.values(s.games).filter(g => g.status === "done" && s.groups[g.groupId]).sort((a, b) => b.endedAt - a.endedAt)[0];
-  return ce(Page, { title: "May I?", actions: ce(Fragment, null, ce(SyncPill, { sync }), ce(NavIcon, { n: "gear", label: "Settings", onClick: () => open("settings") })) },
+  const played = Object.values(s.games).filter(g => g.status === "done").length;
+  return ce(Page, { title: "May I?", className: "home", actions: ce(Fragment, null, ce(SyncPill, { sync }), ce(NavIcon, { n: "gear", label: "Settings", onClick: () => open("settings") })),
+      hero: ce(Fragment, null, ce("p", { className: "hero-sub" }, played ? played + (played === 1 ? " game" : " games") + " scored. Who's dealing tonight?" : "Seven contracts. One winner. We'll keep the score."), ce(Fan)) },
     last && ce("button", { className: "now-card again", onClick: () => rematch(last) },
       ce("span", { className: "now-top" }, ce(Icon, { n: "deal", size: 15 }), "Play again"),
       ce("b", { className: "now-name" }, s.groups[last.groupId].name),
@@ -1322,7 +1345,6 @@ function Home({ s, open, go, sync, rematch }) {
           lead ? ce("span", null, ce(Icon, { n: "crown", size: 16 }), lead.name + " leads") : null, ce("span", { className: "now-go" }, "Resume", ce(Icon, { n: "chevron", size: 18 }))));
     }),
     groups.length === 0 ? ce("section", { className: "welcome" },
-        ce(Fan),
         ce("h2", null, "Keep score at the table"),
         ce("p", null, "May I? knows all seven contracts, counts the cards and tracks every buy. Add who's playing and deal. Your table remembers every game and crowns a champion."),
         ce("button", { className: "btn primary lg block", onClick: () => open("quick") }, "Start a game"),
@@ -1336,7 +1358,7 @@ function Home({ s, open, go, sync, rematch }) {
           ce(Row, { lead: ce("span", { className: "row-ic" }, ce(Icon, { n: "link", size: 20 })), title: "Join with a code", tone: "accent", onClick: () => open("join") })));
 }
 function Fan() {
-  return ce("div", { className: "fan", "aria-hidden": true }, ["AS", "KH", "QD", "JC"].map((c, i) => ce("span", { key: c, style: { "--i": i } }, ce(Card, { code: c }))));
+  return ce("div", { className: "fan", "aria-hidden": true }, ["BACK", "KH", "QD", "AS"].map((c, i) => ce("span", { key: c, style: { "--i": i } }, c === "BACK" ? ce("span", { className: "pc back" }) : ce(Card, { code: c }))));
 }
 
 // ── Table (group) page ────────────────────────────────────────────
@@ -1349,14 +1371,16 @@ function GroupPage({ s, group, open, go, sync, rematch }) {
   }).sort((a, b) => b.wins - a.wins || (a.avg ?? 1e9) - (b.avg ?? 1e9));
   const champ = board[0] && board[0].wins > 0 && !(board[1] && board[1].wins === board[0].wins) ? board[0] : null;
   const lastRules = st.games[0] && st.games[0].rules;
-  return ce(Page, { title: group.name, back: "Tables", onBack: () => go({ at: "home" }),
+  return ce(Page, { title: group.name, back: "Tables", onBack: () => go({ at: "home" }), className: "tablepage",
+      hero: ce("div", { className: "hero-champ" },
+        champ ? ce(Fragment, null, ce("span", { className: "champ-peg" }, ce("span", { className: "crown" }, ce(Icon, { n: "crown", size: 22 })), ce(Peg, { color: champ.color, name: champ.name, size: 52, ring: true })),
+            ce("p", null, ce("b", null, champ.name), " is the champion", ce("small", null, champ.wins + (champ.wins === 1 ? " win" : " wins") + " · " + st.games.length + (st.games.length === 1 ? " game" : " games") + " played")))
+          : ce(Fragment, null, ce(Avatars, { players: group.players, size: 40 }), ce("p", null, st.games.length ? "It's all square at the top." : group.players.length + " players. Deal the first game to crown a champion."))),
       actions: ce(Fragment, null, ce(SyncPill, { sync }), ce(NavIcon, { n: "share", label: "Share this table", onClick: () => open("share", { groupId: group.id }) }), ce(NavIcon, { n: "gear", label: "Table settings", onClick: () => open("table", { groupId: group.id }) })),
       footer: ce("footer", { className: "dock" }, st.live
         ? ce("button", { className: "btn primary lg grow", onClick: () => go({ at: "game", gameId: st.live.id }) }, "Resume round " + (st.live.round + 1) + " · " + ROUNDS[st.live.round].name)
         : ce("button", { className: "btn primary lg grow", disabled: group.players.length < 2, onClick: () => open("start", { groupId: group.id, rules: lastRules }) },
             group.players.length < 2 ? "Add 2 players to start" : "Deal a new game")) },
-    ce("p", { className: "lede" }, champ ? ce(Fragment, null, ce(Icon, { n: "crown", size: 18 }), champ.name + " is the champion with " + champ.wins + (champ.wins === 1 ? " win" : " wins"))
-      : st.games.length ? "It's all square at the top." : group.players.length + " players. Deal the first game to crown a champion."),
     ce(List, { header: "Standings", footer: st.games.length ? "Ranked by wins, then average score. Lowest score wins a game." : null },
       board.map((p, i) => ce(Row, { key: p.id, lead: ce(Peg, { color: p.color, name: p.name, size: 36, ring: champ && champ.id === p.id }), title: p.name, chevron: p.played > 0, onClick: p.played ? () => open("profile", { groupId: group.id, playerId: p.id }) : null,
         sub: p.played ? p.played + (p.played === 1 ? " game" : " games") + " · average " + p.avg : "No games yet",
@@ -1427,7 +1451,7 @@ function GameScreen({ s, api, game, open, go, wide, setToast, level }) {
   }
   function changeBuy(pid, delta) {
     const c = (game.buys[game.round] && game.buys[game.round][pid]) || 0, n = c + delta;
-    if (n < 0 || n > limit) return; haptic(6);
+    if (n < 0 || n > limit) return; haptic(6); if (delta > 0) sound("chip");
     upd(g => ({ ...g, buys: { ...g.buys, [g.round]: { ...(g.buys[g.round] || {}), [pid]: n } } }));
   }
   function finish() { haptic([18, 70, 18, 70, 40]); upd(g => ({ ...g, status: "done", endedAt: now() })); go({ at: "recap", gameId: game.id }); }
@@ -1438,7 +1462,7 @@ function GameScreen({ s, api, game, open, go, wide, setToast, level }) {
     if (game.round >= 6 && gap >= 0) { upd(g => ({ ...g, round: gap })); setToast({ text: "Round " + (gap + 1) + " still needs scores" }); return; }
     const from = game.round, best = Math.min(...game.players.map(id => rs[id]));
     const winners = game.players.filter(id => rs[id] === best).map(id => pl(id).name).join(" & ");
-    haptic(14); upd(g => ({ ...g, round: from + 1 }));
+    haptic(14); sound("deal"); upd(g => ({ ...g, round: from + 1 }));
     setIntro({ round: from + 1, winners, from });
   }
   const firstOpen = Math.max(0, game.players.findIndex(id => typeof rs[id] !== "number"));
@@ -1507,7 +1531,7 @@ function Seat({ i, p, total, isLead, isDealer, gap, hasAny, board, buys, limit, 
     ce("span", { className: "seat-total" }, shown),
     !board && ce("span", { className: "buy" },
       buys > 0 && ce("button", { className: "buy-minus", onClick: () => changeBuy(p.id, -1), "aria-label": "Take back a buy from " + p.name }, ce(Icon, { n: "minus", size: 14, stroke: 2.4 })),
-      ce("button", { className: "buy-pill" + (buys ? " has" : ""), onClick: () => changeBuy(p.id, 1), disabled: atLimit, "aria-label": p.name + " says May I?, " + buys + " so far" },
+      ce("button", { key: "b" + buys, className: "buy-pill" + (buys ? " has bump" : ""), onClick: () => changeBuy(p.id, 1), disabled: atLimit, "aria-label": p.name + " says May I?, " + buys + " so far" },
         "May I?", limit === Infinity ? (buys > 0 && ce("b", null, buys)) : ce("span", { className: "dots" }, Array.from({ length: limit }, (_, k) => ce("i", { key: k, className: k < buys ? "on" : "" }))))));
 }
 function ScorePad({ game, pl, start, round, rs, setScore, onClose, onDone }) {
@@ -1538,8 +1562,8 @@ function ScorePad({ game, pl, start, round, rs, setScore, onClose, onDone }) {
     if (next.v > 0 && !ids.some(x => v[x] === 0)) { const left = ids.filter(x => typeof v[x] !== "number"); if (left.length === 1) v[left[0]] = 0; }
     const after = ids.map((_, k) => (idx + 1 + k) % ids.length).find(k => typeof v[ids[k]] !== "number");
     if (after == null) { reset(); onDone(); } else openPlayer(after); }
-  function save(v) { haptic(12); setScore(id, v, mode === "cards" ? hand : null); move({ v }); }
-  const key = k => { haptic(5); if (k === "del") setBuf(b => b.slice(0, -1)); else setBuf(b => (b + k).replace(/^0+(?=\d)/, "").slice(0, 3)); };
+  function save(v) { haptic(12); sound(v === 0 ? "out" : "save"); setScore(id, v, mode === "cards" ? hand : null); move({ v }); }
+  const key = k => { haptic(5); sound("tap"); if (k === "del") setBuf(b => b.slice(0, -1)); else setBuf(b => (b + k).replace(/^0+(?=\d)/, "").slice(0, 3)); };
   useEffect(() => { const h = e => { if (/^\d$/.test(e.key)) key(e.key); else if (e.key === "Backspace") key("del"); else if (e.key === "Enter" && val != null) save(val); };
     addEventListener("keydown", h); return () => removeEventListener("keydown", h); });
   const remaining = ids.filter(x => typeof rs[x] !== "number" && x !== id).length;
@@ -1567,7 +1591,7 @@ function ScorePad({ game, pl, start, round, rs, setScore, onClose, onDone }) {
             scanMsg && ce("p", { className: "scan-msg" + (scanMsg.err ? " err" : ""), role: scanMsg.err ? "alert" : "status" }, scanMsg.t)),
           ce("div", { className: "hand" + (scanning ? " busy" : "") }, hand.length ? hand.map((c, i) => ce("button", { key: i + c, className: "hcard" + (doubt[i] ? " doubt" : ""), onClick: () => { setHand(h => h.filter((_, j) => j !== i)); setDoubt(d => d.filter((_, j) => j !== i)); }, "aria-label": "Remove " + face(c) + (doubt[i] ? ", unsure" : "") },
               ce("b", null, face(c)), ce("small", null, cardValue(c, rules)))) : ce("p", { className: "hint" }, "Tap each card left in " + p.name + "'s hand. Tap a card here to remove it.")),
-          ce("div", { className: "keys" }, keys.map(c => ce("button", { key: c, className: "key", onClick: () => { haptic(5); setHand(h => [...h, c]); } },
+          ce("div", { className: "keys" }, keys.map(c => ce("button", { key: c, className: "key", onClick: () => { haptic(5); sound("tap"); setHand(h => [...h, c]); } },
             ce("b", null, face(c)), ce("small", null, c === "A1" ? "1" : c === "A15" ? "15" : cardValue(c, rules)))))));
 }
 const SUIT_CYCLE = ["♠", "♥", "♦", "♣"];
@@ -1578,13 +1602,13 @@ function RoundIntro({ r, winners, fromN, dealerName: dn, onDone, onUndo }) {
   const suit = SUIT_CYCLE[(r.n - 1) % 4], red = suit === "♥" || suit === "♦";
   return ce("div", { className: "intro" + (out ? " out" : ""), role: "dialog", "aria-modal": true, "aria-label": "Round " + r.n + ": " + r.name, onClick: done },
     winners && ce("p", { className: "intro-won" }, ce(Icon, { n: "trophy", size: 16 }), winners + " won round " + fromN),
-    ce("div", { className: "big-card" + (red ? " red" : "") },
+    ce("div", { className: "bc-flip" }, ce("div", { className: "bc-back", "aria-hidden": true }), ce("div", { className: "big-card" + (red ? " red" : "") },
       ce("span", { className: "bc-idx" }, ce("b", null, r.n), ce("i", null, suit)), ce("span", { className: "bc-idx flip" }, ce("b", null, r.n), ce("i", null, suit)),
       ce("span", { className: "bc-round" }, "Round " + r.n + " of 7"),
       ce("h2", null, r.name),
       ce(Melds, { ex: r.ex }),
       ce("span", { className: "bc-deal" }, dn + " deals " + r.cards + " cards"),
-      ce("span", { className: "bc-tip" }, r.goOut ? "Go out in one turn. No final discard." : r.watch)),
+      ce("span", { className: "bc-tip" }, r.goOut ? "Go out in one turn. No final discard." : r.watch))),
     ce("div", { className: "intro-actions" },
       onUndo && ce("button", { className: "btn on-band", onClick: e => { e.stopPropagation(); onUndo(); } }, "Undo round " + fromN),
       ce("button", { className: "btn gold grow", onClick: e => { e.stopPropagation(); done(); } }, r.n === 1 && !winners ? "Deal" : "Let's play")));
@@ -1652,7 +1676,7 @@ function Recap({ s, game, go, setToast, rematch, onDelete }) {
   return ce(Page, { title: "Results", back: group.name, onBack: () => go({ at: "group", groupId: group.id }), className: "recap",
       actions: ce(NavIcon, { n: "share", label: "Share the results", onClick: share }),
       footer: game.status === "done" && sameTable && ce("footer", { className: "dock" }, ce("button", { className: "btn primary lg grow", onClick: () => rematch(game) }, ce(Icon, { n: "deal", size: 20 }), "Rematch")) },
-    fresh && ce(Confetti),
+    fresh && ce(Confetti), fresh && ce(PlayOnce, { fn: () => sound("win") }),
     ce("section", { className: "finale" },
       ce("p", { className: "finale-date" }, (game.endedAt ? new Date(game.endedAt).toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" }) : "") ),
       ce("h2", null, top.map(t => pl(t.id).name).join(" & ") + (top.length > 1 ? " share the win" : " wins")),
@@ -1695,6 +1719,7 @@ function resultsImage(name, rows, endedAt) {
     c.toBlob(b => res(b), "image/png");
   } catch (e) { res(null); } });
 }
+function PlayOnce({ fn }) { useEffect(() => { fn(); }, []); return null; }
 function Confetti() {
   const ref = useRef(null);
   useEffect(() => {
@@ -1753,10 +1778,14 @@ function PlayersSheet({ onClose, group, api }) {
 function StartSheet({ onClose, group, onStart, lastRules }) {
   const [sel, setSel] = useState(group.players.map(p => p.id)), [dealer, setDealer] = useState(0), [rules, setRules] = useState({ ...DEFAULT_RULES, ...(lastRules || {}) });
   const chosen = group.players.filter(p => sel.includes(p.id)), d = Math.min(dealer, Math.max(0, chosen.length - 1));
+  // Roll for the first dealer: the highlight hops round the table and lands on someone.
+  const [rolling, setRolling] = useState(false);
+  const roll = () => { if (rolling || chosen.length < 2) return; setRolling(true); const end = Math.floor(Math.random() * chosen.length), hops = reducedMotion() ? 0 : chosen.length * 2 + end;
+    let n = 0; const step = () => { setDealer(n % chosen.length); sound("tap"); if (n++ < hops) setTimeout(step, 60 + n * 12); else { setDealer(end); setRolling(false); sound("chip"); haptic(12); } }; step(); };
   return ce(Sheet, { title: "New game", onClose, tall: true,
     footer: ce("button", { className: "btn primary lg block", disabled: chosen.length < 2, onClick: () => onStart(chosen.map(p => p.id), d, rules) }, chosen.length < 2 ? "Pick at least 2 players" : "Deal round 1") },
-    ce("h3", { className: "group-h" }, "Who's playing"),
-    ce("div", { className: "list" }, group.players.map(p => { const on = sel.includes(p.id), idx = chosen.findIndex(c => c.id === p.id);
+    ce("div", { className: "group-h split" }, ce("span", null, "Who's playing"), ce("button", { className: "roll", onClick: roll, disabled: rolling || chosen.length < 2 }, ce(Icon, { n: "die", size: 16 }), rolling ? "Rolling…" : "Roll for dealer")),
+    ce("div", { className: "list" + (rolling ? " rolling" : "") }, group.players.map(p => { const on = sel.includes(p.id), idx = chosen.findIndex(c => c.id === p.id);
       return ce("div", { key: p.id, className: "row" },
         ce("button", { className: "pick", role: "checkbox", "aria-checked": on, onClick: () => setSel(on ? sel.filter(x => x !== p.id) : [...sel, p.id]) },
           ce("span", { className: "check" + (on ? " on" : "") }, on && ce(Icon, { n: "check", size: 15, stroke: 3 })), ce(Peg, { color: p.color, name: p.name, size: 32 }), ce("b", null, p.name)),
@@ -1845,12 +1874,21 @@ function LevelSheet({ onClose, onPick }) {
         ce("b", null, "I know the game"), ce("small", null, "Guides stay out of the way. Tap the contract whenever you want one."))));
 }
 function SettingsSheet({ onClose, settings, setSettings, game, onEnd, onHelp }) {
+  // Surprise me: flick through the looks like a rolling die, then land on a different one.
+  const [rolling, setRolling] = useState(false);
+  const surprise = () => { if (rolling) return; setRolling(true); const keys = Object.keys(LOOKS); let n = 0, cur = settings.look;
+    const step = () => { cur = keys.filter(k => k !== cur)[Math.floor(Math.random() * (keys.length - 1))]; setSettings(x => ({ ...x, look: cur })); sound("tap");
+      if (++n < (reducedMotion() ? 1 : 6)) setTimeout(step, 90 + n * 30); else { setRolling(false); sound("chip"); haptic(10); } };
+    step(); };
   return ce(Sheet, { title: game ? "Game settings" : "Settings", onClose },
     ce("h3", { className: "group-h" }, "Look"),
     ce("div", { className: "looks", role: "radiogroup", "aria-label": "Look" }, Object.entries(LOOKS).map(([k, L]) =>
       ce("button", { key: k, role: "radio", "aria-checked": settings.look === k, className: "look" + (settings.look === k ? " on" : ""), onClick: () => { haptic(6); setSettings(x => ({ ...x, look: k })); } },
-        ce("span", { className: "look-sw", style: { background: "linear-gradient(135deg," + L.swatch[0] + " 50%," + L.swatch[1] + " 50%)" } }), ce("b", null, L.name), ce("small", null, L.desc)))),
+        ce("span", { className: "look-sw", "data-look-sw": k, style: { background: "linear-gradient(135deg," + L.swatch[0] + " 50%," + L.swatch[1] + " 50%)" } }), ce("b", null, L.name), ce("small", null, L.desc))),
+      ce("button", { className: "look surprise" + (rolling ? " rolling" : ""), onClick: surprise }, ce("span", { className: "look-sw die" }, ce(Icon, { n: "die", size: 26 })), ce("b", null, "Surprise me"), ce("small", null, "Roll for a look"))),
     ce("p", { className: "group-f" }, "Table, Midnight and Parlour follow your phone's dark mode. Daylight stays bright for sunshine."),
+    ce("div", { className: "list gap" }, ce("div", { className: "row" }, ce("span", { className: "row-main" }, ce("b", null, "Sounds"), ce("small", null, "Chips, chimes and a fanfare for the winner")),
+      ce(Switch, { on: settings.sound !== false, onChange: v => setSettings(x => ({ ...x, sound: v })), label: "Sounds" }))),
     ce("h3", { className: "group-h" }, "Coaching"),
     ce("div", { className: "list" },
       ce("div", { className: "row col" }, ce("b", null, "How well do you know May I?"),
@@ -2325,6 +2363,57 @@ input { caret-color: var(--accent); }
 .badge { display: grid; justify-items: center; gap: 4px; padding: 12px 6px; border-radius: 14px; background: var(--surface); box-shadow: 0 0 0 var(--hair) var(--line); text-align: center; }
 .badge b { font-size: .82rem; font-weight: 600; } .badge small { color: var(--ink3); font: 600 .8rem var(--num); }
 .h2h b { font: 700 1.1rem var(--num); } .h2h b.up { color: var(--out); } .h2h b.down { color: var(--red); }
+
+/* Game world: felt grain and suit motif on every felt surface */
+:root { --felt-grain: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E"); --felt-suits: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='112' height='112'%3E%3Cg fill='white' fill-opacity='.05' font-family='Georgia,serif' font-size='20'%3E%3Ctext x='10' y='30'%3E%E2%99%A0%3C/text%3E%3Ctext x='66' y='30'%3E%E2%99%A5%3C/text%3E%3Ctext x='38' y='86'%3E%E2%99%A6%3C/text%3E%3Ctext x='94' y='86'%3E%E2%99%A3%3C/text%3E%3C/g%3E%3C/svg%3E"); }
+.band, .now-card:not(.again), .finale, .scoreboard, .hero.felt { background-image: var(--felt-suits), var(--felt-grain), radial-gradient(120% 140% at 30% 0%, color-mix(in srgb, var(--band) 86%, #fff) 0%, var(--band) 45%, var(--band2) 100%); background-size: 112px 112px, 160px 160px, auto; }
+[data-look="daylight"] .band, [data-look="daylight"] .now-card, [data-look="daylight"] .finale, [data-look="daylight"] .scoreboard, [data-look="daylight"] .hero.felt { background-image: none; background-color: #fff; }
+.hero.felt { position: relative; overflow: hidden; color: var(--band-ink); border-radius: 24px; padding: 18px 18px 16px; margin: 4px 0 18px; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 4px 12px; }
+.hero.felt::before { content: ""; position: absolute; inset: 7px; border: 1px solid rgba(226,190,110,.35); border-radius: 18px; pointer-events: none; }
+[data-look="daylight"] .hero.felt { box-shadow: inset 0 0 0 2px #000; } [data-look="daylight"] .hero.felt::before { display: none; }
+.hero.felt .large-title { margin: 0; font-size: 2.4rem; grid-column: 1; }
+.hero-sub { margin: 0; grid-column: 1; color: var(--band-ink2); font-size: .95rem; line-height: 1.35; text-wrap: pretty; }
+.home .hero .fan { grid-column: 2; grid-row: 1 / span 2; height: 96px; width: 108px; }
+.home .hero .fan > span { font-size: 15px; }
+.hero-champ { grid-column: 1 / -1; display: flex; align-items: center; gap: 14px; margin-top: 10px; }
+.hero-champ p { margin: 0; color: var(--band-ink2); line-height: 1.3; } .hero-champ p b { color: var(--band-ink); font-weight: 650; }
+.hero-champ small { display: block; font-size: .82rem; margin-top: 2px; }
+.champ-peg { position: relative; display: inline-grid; } .champ-peg .crown { position: absolute; top: -17px; left: 50%; transform: translateX(-50%); color: #E6C463; }
+.hero-champ .avs .peg { box-shadow: 0 0 0 2px var(--band); }
+/* Card backs: each look has its own */
+:root { --back: repeating-linear-gradient(45deg, rgba(255,255,255,.12) 0 1.5px, transparent 1.5px 8px), repeating-linear-gradient(-45deg, rgba(255,255,255,.12) 0 1.5px, transparent 1.5px 8px), linear-gradient(160deg, #1B7556, #0B3D2B); }
+[data-look="midnight"] { --back: radial-gradient(circle at 50% 50%, rgba(232,196,106,.55) 0 1.4px, transparent 1.8px) 0 0 / 9px 9px, linear-gradient(160deg, #26497F, #0A1426); }
+[data-look="parlour"] { --back: radial-gradient(circle at 50% 50%, rgba(255,214,190,.22) 0 3px, transparent 3.5px) 0 0 / 12px 12px, radial-gradient(circle at 50% 50%, rgba(255,214,190,.14) 0 2px, transparent 2.5px) 6px 6px / 12px 12px, linear-gradient(160deg, #84283A, #360B12); }
+[data-look="daylight"] { --back: repeating-linear-gradient(45deg, #000 0 3px, #fff 3px 7px); }
+.pc.back { background: var(--back); box-shadow: inset 0 0 0 .28em #FFFEFB, inset 0 0 0 .36em rgba(201,154,46,.7), 0 0 0 .5px rgba(20,24,30,.28), 0 3px 8px -3px rgba(0,0,0,.35); }
+/* Round intro: the card is dealt face down, then turns over */
+.bc-flip { position: relative; width: min(78vw, 310px); aspect-ratio: 5 / 7; perspective: 1400px; animation: deal2 .65s var(--spring) both; }
+.bc-flip > .big-card, .bc-flip > .bc-back { position: absolute; inset: 0; width: auto; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.bc-flip > .big-card { animation: flipFront .7s .5s var(--out-e) both; }
+.bc-back { border-radius: 22px; background: var(--back); box-shadow: inset 0 0 0 10px #FFFEFB, inset 0 0 0 12px rgba(201,154,46,.7), 0 30px 70px -18px rgba(0,0,0,.55); animation: flipBack .7s .5s var(--out-e) both; }
+.intro.out .bc-flip { animation: dealOut .26s ease-in both; } .intro.out .bc-flip > .big-card { animation: none; }
+@keyframes flipFront { from { transform: rotateY(-180deg); } to { transform: rotateY(0); } }
+@keyframes flipBack { from { transform: rotateY(0); } to { transform: rotateY(180deg); } }
+/* Surprise me and roll for dealer */
+.look.surprise { grid-column: 1 / -1; grid-template-columns: 44px 1fr; column-gap: 12px; align-items: center; }
+.look.surprise .look-sw { grid-row: 1 / span 2; width: 44px; height: 44px; margin: 0; border-radius: 12px; }
+.look.surprise .look-sw.die { display: grid; place-items: center; background: var(--fill); color: var(--ink2); box-shadow: none; }
+.look.surprise.rolling .look-sw.die svg { animation: spin .5s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.group-h.split { display: flex; justify-content: space-between; align-items: center; }
+.roll { display: inline-flex; align-items: center; gap: 6px; color: var(--accent); font-weight: 600; font-size: .85rem; min-height: 32px; padding: 0 2px; }
+.roll:disabled { opacity: .5; }
+.list.rolling .deal-chip { transition: none; }
+.buy-pill.bump { animation: pop .3s var(--spring) both; }
+/* Tablet and desktop: two columns on Home and the table page */
+@media (min-width: 900px) {
+  .home .content, .tablepage .content { max-width: 1040px; display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; align-items: start; }
+  .home .content > .hero, .home .content > .welcome, .tablepage .content > .hero, .home .content > .hero + .group { grid-column: 1 / -1; }
+  .home .content > .now-card { grid-column: 1; margin: 0; } .home .content > .now-card + .group { grid-column: 2; margin-top: 0; }
+  .home .content > .large-title, .tablepage .content > .large-title { grid-column: 1 / -1; }
+  .home .nav-row, .tablepage .nav-row { max-width: 1040px; }
+  .hero.felt { padding: 26px 28px 22px; } .hero.felt .large-title { font-size: 3rem; } .home .hero .fan { height: 130px; width: 150px; } .home .hero .fan > span { font-size: 17px; }
+}
 @keyframes fade { from { opacity: 0; } }
 @keyframes up { from { transform: translateY(100%); } }
 @keyframes down { to { transform: translateY(100%); } }

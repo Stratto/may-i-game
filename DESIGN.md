@@ -12,6 +12,8 @@ Four looks, chosen in Settings and stored per device (`mayi:settings:v6`). `appl
 | Parlour | #6E1F2B → #360B12 | #F4EFEA | #5E1A25 | yes (#100809, accent #F0A0AC) |
 | Daylight | white with a 2px black frame | #FFFFFF | #000000 | no, built for sunlight |
 
+Each look is a world, not just a colour swap. Every felt surface (the game band, the home and table heroes, the Playing now card, the recap finale and the TV scoreboard) carries a fine grain and a faint suit pattern at 5% opacity. Each look also has its own card back (`--back`): a green lattice for Table, navy with gold dots for Midnight, burgundy rosettes for Parlour, and black and white stripes for Daylight. Daylight drops the texture entirely. "Surprise me" in Settings rolls through the looks and lands on a random one.
+
 ## Colors
 Tokens: `--bg`, `--surface`, `--fill`, `--line`, `--ink` / `--ink2` / `--ink3`, `--band` / `--band2` / `--band-ink`, `--accent` / `--accent-ink` / `--accent-soft`, `--gold` / `--gold-ring` / `--gold-soft` (leader only), `--out` / `--out-soft` (went out), `--red`, `--focus`. Text pairs meet 4.5:1 in every look. Peg colours (red, blue, green, amber, purple, teal, pink, orange) identify a player for life and never mean anything else.
 
@@ -40,13 +42,17 @@ Inset grouped lists: radius 14, 56px rows, hairline separators inset to the text
 - **Awards (six):** Clean hands, Bargain hunter, Comeback kid, Steady hand, Heavy pockets and Joker juggler. Nobody gets one on a tie. Gold tiles, or green for the positive ones.
 - **What got people caught:** points by card type as bars, plus the most caught card, the toughest round and a heavy-buying warning. It needs counted cards.
 - **Profiles:** tap a player in the standings to see eight stat tiles, the awards they've won and head-to-head records. The table page also shows records.
+- **Heroes:** Home and the table page open on a felt hero with a gold hairline frame. Home shows the title, a one-line status and a fanned hand with one card face down. The table page shows the champion with a crown, or the players and a prompt before the first game.
+- **Round intro flip:** the card is dealt face down in the look's card back, then turns over to reveal the contract.
+- **Roll for dealer:** a link in the New game sheet's header. The dealer chip hops between players and slows to a stop.
+- **Sounds:** short WebAudio tones (tap, chip, save, deal, out and a winner's fanfare), on by default with a switch in Settings. Haptics stay on regardless.
 - **Sheets:** bottom sheets on phones (swipe down, scrim, Escape), centred at 700px and up.
 
 ## Layout
-Content max 720px. At 900px and up the game shows seats on the left and the round grid on the right. Scoreboard mode fills the screen with the band and large seats.
+Content max 720px. At 900px and up the game shows seats on the left and the round grid on the right, and Home and the table page widen to 1040px in two columns: the hero spans both, then Playing now beside Tables, and Standings beside Records. Scoreboard mode fills the screen with the band and large seats.
 
 ## Motion
-`--out-e: cubic-bezier(.16,.84,.3,1)` and `--spring: cubic-bezier(.34,1.3,.64,1)`. Seats rise in a stagger, totals count up, the intro card is dealt in with a spring, and confetti plays on a fresh recap only. Everything collapses under `prefers-reduced-motion`.
+`--out-e: cubic-bezier(.16,.84,.3,1)` and `--spring: cubic-bezier(.34,1.3,.64,1)`. Seats rise in a stagger, totals count up, the intro card is dealt in with a spring and flips face up, the May I? pill pops on each buy, and confetti plays on a fresh recap only. Everything collapses under `prefers-reduced-motion`.
 
 ## Don't
 Two controls for one action. Deep or offset shadows on buttons. Gradient text. Emoji icons. Fonts beyond SF and Fraunces. Colour that isn't a look token, a player or a state.
