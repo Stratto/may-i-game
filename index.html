@@ -7,15 +7,15 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="May I?">
-<meta name="theme-color" content="#E9EFF6">
+<meta name="theme-color" content="#F3EFE7">
 <meta name="description" content="Scorekeeper, rulebook and card counter for May I?, the contract rummy card game.">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Manrope:wght@500;600;700;800&display=swap">
 <title>May I?</title>
 <style>
-  html,body{margin:0;padding:0;height:100%;background:#E9EFF6;overscroll-behavior:none;}
+  html,body{margin:0;padding:0;height:100%;background:#F3EFE7;overscroll-behavior:none;}
   #root{height:100vh;height:100dvh;}
 </style>
 </head>
@@ -460,7 +460,9 @@ function Peg({ color, name, size, ring }) {
 }
 function Card({ code }) {
   const rank = code.slice(0, -1), [ch, red] = SUIT[code.slice(-1)];
-  return ce("span", { className: "pc" + (red ? " red" : ""), "aria-label": rank + ch }, ce("b", null, rank), ce("i", null, ch));
+  return ce("span", { className: "pc" + (red ? " red" : ""), role: "img", "aria-label": rank + ch },
+    ce("span", { className: "pc-corner", "aria-hidden": true }, ce("b", null, rank), ce("i", null, ch)),
+    ce("span", { className: "pc-pip", "aria-hidden": true }, ch));
 }
 function Melds({ ex }) { return ce("span", { className: "melds" }, ex.map((m, i) => ce("span", { key: i, className: "meld" }, m.map(c => ce(Card, { key: c, code: c }))))); }
 function Seg({ value, options, onChange, label }) {
@@ -947,20 +949,34 @@ function Recap({ s, api, game, go, setToast }) {
   const ranked = rankOf(game), best = ranked[0].total, top = ranked.filter(t => t.total === best), worst = ranked[ranked.length - 1].total;
   const ins = insights(game, game.rules);
   const fresh = game.endedAt && now() - game.endedAt < 8000;
-  async function share() {
-    const text = "May I? · " + group.name + "\n" + ranked.map((t, i) => (t.total === best ? "🏆" : (i + 1) + ".") + " " + pl(t.id).name + " " + t.total).join("\n");
-    try { if (navigator.share) await navigator.share({ title: "May I? results", text }); else { await navigator.clipboard.writeText(text); setToast({ text: "Results copied" }); } } catch (e) {}
-  }
   const place = t => 1 + ranked.filter(q => q.total < t.total).length;
+  async function share() {
+    const text = "May I? · " + group.name + "\n" + ranked.map(t => place(t) + ". " + pl(t.id).name + " · " + t.total).join("\n");
+    try {
+      const blob = await resultsImage(group.name, ranked.map(t => ({ ...pl(t.id), total: t.total, place: place(t) })), game.endedAt);
+      const file = blob && new File([blob], "may-i-results.png", { type: "image/png" });
+      if (file && navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: "May I? results", text }); return; }
+      if (navigator.share) { await navigator.share({ title: "May I? results", text }); return; }
+      if (blob) { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "may-i-results.png"; a.click(); setToast({ text: "Results image saved" }); }
+      else { await navigator.clipboard.writeText(text); setToast({ text: "Results copied" }); }
+    } catch (e) {}
+  }
+  const pod = ranked.slice(0, 3);
   return ce("div", { className: "page recap" },
     fresh && ce(Confetti),
     ce(TopBar, { onBack: () => go({ at: "group", groupId: group.id }), backLabel: group.name,
       actions: ce("button", { className: "icon-btn", onClick: share, "aria-label": "Share results" }, ce(Icon, { n: "share", size: 19 })) }),
     ce("main", { className: "wrap" },
-      ce("section", { className: "winner" },
-        ce("div", { className: "winner-pegs" }, top.map(t => ce(Peg, { key: t.id, color: pl(t.id).color, name: pl(t.id).name, size: 72, ring: true }))),
-        ce("h1", null, top.map(t => pl(t.id).name).join(" & ") + (top.length > 1 ? " tie!" : " wins!")),
-        ce("p", null, best + " points after 7 rounds" + (game.endedAt ? " · " + new Date(game.endedAt).toLocaleDateString(undefined, { day: "numeric", month: "long" }) : ""))),
+      ce("section", { className: "finale felt" },
+        ce("p", { className: "finale-date" }, (game.endedAt ? new Date(game.endedAt).toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" }) + " · " : "") + group.name),
+        ce("h1", null, top.map(t => pl(t.id).name).join(" & ") + (top.length > 1 ? " share the win" : " wins")),
+        ce("p", { className: "finale-sub" }, "Lowest score after seven rounds: " + best),
+        ce("div", { className: "podium" }, [1, 0, 2].filter(i => pod[i]).map(i => { const t = pod[i], pp = pl(t.id), pl_ = place(t);
+          return ce("div", { key: t.id, className: "pod p" + pl_, style: { "--i": i } },
+            pl_ === 1 && ce("span", { className: "crown" }, ce(Icon, { n: "crown", size: 30 })),
+            ce(Peg, { color: pp.color, name: pp.name, size: pl_ === 1 ? 64 : 48, ring: pl_ === 1 }),
+            ce("b", { className: "pod-name" }, pp.name), ce("span", { className: "pod-score" }, t.total),
+            ce("div", { className: "pod-block" }, ce("span", null, pl_))); }))),
       ce("section", { className: "panel" },
         ce("div", { className: "panel-head" }, ce("h2", null, "Final track")),
         ce("ol", { className: "lanes static" }, ranked.map(t => ce("li", { key: t.id, className: "lane" + (t.total === best ? " lead" : "") },
@@ -978,6 +994,29 @@ function Recap({ s, api, game, go, setToast }) {
       ce("div", { className: "home-actions" },
         ce("button", { className: "btn secondary", onClick: share }, ce(Icon, { n: "share", size: 18 }), "Share results"),
         ce("button", { className: "btn primary", onClick: () => go({ at: "group", groupId: group.id }) }, "Back to " + group.name))));
+}
+function resultsImage(name, rows, endedAt) {
+  return new Promise(res => { try {
+    const W = 1080, H = 1350, c = document.createElement("canvas"); c.width = W; c.height = H; const x = c.getContext("2d");
+    const g = x.createRadialGradient(W * .3, 0, 50, W * .5, H * .4, H); g.addColorStop(0, "#24426E"); g.addColorStop(.55, "#13233F"); g.addColorStop(1, "#0B1527");
+    x.fillStyle = g; x.fillRect(0, 0, W, H);
+    x.strokeStyle = "rgba(226,190,110,.55)"; x.lineWidth = 3; x.strokeRect(40, 40, W - 80, H - 80); x.strokeRect(54, 54, W - 108, H - 108);
+    const serif = '"Fraunces", Georgia, serif', sans = '"Manrope", system-ui, sans-serif';
+    x.textAlign = "center"; x.fillStyle = "#E2BE6E"; x.font = "700 34px " + sans; x.fillText("MAY I?  ·  " + name.toUpperCase(), W / 2, 150);
+    const win = rows.filter(r => r.place === 1);
+    x.fillStyle = "#FFFFFF"; x.font = "600 104px " + serif; x.fillText(win.map(r => r.name).join(" & "), W / 2, 300, W - 160);
+    x.font = "500 44px " + sans; x.fillStyle = "rgba(255,255,255,.75)"; x.fillText(win.length > 1 ? "share the win" : "wins the game", W / 2, 370);
+    const rowH = Math.min(110, 760 / Math.max(rows.length, 1)), top = 520 + (760 - rowH * rows.length) / 2;
+    rows.forEach((r, i) => { const y = top + i * rowH, p = peg(r.color);
+      x.fillStyle = i % 2 ? "rgba(255,255,255,0)" : "rgba(255,255,255,.05)"; x.fillRect(110, y - rowH * .62, W - 220, rowH);
+      x.textAlign = "left"; x.fillStyle = "rgba(255,255,255,.55)"; x.font = "700 40px " + sans; x.fillText(r.place, 140, y);
+      x.beginPath(); x.arc(240, y - 14, 30, 0, 7); x.fillStyle = p.c; x.fill(); if (r.place === 1) { x.lineWidth = 6; x.strokeStyle = "#E2BE6E"; x.beginPath(); x.arc(240, y - 14, 39, 0, 7); x.stroke(); }
+      x.fillStyle = "#FFFFFF"; x.font = "700 48px " + sans; x.fillText(r.name, 300, y, 480);
+      x.textAlign = "right"; x.font = "800 56px " + sans; x.fillText(r.total, W - 140, y); });
+    x.textAlign = "center"; x.fillStyle = "rgba(255,255,255,.6)"; x.font = "500 32px " + sans;
+    x.fillText((endedAt ? new Date(endedAt).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" }) + "  ·  " : "") + "7 rounds of contract rummy", W / 2, H - 120);
+    c.toBlob(b => res(b), "image/png");
+  } catch (e) { res(null); } });
 }
 function Confetti() {
   const ref = useRef(null);
@@ -1136,8 +1175,7 @@ input { caret-color: var(--focus); }
 .hint { color: var(--ink-3); font-size: .875rem; margin: 8px 0 0; }
 .hint.center { text-align: center; }
 .err { color: var(--red); font-weight: 700; font-size: .9rem; margin: 10px 0 0; }
-.num, .lane-total, .score-in, .count-total b, .sgrid td, .code { font-variant-numeric: tabular-nums; }
-
+.num, .lane-total, .sgrid td, .code { font-variant-numeric: tabular-nums; }
 /* Page shell */
 .page { min-height: 100vh; min-height: 100dvh; padding-bottom: calc(32px + env(safe-area-inset-bottom)); }
 .topbar { position: sticky; top: 0; z-index: 5; background: rgba(233,239,246,.92); backdrop-filter: saturate(1.4) blur(12px); -webkit-backdrop-filter: saturate(1.4) blur(12px);
@@ -1250,18 +1288,6 @@ input { caret-color: var(--focus); }
 .dots i { width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid currentColor; opacity: .55; }
 .dots i.on { background: currentColor; opacity: 1; }
 .buy-minus { width: 28px; height: 44px; display: grid; place-items: center; color: var(--ink-3); border-radius: 10px; }
-.score { display: flex; align-items: center; gap: 6px; flex: none; }
-.out-btn { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; padding: 0 11px; border-radius: 12px; background: var(--board); font-weight: 800; font-size: .9rem; color: var(--ink-2); }
-.out-btn.on { background: var(--green); color: #fff; }
-.out-btn:disabled { opacity: .35; }
-.calc-btn { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 12px; background: var(--board); color: var(--ink-2); }
-.score-in { width: 64px; height: 48px; border-radius: 12px; border: 1.5px solid var(--line-2); background: var(--surface); text-align: center; font-size: 1.3rem; font-weight: 800; color: var(--ink); }
-.score-in:focus { outline: none; border-color: var(--focus); box-shadow: 0 0 0 3px rgba(37,99,217,.2); }
-.score-in.zero { background: var(--green-soft); border-color: transparent; color: var(--green); }
-.score-in::placeholder { color: var(--ink-3); }
-.lanes.scoring .lane-total { display: none; }
-.lanes.scoring .lane-track { display: none; }
-.lanes.scoring .lane { min-height: 72px; }
 
 /* Game shell */
 .game { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; }
@@ -1324,11 +1350,6 @@ input { caret-color: var(--focus); }
 .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 8px; vertical-align: 1px; }
 
 /* Recap */
-.winner { text-align: center; padding: 18px 0 4px; }
-.winner-pegs { display: flex; justify-content: center; gap: 12px; }
-.winner-pegs .peg { font-size: 2rem !important; animation: pop .6s var(--ease) both; }
-.winner h1 { font-size: 2.2rem; letter-spacing: -.035em; margin: 18px 0 4px; text-wrap: balance; }
-.winner p { color: var(--ink-2); margin: 0; }
 .awards { list-style: none; margin: 0; padding: 4px 0 6px; display: grid; }
 .award { display: flex; align-items: center; gap: 12px; padding: 10px 16px; }
 .aw-ic { width: 40px; height: 40px; border-radius: 12px; background: var(--board); display: grid; place-items: center; color: var(--ink-2); flex: none; }
@@ -1408,9 +1429,7 @@ input { caret-color: var(--focus); }
 .values { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
 .values div { background: var(--board); border-radius: 10px; padding: 10px 6px; text-align: center; display: grid; gap: 2px; }
 .values span { font-size: .78rem; color: var(--ink-3); font-weight: 700; } .values b { font-size: 1.05rem; }
-.count-total { text-align: center; } .count-total b { display: block; font-size: 3.4rem; font-weight: 800; letter-spacing: -.04em; line-height: 1; }
-.count-total span { color: var(--ink-3); font-weight: 700; }
-.hand { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; min-height: 58px; align-content: center; }
+ .hand { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; min-height: 58px; align-content: center; }
 .hcard { width: 44px; height: 58px; border-radius: 8px; border: 1px solid var(--line-2); display: grid; place-content: center; text-align: center; animation: pop .25s var(--ease) both; }
 .hcard b { font-size: 1rem; } .hcard small { font-size: .7rem; color: var(--ink-3); }
 .keys { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
@@ -1426,6 +1445,9 @@ input { caret-color: var(--focus); }
 
 
 /* ── v5.1: home, champion, score pad, round intro ── */
+
+
+
 .home .title { margin-bottom: 4px; }
 .live-card { display: grid; gap: 6px; text-align: left; background: var(--navy); color: var(--on-navy); border-radius: 18px; padding: 16px 18px 18px; transition: transform .15s var(--ease); }
 .live-card:active { transform: scale(.985); }
@@ -1513,6 +1535,76 @@ input { caret-color: var(--focus); }
 @keyframes down { to { transform: translateY(40px); opacity: 0; } }
 @keyframes rise { from { transform: translateY(8px); opacity: 0; } }
 @keyframes pop { from { transform: scale(.6); opacity: 0; } }
+/* ── Premium layer: felt table, ivory card stock, gold, serif display ── */
+:root {
+  --board: #F3EFE7; --board-2: #E5DFD2; --surface: #FFFDF9; --line: rgba(31,33,45,.11); --line-2: rgba(31,33,45,.2);
+  --serif: "Fraunces", Georgia, "Times New Roman", serif;
+  --felt: radial-gradient(130% 100% at 25% 0%, #24426E 0%, #13233F 52%, #0B1527 100%);
+  --foil: linear-gradient(135deg, #F3D98B 0%, #C99A2E 45%, #F0D27A 70%, #B9861F 100%);
+  --gold-soft: #F8EDCF;
+}
+html, body { background: var(--board) !important; }
+::selection { background: #EBD9A6; }
+.title, .c-name, .intro h2, .finale h1, .sheet-head h2, .big, .live-name, .sb-head h1, .empty h2, .gc-head .gr-main b, .panel-head h2, .rule-card h3 {
+  font-family: var(--serif); font-weight: 650; letter-spacing: -.015em; font-variation-settings: "opsz" 96; }
+.title { font-size: 2.15rem; }
+.panel-head h2 { font-size: 1.2rem; }
+.topbar { background: rgba(243,239,231,.9); }
+.felt, .game-bar, .resume, .live-card, .scoreboard, .game-side .contract, .melds-lg { background: var(--felt); }
+.game-bar { box-shadow: inset 0 -1px 0 rgba(226,190,110,.25); }
+.c-name { font-size: 2.2rem; }
+.pips i.now, .pips.big i.now { background: var(--foil); }
+.c-tip svg { color: #E2BE6E; }
+.peg.ring { box-shadow: inset 0 -2px 0 rgba(0,0,0,.14), 0 0 0 3px var(--surface), 0 0 0 6px #D4A53A; }
+.crown { color: #E6C463; } .crown svg { fill: #E6C463; stroke: #9C6F12; }
+.lane.lead { background: linear-gradient(90deg, var(--gold-soft), rgba(248,237,207,0) 75%); }
+.btn.primary { background: #15253F; box-shadow: inset 0 1px 0 rgba(255,255,255,.08); }
+.btn.primary:hover:not(:disabled) { background: #1E3357; }
+.panel, .group-card, .groups, .game-lanes, .empty { background: var(--surface); }
+
+/* Playing cards: the most crafted object on screen */
+.pc { position: relative; width: 30px; height: 42px; border-radius: 5px; background: linear-gradient(180deg, #FFFEFA, #F6F0E2); color: #1B1E2A; display: block; flex: none;
+  box-shadow: 0 0 0 1px rgba(20,24,40,.22), 0 2px 4px rgba(5,10,25,.28); }
+.pc + .pc { margin-left: -12px; }
+.pc.red { color: #C12F2F; }
+.pc-corner { position: absolute; top: 3px; left: 4px; display: grid; justify-items: center; line-height: .9; }
+.pc-corner b { font: 800 .7rem/1 var(--font); letter-spacing: -.04em; } .pc-corner i { font-style: normal; font-size: .6rem; }
+.pc-pip { position: absolute; right: 4px; bottom: 2px; font-size: 1.05rem; line-height: 1; }
+.meld { display: inline-flex; }
+.melds-lg .pc, .intro-melds .pc { width: 44px; height: 62px; border-radius: 7px; }
+.melds-lg .pc + .pc, .intro-melds .pc + .pc { margin-left: -16px; }
+.melds-lg .pc-corner b, .intro-melds .pc-corner b { font-size: .95rem; } .melds-lg .pc-corner i, .intro-melds .pc-corner i { font-size: .8rem; }
+.melds-lg .pc-pip, .intro-melds .pc-pip { font-size: 1.7rem; right: 5px; bottom: 3px; }
+.melds-lg .melds { justify-content: center; gap: 14px; }
+.sb-head .pc { width: 40px; height: 56px; } .sb-head .pc-pip { font-size: 1.5rem; }
+
+/* Recap finale */
+.finale { color: #fff; border-radius: 22px; padding: 26px 18px 0; text-align: center; overflow: hidden; position: relative; }
+.finale::before { content: ""; position: absolute; inset: 8px; border: 1px solid rgba(226,190,110,.35); border-radius: 16px; pointer-events: none; }
+.finale-date { margin: 0; color: #E2BE6E; font-weight: 700; font-size: .85rem; }
+.finale h1 { font-size: clamp(2.2rem, 9vw, 3rem); line-height: 1.05; margin: 10px 0 6px; text-wrap: balance; animation: rise .5s .1s var(--ease) both; }
+.finale-sub { margin: 0; color: var(--on-navy-2); }
+.podium { display: flex; align-items: flex-end; justify-content: center; gap: 8px; margin-top: 30px; }
+.pod { flex: 1; max-width: 120px; display: grid; justify-items: center; gap: 4px; position: relative; animation: rise .6s var(--ease) both; animation-delay: calc(.35s + var(--i) * .15s); }
+.pod .crown { position: static; transform: rotate(-8deg); margin-bottom: -4px; }
+.pod-name { font-weight: 800; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pod-score { color: var(--on-navy-2); font-weight: 700; font-variant-numeric: tabular-nums; }
+.pod-block { width: 100%; margin-top: 6px; border-radius: 10px 10px 0 0; background: rgba(255,255,255,.1); display: grid; place-items: start center; padding-top: 10px; font: 650 1.6rem/1 var(--serif); color: rgba(255,255,255,.75); }
+.pod.p1 .pod-block { height: 104px; background: var(--foil); color: #4A3305; }
+.pod.p2 .pod-block { height: 74px; } .pod.p3 .pod-block { height: 52px; }
+
+/* Rules as a printed rule card */
+.rules-round { background: var(--surface); border: 1px solid var(--line-2); border-radius: 16px; padding: 16px; box-shadow: inset 0 0 0 5px var(--surface), inset 0 0 0 6px rgba(201,154,46,.45); }
+.rules-round .big { text-align: center; }
+.rules-round > .muted { text-align: center; }
+.facts li { background: var(--board); }
+.sheet { background: var(--surface); }
+.who.on { border-color: #C99A2E; background: var(--gold-soft); }
+.intro-won { color: #F0D27A; }
+.btn.light { background: var(--foil); color: #3D2A04; }
+.scoreboard .sb-body { border: 1px solid rgba(226,190,110,.35); }
+.live-card { box-shadow: inset 0 0 0 1px rgba(226,190,110,.25); }
+.resume { box-shadow: inset 0 0 0 1px rgba(226,190,110,.25); }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0ms !important; transition-duration: .01ms !important; } }
 `;
 (function () { const el = document.createElement("style"); el.textContent = CSS; document.head.appendChild(el); })();

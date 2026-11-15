@@ -1,13 +1,18 @@
-# Design: May I? · "Score Track"
+# Design: May I? · "Score Track", premium edition
 
 Recorded from the built app (index.html, v5). Mode: Operate. The world is a printed board-game score track: every player row is a lane, and a coloured peg slides toward the finish as scores land.
+
+## Material (premium layer)
+Three materials, nothing else. **Felt**: a navy table radial (#24426E → #13233F → #0B1527) on the game bar, live cards, the recap finale, the scoreboard, the round intro and the rule-card melds. **Card stock**: ivory ground #F3EFE7 with #FFFDF9 surfaces. **Gold foil**: a gradient (#F3D98B → #C99A2E → #F0D27A) used only for the current round pip, first place, the champion ring and the main intro button. Depth belongs to playing cards only (1px edge plus a 2–4px drop). Buttons stay flat.
+
+**Playing cards**: ivory gradient stock, rank and suit stacked in the top-left corner, large pip bottom-right, overlapping fans. They are the most crafted object on screen.
 
 ## Colour
 | Token | Value | Use |
 |---|---|---|
-| `--board` | #E9EFF6 | Page ground, quiet control fills |
-| `--board-2` | #DCE5F0 | Lane track, pressed keys |
-| `--surface` | #FFFFFF | Panels, sheets, inputs |
+| `--board` | #F3EFE7 | Page ground, quiet control fills |
+| `--board-2` | #E5DFD2 | Lane track, pressed keys |
+| `--surface` | #FFFDF9 | Panels, sheets, inputs |
 | `--ink` / `--navy` | #13233F | Text, primary button, contract bar |
 | `--ink-2` | #44546F | Secondary text (8.0:1 on white) |
 | `--ink-3` | #5A6880 | Tertiary text and meta (5.6:1 on white, 4.9:1 on board) |
@@ -20,7 +25,7 @@ Recorded from the built app (index.html, v5). Mode: Operate. The world is a prin
 **Peg colours** stay with a player for life inside a group: red #D63B3B, blue #2563D9, green #178A4C, amber #F0A81C (navy initial), purple #7A4BD8, teal #0B8F9E, pink #D13F93, orange #E5631A. They never carry meaning beyond identity.
 
 ## Type
-Manrope 500–800, one family. Tabular numerals on every score. Scale: page title 2rem/800/-0.03em; contract name 2rem/800/-0.035em; lane total 1.6rem (2rem wide, clamp up to 4rem on the scoreboard); body 1rem/500; meta 0.8–0.875rem/600. No eyebrow labels.
+Fraunces 600–700 (display serif: page titles, contract names, the intro, the recap headline, sheet titles, panel headings) paired with Manrope 500–800 for everything you read or tap. Tabular numerals on every score. Scale: page title 2rem/800/-0.03em; contract name 2rem/800/-0.035em; lane total 1.6rem (2rem wide, clamp up to 4rem on the scoreboard); body 1rem/500; meta 0.8–0.875rem/600. No eyebrow labels.
 
 ## Shape and depth
 Flat. Panels: white, 1px `--line`, radius 14px. Controls: radius 12px, 44px minimum (48–56px for primary). Shadows only on floating layers: sheets (0 -8px 40px at 18%) and the toast. Pegs get a 2px inset bottom shade so they read as objects; the leader's peg gets a 3px white plus 2.5px gold ring.
@@ -38,6 +43,9 @@ Flat. Panels: white, 1px `--line`, radius 14px. Controls: radius 12px, 44px mini
 
 ## Layout
 Phones: single column, max 760px. 900px and up: game splits into a 360px side column (contract and round grid) and the lanes. Scoreboard mode: full-screen navy, lanes fill the height, no controls.
+
+- **Recap finale:** a felt panel with a gold inner frame, the winner's name in Fraunces, and a podium (2nd, 1st, 3rd) whose blocks rise in sequence; first place is gold foil with a crown. Share makes a 1080×1350 results image.
+- **Rules:** the round tab is a printed rule card (double gold hairline frame).
 
 ## Motion
 Ease `cubic-bezier(.16,1,.3,1)`. Pegs slide 450ms when a round commits; totals count up over 450ms; sheets rise in 320ms; presses scale to 0.97. Confetti on a fresh recap only. Everything collapses under `prefers-reduced-motion`.
