@@ -166,7 +166,7 @@ const SCENARIOS = [
     if (c.$(".scoreboard")) c.w.dispatchEvent(new c.w.KeyboardEvent("keydown", { key: "Escape" }));
     await c.tap(c.$(".band button"));
     await until(() => c.$(".tablepage"), 2000, "the table page");
-    const champ = !!c.$(".hero-champ"), rows = c.$$(".tablepage .list .row, .tablepage .list > button").length, records = c.d.body.textContent.includes("Records");
+    const champ = !!c.$(".hero-champ, .hero-podium"), rows = c.$$(".tablepage .list .row, .tablepage .list > button").length, records = c.d.body.textContent.includes("Records");
     const bad = [!champ && "no champion hero", rows < 4 && "standings short", !records && "no records"].filter(Boolean);
     return bad.length ? { ok: false, note: bad.join(", ") } : { ok: true, note: "Champion, standings and records" };
   } },

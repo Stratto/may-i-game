@@ -21,9 +21,10 @@ Tokens: `--bg`, `--surface`, `--fill`, `--line`, `--ink` / `--ink2` / `--ink3`, 
 System SF (`-apple-system`) for everything you read or tap, with Dynamic Type through `font: -apple-system-body`. Numbers use `ui-rounded` with tabular figures. Fraunces 600–700 (opsz 96) only for display: large titles, the contract name, the round-intro card, the recap headline and sheet titles. No eyebrow labels.
 
 ## Shape and depth
-Inset grouped lists: radius 14, 56px rows, hairline separators inset to the text. Seats card: radius 22. Buttons: 50/56px, radius 13/16, flat, pressed `scale(.97)`. Depth belongs only to playing cards (a hairline edge plus a short drop), the floating sheet and the toast.
+Inset grouped lists: radius 14, 56px rows, hairline separators inset to the text. Seats card: radius 22. Buttons: 50/56px, radius 13/16, lit from above inside their shape (a soft top highlight and a darker lower edge, never an outer shadow), pressed `scale(.97)` with the light dimmed. Gold is a flat spot colour with the same inner light. Score pad number keys are lit tiles; card keys are drawn as small playing cards. Depth belongs only to playing cards (a hairline edge plus a short drop), the floating sheet and the toast.
 
 ## Components
+- **Tab bar:** Play, Learn and Stats on the three top-level screens. Learn holds the whole guide (rounds, basics, Q&A, house rules). Stats is the trophy room: who has won each award most often across all games, and every table's leader. Pushed screens (a table, a game, results) have a back button and no tab bar.
 - **Page:** a large Fraunces title that collapses into a blurred 48px nav bar after 44px of scroll. The nav holds back, title and up to two icons.
 - **Felt band (game):** back with the group name; gear (game settings); screen icon (scoreboard, wide screens only); "Round n of 7", contract name, mini meld cards; pips (current one in gold), dealer tag, "Rules ›". Tapping the contract is the only way into the rules.
 - **Seat:** 42px avatar (gold ring if leading, gold "D" if dealing, and a 1st/2nd/3rd medal in gold, silver or bronze once a round is scored; ties share a medal), name, status line ("Leading", "12 behind"), this round's "+12" or "Out" chip (tap to edit), count-up total, "May I?" buy pill with one dot per allowed buy.
@@ -39,6 +40,8 @@ Inset grouped lists: radius 14, 56px rows, hairline separators inset to the text
 - **Card scanner:** the score pad's Photo tab takes a photo and fills the hand with suited cards. Cards the reader guessed get a gold outline so they get a second look. It uses the player's own Anthropic API key, set in Settings and stored on that device only.
 - **Hand coach:** at the bottom of the current round's guide. A private photo of your hand returns what Claude sees, what you have, what to aim for, keep, discard and one tip.
 - **Still in it:** under the seats between rounds, one row per trailing player with the gap, the rounds left and the margin needed each round. Seats show "▲ up 2" or "▼ down 1" after each round.
+- **Award race:** under the seats once two rounds are done, a row of chips showing who would win each award if the game ended now.
+- **Table podium:** the table page hero shows the top three by wins on a podium (2, 1, 3), each tappable for their profile.
 - **Race track:** racing pegs on lanes, with the lowest total nearest the chequered finish. It appears on the results screen, and fills the TV scoreboard on wide screens.
 - **Awards (six):** Clean hands, Bargain hunter, Comeback kid, Steady hand, Heavy pockets and Joker juggler. Nobody gets one on a tie. Gold tiles, or green for the positive ones.
 - **What got people caught:** points by card type as bars, plus the most caught card, the toughest round and a heavy-buying warning. It needs counted cards.

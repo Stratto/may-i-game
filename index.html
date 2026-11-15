@@ -1488,8 +1488,16 @@ function GroupPage({ s, group, open, go, sync, rematch }) {
   }).sort((a, b) => b.wins - a.wins || (a.avg ?? 1e9) - (b.avg ?? 1e9));
   const champ = board[0] && board[0].wins > 0 && !(board[1] && board[1].wins === board[0].wins) ? board[0] : null;
   const lastRules = st.games[0] && st.games[0].rules;
+  const podium = st.games.length ? board.filter(p => p.played).slice(0, 3) : [];
   return ce(Page, { title: group.name, back: "Tables", onBack: () => go({ at: "home" }), className: "tablepage",
-      hero: ce("div", { className: "hero-champ" },
+      hero: podium.length >= 2 ? ce("div", { className: "hero-podium" },
+          ce("p", { className: "hero-sub" }, champ ? ce(Fragment, null, ce("b", null, champ.name), " is the champion") : "It's all square at the top", " · " + st.games.length + (st.games.length === 1 ? " game" : " games")),
+          ce("div", { className: "podium mini" }, [1, 0, 2].filter(i => podium[i]).map(i => { const pp = podium[i], n = 1 + board.filter(o => o.wins > pp.wins).length;
+            return ce("button", { key: pp.id, className: "pod p" + Math.min(n, 3), style: { "--i": i }, onClick: () => open("profile", { groupId: group.id, playerId: pp.id }), "aria-label": pp.name + ", " + pp.wins + (pp.wins === 1 ? " win" : " wins") },
+              n === 1 && pp.wins > 0 && ce("span", { className: "crown" }, ce(Icon, { n: "crown", size: 24 })),
+              ce(Peg, { color: pp.color, name: pp.name, av: pp.avatar, size: n === 1 ? 52 : 40, ring: n === 1 && pp.wins > 0 }),
+              ce("b", null, pp.name), ce("span", null, pp.wins + (pp.wins === 1 ? " win" : " wins")), ce("div", { className: "pod-block" }, n)); })))
+        : ce("div", { className: "hero-champ" },
         champ ? ce(Fragment, null, ce("span", { className: "champ-peg" }, ce("span", { className: "crown" }, ce(Icon, { n: "crown", size: 22 })), ce(Peg, { color: champ.color, name: champ.name, av: champ.avatar, size: 52, ring: true })),
             ce("p", null, ce("b", null, champ.name), " is the champion", ce("small", null, champ.wins + (champ.wins === 1 ? " win" : " wins") + " · " + st.games.length + (st.games.length === 1 ? " game" : " games") + " played")))
           : ce(Fragment, null, ce(Avatars, { players: group.players, size: 40 }), ce("p", null, st.games.length ? "It's all square at the top." : group.players.length + " players. Deal the first game to crown a champion."))),
@@ -2431,6 +2439,13 @@ input { caret-color: var(--accent); }
 .keys .key b { font: 650 1.2rem var(--display); } .keys .key small { color: #6B6F72; font-weight: 600; }
 .keys .key:active { background: #EEEBE3; }
 .arace { margin: 18px 0 0; }
+.hero-podium { grid-column: 1 / -1; display: grid; gap: 4px; margin-top: 2px; }
+.hero-podium .hero-sub b { color: var(--band-ink); }
+.podium.mini { margin-top: 10px; gap: 6px; }
+.podium.mini .pod { color: var(--band-ink); }
+.podium.mini .pod > span:not(.crown):not(.peg) { font-size: .82rem; }
+.podium.mini .pod.p1 .pod-block { height: 62px; } .podium.mini .pod.p2 .pod-block { height: 44px; } .podium.mini .pod.p3 .pod-block { height: 30px; }
+.podium.mini .pod-block { font-size: 1.2rem; padding-top: 6px; }
 .race-h { display: flex; align-items: baseline; justify-content: space-between; margin: 0 16px 7px; font-size: .8rem; font-weight: 600; color: var(--ink3); }
 .race-h small { font-weight: 500; }
 .race-row { display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 6px; margin: 0 -2px; scroll-snap-type: x mandatory; scrollbar-width: none; }
@@ -2547,7 +2562,9 @@ input { caret-color: var(--accent); }
 .trophy-who { display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: .9rem; min-width: 0; }
 .trophy-who small { color: var(--ink3); font-weight: 600; margin-left: auto; font-variant-numeric: tabular-nums; }
 .seats-meta { display: inline-flex; align-items: center; gap: 10px; }
-.seats-edit { display: inline-flex; align-items: center; gap: 5px; min-height: 32px; padding: 0 11px; border-radius: 99px; background: var(--accent-soft); color: var(--accent); font: 600 .8rem/1 var(--sans, inherit); text-transform: none; letter-spacing: 0; }
+.seats-edit { position: relative; isolation: isolate; min-height: 44px; margin: -6px 0; }
+.seats-edit::before { content: ""; position: absolute; inset: 6px 0; border-radius: 99px; background: var(--accent-soft); z-index: -1; }
+.seats-edit { display: inline-flex; align-items: center; gap: 5px; padding: 0 11px; border-radius: 99px; color: var(--accent); font: 600 .8rem/1 var(--sans, inherit); text-transform: none; letter-spacing: 0; }
 .seats-edit:active { transform: scale(.96); }
 .row-add { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); flex: none; }
 html.locked, html.locked body { overflow: hidden; overscroll-behavior: none; }
