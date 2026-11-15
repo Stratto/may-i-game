@@ -1899,7 +1899,7 @@ function PlayerEditor({ players, setPlayers, autoFocus }) {
       onSave: (color, avatar) => { setPlayers(players.map(p => p.id === ed.id ? { ...p, color, avatar } : p)); setEditing(null); } }),
     ce("div", { className: "list" },
       players.map(p => ce("div", { key: p.id, className: "row edit" },
-        ce("button", { className: "peg-btn", onClick: () => setEditing(p.id), "aria-label": "Change " + p.name + "'s avatar and colour" }, ce(Peg, { color: p.color, name: p.name, av: p.avatar, size: 34 })),
+        ce("button", { className: "peg-btn", onClick: () => setEditing(p.id), "aria-label": "Change " + p.name + "'s avatar and colour" }, ce(Peg, { color: p.color, name: p.name, av: p.avatar, size: 34 }), ce("span", { className: "peg-badge", "aria-hidden": true }, ce(Icon, { n: "edit", size: 10 }))),
         ce("input", { className: "row-input", value: p.name, "aria-label": "Player name", maxLength: 20, onChange: e => setPlayers(players.map(x => x.id === p.id ? { ...x, name: e.target.value } : x)) }),
         ce("button", { className: "nav-icon danger", onClick: () => setPlayers(players.filter(x => x.id !== p.id)), "aria-label": "Remove " + p.name }, ce(Icon, { n: "trash", size: 19 })))),
       players.length < MAX_PLAYERS && ce("form", { className: "row edit", onSubmit: e => { e.preventDefault(); add(); } },
@@ -1908,54 +1908,72 @@ function PlayerEditor({ players, setPlayers, autoFocus }) {
         draft.trim() && ce("button", { className: "btn tonal sm", type: "submit" }, "Add"))),
     ce("p", { className: "group-f" }, "Tap a player's circle to add a photo, make a character or change their colour. Up to " + MAX_PLAYERS + " players."));
 }
-// ── Avatar maker: initials, a photo framed by dragging and zooming, or a drawn character ──
+// ── Avatar maker ──────────────────────────────────────────────────
+// Built like a character editor: the type switch on top, a big live preview that never
+// scrolls away, one row of categories, and each choice drawn on the player's own character.
+const AV_CATS = [["hair", "Hair"], ["hairColor", "Hair colour"], ["skin", "Skin"], ["face", "Face"], ["extra", "Extras"], ["top", "Top"], ["color", "Colour"]];
+const avShuffle = () => { const r = a => a[Math.floor(Math.random() * a.length)];
+  return { type: "face", skin: r(AV.skin), hair: r(AV.hair), hairColor: r(AV.hairColor), face: r(AV.face), extra: r(AV.extra), top: r(AV.top) }; };
 function AvatarSheet({ player, taken, onClose, onSave }) {
   const a0 = player.avatar || null;
-  const [color, setColor] = useState(player.color), [mode, setMode] = useState(a0 ? a0.type : "initials");
+  const [color, setColor] = useState(player.color), [mode, setMode] = useState(a0 ? a0.type : "initials"), [cat, setCat] = useState("hair");
   const [face, setFace] = useState(a0 && a0.type === "face" ? a0 : avSeed(player.name));
-  const [photo, setPhoto] = useState(a0 && a0.type === "photo" ? a0.src : null), [raw, setRaw] = useState(null);
+  const [photo, setPhoto] = useState(a0 && a0.type === "photo" ? a0.src : null), [raw, setRaw] = useState(null), [pasteMsg, setPasteMsg] = useState(null);
   const [zoom, setZoom] = useState(1), [pos, setPos] = useState({ x: 0, y: 0 }), drag = useRef(null), camRef = useRef(null), libRef = useRef(null);
-  const VIEW = 220;
-  const onFile = e => { const f = e.target.files && e.target.files[0]; e.target.value = ""; if (!f) return;
-    const url = URL.createObjectURL(f), img = new Image();
-    img.onload = () => { const k = VIEW / Math.min(img.width, img.height); setRaw({ img, url, w: img.width * k, h: img.height * k }); setZoom(1); setPos({ x: 0, y: 0 }); };
+  const VIEW = 200;
+  const load = blob => { const url = URL.createObjectURL(blob), img = new Image();
+    img.onload = () => { const k = VIEW / Math.min(img.width, img.height); setRaw({ img, url, w: img.width * k, h: img.height * k }); setZoom(1); setPos({ x: 0, y: 0 }); setMode("photo"); haptic(8); };
     img.src = url; };
+  const onFile = e => { const f = e.target.files && e.target.files[0]; e.target.value = ""; if (f) load(f); };
+  // A Memoji sticker (or any image) copied elsewhere can be pasted in as the photo.
+  const paste = async () => { setPasteMsg(null);
+    try { const items = await navigator.clipboard.read();
+      for (const it of items) { const type = it.types.find(t => t.startsWith("image/")); if (type) { load(await it.getType(type)); return; } }
+      setPasteMsg("There's no picture on the clipboard. Copy a Memoji sticker first, then tap Paste."); }
+    catch (_) { setPasteMsg("Pasting isn't allowed here. Save the sticker to Photos and use Choose photo instead."); } };
+  useEffect(() => { const h = e => { const f = [...((e.clipboardData && e.clipboardData.files) || [])].find(x => x.type.startsWith("image/")); if (f) { e.preventDefault(); load(f); } };
+    addEventListener("paste", h); return () => removeEventListener("paste", h); }, []);
   const clamp = (p, z) => { if (!raw) return p; const mx = Math.max(0, (raw.w * z - VIEW) / 2), my = Math.max(0, (raw.h * z - VIEW) / 2); return { x: Math.max(-mx, Math.min(mx, p.x)), y: Math.max(-my, Math.min(my, p.y)) }; };
   const down = e => { drag.current = { x: e.clientX - pos.x, y: e.clientY - pos.y }; e.currentTarget.setPointerCapture && e.currentTarget.setPointerCapture(e.pointerId); };
   const move = e => { if (drag.current) setPos(clamp({ x: e.clientX - drag.current.x, y: e.clientY - drag.current.y }, zoom)); };
   const up = () => { drag.current = null; };
+  // Pictures sit on the player's colour, so a sticker's transparent background shows their colour.
   const cropped = () => { const c = document.createElement("canvas"), OUT = 192; c.width = c.height = OUT; const x = c.getContext("2d"), k = OUT / VIEW;
-    const w = raw.w * zoom * k, h = raw.h * zoom * k; x.drawImage(raw.img, (OUT - w) / 2 + pos.x * k, (OUT - h) / 2 + pos.y * k, w, h); return c.toDataURL("image/jpeg", .82); };
+    x.fillStyle = peg(color).c; x.fillRect(0, 0, OUT, OUT);
+    const w = raw.w * zoom * k, h = raw.h * zoom * k; x.drawImage(raw.img, (OUT - w) / 2 + pos.x * k, (OUT - h) / 2 + pos.y * k, w, h); return c.toDataURL("image/jpeg", .85); };
   const result = () => mode === "photo" ? (raw ? { type: "photo", src: cropped() } : photo ? { type: "photo", src: photo } : null) : mode === "face" ? face : null;
   const preview = mode === "photo" ? (photo && !raw ? { type: "photo", src: photo } : null) : mode === "face" ? face : null;
-  const opt = (key, values, render) => ce("div", { className: "av-opt" },
-    ce("span", { className: "group-h" }, { skin: "Skin", hair: "Hair", hairColor: "Hair colour", face: "Face", extra: "Extra", top: "Top" }[key]),
-    ce("div", { className: "av-row", role: "radiogroup", "aria-label": key }, values.map(v => ce("button", { key: v, role: "radio", "aria-checked": face[key] === v, className: "av-choice" + (face[key] === v ? " on" : ""),
-      "aria-label": (AV_NAMES[key] && AV_NAMES[key][v]) || v, onClick: () => { setFace({ ...face, [key]: v }); haptic(6); } }, render(v)))));
-  const mini = patch => ce(Peg, { color, name: player.name, av: { ...face, ...patch }, size: 44 });
-  const swatch = c => ce("span", { className: "av-sw", style: { background: c } });
-  return ce(Sheet, { title: player.name, onClose, tall: true,
+  const pick = (k, v) => { haptic(6); sound("tap"); if (k === "color") setColor(v); else setFace(f => ({ ...f, [k]: v })); };
+  const colours = ce("div", { className: "av-grid", role: "radiogroup", "aria-label": "Colour" }, PEGS.map(c => ce("button", { key: c.k, role: "radio", "aria-checked": color === c.k, "aria-label": c.k + (taken.includes(c.k) ? ", taken" : ""),
+    disabled: taken.includes(c.k), className: "av-tile" + (color === c.k ? " on" : ""), onClick: () => pick("color", c.k) },
+    mode === "face" ? ce(Peg, { color: c.k, name: player.name, av: face, size: 62 }) : ce("span", { className: "av-dot", style: { background: c.c } }))));
+  const values = cat === "color" ? null : AV[cat];
+  return ce(Sheet, { title: player.name, onClose, cls: "av-sheet",
       footer: ce("button", { className: "btn primary block lg", disabled: mode === "photo" && !raw && !photo, onClick: () => onSave(color, result()) }, "Save") },
+    ce(Seg, { label: "Avatar type", value: mode, onChange: m => { haptic(6); setMode(m); }, options: [["initials", "Initials"], ["photo", "Photo"], ["face", "Character"]] }),
     ce("div", { className: "av-stage" },
       mode === "photo" && raw
         ? ce("div", { className: "av-crop", style: { width: VIEW, height: VIEW, "--peg": peg(color).c }, onPointerDown: down, onPointerMove: move, onPointerUp: up, onPointerCancel: up, "aria-label": "Drag to position the photo" },
             ce("img", { src: raw.url, alt: "", draggable: false, style: { width: raw.w * zoom, height: raw.h * zoom, transform: "translate(calc(-50% + " + pos.x + "px), calc(-50% + " + pos.y + "px))" } }))
-        : ce(Peg, { color, name: player.name, av: preview, size: 120, ring: true })),
+        : ce("span", { key: mode + JSON.stringify(preview && preview.type === "face" ? preview : "") + color, className: "av-pop" }, ce(Peg, { color, name: player.name, av: preview, size: 128, ring: true })),
+      mode === "face" && ce("button", { className: "av-shuffle", onClick: () => { setFace(avShuffle()); haptic(10); sound("chip"); }, "aria-label": "Surprise me with a random character" }, ce(Icon, { n: "die", size: 20 }))),
     mode === "photo" && raw && ce("label", { className: "av-zoom" }, ce("span", null, "Zoom"),
       ce("input", { type: "range", min: 1, max: 3, step: .01, value: zoom, onChange: e => { const z = +e.target.value; setZoom(z); setPos(p => clamp(p, z)); } })),
-    ce(Seg, { label: "Avatar type", value: mode, onChange: setMode, options: [["initials", "Initials"], ["photo", "Photo"], ["face", "Character"]] }),
-    mode === "photo" && ce("div", { className: "av-photo-btns" },
+    mode === "initials" && ce(Fragment, null, ce("span", { className: "group-h" }, "Colour"), colours),
+    mode === "photo" && ce(Fragment, null,
       ce("input", { ref: camRef, type: "file", accept: "image/*", capture: "user", hidden: true, onChange: onFile }),
       ce("input", { ref: libRef, type: "file", accept: "image/*", hidden: true, onChange: onFile }),
-      ce("button", { className: "btn tonal grow", onClick: () => camRef.current.click() }, ce(Icon, { n: "camera", size: 18 }), "Take photo"),
-      ce("button", { className: "btn tonal grow", onClick: () => libRef.current.click() }, "Choose photo")),
-    mode === "photo" && ce("p", { className: "group-f" }, raw ? "Drag to frame the face, then save." : "The photo stays small and is saved with this table."),
-    mode === "face" && ce("div", { className: "av-maker" },
-      opt("skin", AV.skin, swatch), opt("hair", AV.hair, v => mini({ hair: v })), opt("hairColor", AV.hairColor, swatch),
-      opt("face", AV.face, v => mini({ face: v })), opt("extra", AV.extra, v => mini({ extra: v })), opt("top", AV.top, swatch)),
-    ce("span", { className: "group-h" }, "Colour"),
-    ce("div", { className: "av-row colours", role: "radiogroup", "aria-label": "Colour" }, PEGS.map(c => ce("button", { key: c.k, role: "radio", "aria-checked": color === c.k, "aria-label": c.k,
-      disabled: taken.includes(c.k), className: "av-choice" + (color === c.k ? " on" : ""), onClick: () => setColor(c.k) }, ce("span", { className: "av-sw big", style: { background: c.c } })))));
+      ce("div", { className: "av-photo-btns" },
+        ce("button", { className: "btn tonal", onClick: () => camRef.current.click() }, ce(Icon, { n: "camera", size: 18 }), "Take"),
+        ce("button", { className: "btn tonal", onClick: () => libRef.current.click() }, "Choose"),
+        navigator.clipboard && navigator.clipboard.read && ce("button", { className: "btn tonal", onClick: paste }, ce(Icon, { n: "copy", size: 17 }), "Paste")),
+      ce("p", { className: "group-f" }, pasteMsg || (raw ? "Drag to frame it, then save." : "Use a photo, or copy one of your Memoji stickers and paste it here."))),
+    mode === "face" && ce(Fragment, null,
+      ce("div", { className: "av-cats", role: "tablist", "aria-label": "Character parts" }, AV_CATS.map(([k, label]) =>
+        ce("button", { key: k, role: "tab", "aria-selected": cat === k, className: "av-cat" + (cat === k ? " on" : ""), onClick: () => { setCat(k); haptic(4); } }, label))),
+      cat === "color" ? colours : ce("div", { key: cat, className: "av-grid", role: "radiogroup", "aria-label": AV_CATS.find(c => c[0] === cat)[1] }, values.map(v =>
+        ce("button", { key: v, role: "radio", "aria-checked": face[cat] === v, "aria-label": (AV_NAMES[cat] && AV_NAMES[cat][v]) || AV_CATS.find(c => c[0] === cat)[1] + " " + (values.indexOf(v) + 1),
+          className: "av-tile" + (face[cat] === v ? " on" : ""), onClick: () => pick(cat, v) }, ce(Peg, { color, name: player.name, av: { ...face, [cat]: v }, size: 62 }))))));
 }
 function NewGroupSheet({ onClose, onCreate }) {
   const [name, setName] = useState(""), [players, setPlayers] = useState([]);
@@ -2323,7 +2341,8 @@ input { caret-color: var(--accent); }
 .row-input.solo { padding: 0 16px; min-height: 54px; width: 100%; }
 .row-input::placeholder { color: var(--ink3); }
 .code-in { text-align: center; font: 600 1.5rem var(--num); letter-spacing: .25em; text-transform: uppercase; }
-.peg-btn { width: 44px; height: 44px; display: grid; place-items: center; flex: none; border-radius: 50%; }
+.peg-btn { width: 44px; height: 44px; display: grid; place-items: center; flex: none; border-radius: 50%; position: relative; }
+.peg-badge { position: absolute; right: 1px; bottom: 2px; width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; background: var(--surface); color: var(--ink2); box-shadow: 0 0 0 var(--hair) var(--line); }
 
 /* Buttons */
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 50px; padding: 0 18px; border-radius: 13px; font-size: 1rem; font-weight: 600; }
@@ -2817,19 +2836,22 @@ html.locked, html.locked body { overflow: hidden; overscroll-behavior: none; }
 /* Avatars */
 .peg.photo { background: var(--peg) center / cover no-repeat; }
 .peg.face { overflow: hidden; } .peg.face svg { width: 100%; height: 100%; display: block; }
-.av-stage { display: grid; place-items: center; min-height: 236px; }
+.av-sheet .sheet-body { gap: 14px; }
+.av-stage { position: relative; display: grid; place-items: center; min-height: 208px; border-radius: 22px; background: radial-gradient(70% 80% at 50% 40%, color-mix(in srgb, var(--surface) 92%, var(--gold-soft)) 0%, var(--fill) 100%); box-shadow: inset 0 0 0 var(--hair) var(--line); }
+.av-pop { display: grid; animation: pop .35s var(--spring) both; }
+.av-shuffle { position: absolute; right: 10px; bottom: 10px; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--surface); color: var(--accent); box-shadow: inset 0 0 0 var(--hair) var(--line), inset 0 -2px 0 color-mix(in srgb, var(--line) 70%, transparent); }
+.av-cats { display: flex; gap: 6px; overflow-x: auto; margin: 0 -16px; padding: 2px 16px; scrollbar-width: none; scroll-padding-inline: 16px; scroll-snap-type: x proximity; } .av-cats::-webkit-scrollbar { display: none; }
+.av-cat { flex: none; scroll-snap-align: start; min-height: 40px; padding: 0 14px; border-radius: 99px; font-weight: 600; font-size: .9rem; color: var(--ink2); background: var(--fill); }
+.av-cat.on { background: var(--ink); color: var(--bg); }
+.av-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; animation: fade .2s ease both; }
+.av-tile { aspect-ratio: 1; border-radius: 18px; display: grid; place-items: center; background: var(--surface); box-shadow: inset 0 0 0 var(--hair) var(--line); transition: transform .25s var(--spring), box-shadow .15s; }
+.av-tile.on { box-shadow: inset 0 0 0 2.5px var(--accent); }
+.av-tile:disabled { opacity: .3; }
+.av-dot { width: 40px; height: 40px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); }
 .av-crop { position: relative; border-radius: 50%; overflow: hidden; background: var(--peg); touch-action: none; cursor: grab; box-shadow: 0 0 0 3px var(--surface), 0 0 0 6px var(--gold-ring); }
 .av-crop img { position: absolute; left: 50%; top: 50%; max-width: none; user-select: none; pointer-events: none; }
 .av-zoom { display: flex; align-items: center; gap: 12px; color: var(--ink2); font-size: .9rem; } .av-zoom input { flex: 1; accent-color: var(--accent); min-height: 44px; }
-.av-photo-btns { display: flex; gap: 10px; }
-.av-maker { display: grid; gap: 10px; min-width: 0; } .av-opt, .av-row { min-width: 0; }
-.av-opt .group-h { display: block; margin: 0 0 6px; }
-.av-row { display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px 6px; scrollbar-width: none; } .av-row::-webkit-scrollbar { display: none; }
-.av-choice { flex: none; width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; background: var(--surface); box-shadow: 0 0 0 var(--hair) var(--line); }
-.av-choice.on { box-shadow: 0 0 0 2.5px var(--accent); }
-.av-choice:disabled { opacity: .3; }
-.av-sw { width: 34px; height: 34px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); } .av-sw.big { width: 38px; height: 38px; }
-.av-row.colours { flex-wrap: wrap; overflow: visible; }
+.av-photo-btns { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 8px; }
 /* Rules on tablets: the rounds sit in a list beside the guide */
 .rname { display: none; }
 @media (min-width: 900px) {

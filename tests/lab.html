@@ -196,6 +196,7 @@ const SCENARIOS = [
     await until(() => c.$$(".sheet").length === 2, 2000, "the avatar maker");
     const top = () => c.$$(".sheet").pop();
     await c.tap(c.button(/Character/, top()));
+    await c.tap([...top().querySelectorAll('[role="tab"]')].find(b => b.textContent.trim() === "Extras"));
     await c.tap(top().querySelector('[aria-label="Glasses"]'));
     await c.tap([...top().querySelectorAll("button")].find(b => b.textContent.trim() === "Save"));
     await until(() => c.$$(".sheet").length === 1, 2000, "the avatar maker to close");
