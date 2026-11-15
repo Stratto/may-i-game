@@ -641,6 +641,7 @@ const IC = {
   out: '<circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/>', bolt: '<path d="M13 3L5 14h6l-1 7 8-11h-6z"/>', users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14a5.5 5.5 0 0 1 3.5 6"/>',
   link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>', screen: '<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/>',
   flag: '<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>', edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/>', trash: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>', copy: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>',
+  camera: '<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>', spark: '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M18 6l-2.5 2.5M8.5 15.5L6 18"/>',
   wifi: '<path d="M2 9a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M12 19.5h.01"/>',
 };
 function Icon({ n, size, stroke }) {
@@ -827,6 +828,78 @@ const LOOKS = {
       band: "#FFFFFF", band2: "#FFFFFF", bandInk: "#000000", bandInk2: "#1E1E1E", accent: "#000000", accentInk: "#FFFFFF", accentSoft: "#EDEFF1",
       gold: "#6B4700", goldRing: "#B07A00", goldSoft: "#FFF1C7", red: "#A00000", out: "#005A2B", outSoft: "#D6F2E1", focus: "#0047D6" } },
 };
+// ── Card scanner and hand coach (Claude, with the player's own API key) ──
+// The key stays on this device. Requests go straight from the browser to Anthropic.
+const AI_MODEL = "claude-opus-5-5";
+const AI_SDK_URL = "https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@1.3.0/+esm"; // pinned
+const AI_KEY = "mayi:aikey";
+const getAiKey = () => { try { return localStorage.getItem(AI_KEY) || ""; } catch (e) { return ""; } };
+const setAiKey = k => { try { k ? localStorage.setItem(AI_KEY, k) : localStorage.removeItem(AI_KEY); } catch (e) {} };
+let sdkPromise = null;
+const loadSDK = () => sdkPromise || (sdkPromise = import(AI_SDK_URL).then(m => m.default || m.Anthropic).catch(e => { sdkPromise = null; throw e; }));
+function resizeImage(file, max) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file), img = new Image();
+    img.onload = () => { const k = Math.min(1, (max || 1568) / Math.max(img.width, img.height)), c = document.createElement("canvas");
+      c.width = Math.round(img.width * k); c.height = Math.round(img.height * k); c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url); resolve(c.toDataURL("image/jpeg", 0.86)); };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Couldn't open that photo. Try taking it again.")); };
+    img.src = url;
+  });
+}
+async function askClaude(dataUrl, prompt, schema) {
+  const apiKey = getAiKey(); if (!apiKey) throw new Error("Add your Anthropic API key in Settings to use the card scanner.");
+  let Anthropic;
+  try { Anthropic = await loadSDK(); } catch (e) { throw new Error("Couldn't load the card reader. Check your internet connection."); }
+  const client = new Anthropic({ apiKey, dangerouslyAllowBrowser: true, maxRetries: 1 });
+  let res;
+  try {
+    res = await client.beta.messages.create({
+      model: AI_MODEL, max_tokens: 4000,
+      output_config: { effort: "low", format: { type: "json_schema", schema } },
+      betas: ["server-side-fallback-2026-07-01"], fallbacks: "default",
+      messages: [{ role: "user", content: [
+        { type: "image", source: { type: "base64", media_type: "image/jpeg", data: dataUrl.slice(dataUrl.indexOf(",") + 1) } },
+        { type: "text", text: prompt } ] }],
+    });
+  } catch (e) {
+    if (e instanceof Anthropic.AuthenticationError) throw new Error("Your API key was rejected. Check it in Settings.");
+    if (e instanceof Anthropic.PermissionDeniedError) throw new Error("This API key can't use the card reader model.");
+    if (e instanceof Anthropic.RateLimitError) throw new Error("Too many scans at once. Wait a moment and try again.");
+    if (e instanceof Anthropic.APIConnectionError) throw new Error("Couldn't reach the card reader. Check your connection.");
+    if (e instanceof Anthropic.APIError) throw new Error("The card reader had a problem (" + (e.status || "error") + "). Try again.");
+    throw new Error("Something went wrong reading the photo.");
+  }
+  if (res.stop_reason === "refusal") throw new Error("The card reader couldn't process this photo. Try a clearer shot of just the cards.");
+  if (res.stop_reason === "max_tokens") throw new Error("That photo had too much in it. Try a closer shot.");
+  const text = (res.content || []).filter(b => b.type === "text").map(b => b.text).join("");
+  try { return JSON.parse(text); } catch (e) { throw new Error("The reply couldn't be read. Try another photo."); }
+}
+const SCAN_SCHEMA = { type: "object", additionalProperties: false, required: ["cards", "unclear"], properties: {
+  cards: { type: "array", items: { type: "object", additionalProperties: false, required: ["rank", "suit", "sure"], properties: {
+    rank: { type: "string", enum: ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "JOKER"] },
+    suit: { type: "string", enum: ["S", "H", "D", "C", "none"] }, sure: { type: "boolean" } } } },
+  unclear: { type: "integer" } } };
+// Returns hand tokens with suits ("7S", "KH", "JOKER") plus which ones the reader wasn't sure of.
+async function scanHand(dataUrl) {
+  const d = await askClaude(dataUrl,
+    "This photo shows playing cards left in one player's hand at the end of a round of contract rummy, fanned in a hand or spread on a table. " +
+    "Identify every card whose face you can see. Two decks are in play, so duplicates are possible; list each physical card once. " +
+    "Set sure to false for any card you had to guess. Use suit none only for jokers. Count cards you can see but cannot read at all in unclear.", SCAN_SCHEMA);
+  const cards = (d.cards || []).map(c => ({ token: c.rank === "JOKER" ? "JOKER" : c.rank + (c.suit !== "none" ? c.suit : ""), sure: c.sure !== false }));
+  return { cards, unclear: Math.max(0, d.unclear | 0) };
+}
+const COACH_SCHEMA = { type: "object", additionalProperties: false, required: ["cards", "have", "aim", "keep", "discard", "tip"],
+  properties: Object.fromEntries(["cards", "have", "aim", "keep", "discard", "tip"].map(k => [k, { type: "string" }])) };
+function adviseHand(dataUrl, round, rules) {
+  const r = ROUNDS[round];
+  return askClaude(dataUrl,
+    "You are a friendly coach for the card game May I? (contract rummy, two decks). This round's contract is " + contractLine(r) + " (" + r.name + "). " +
+    "A set is 3+ cards of the same rank, any suits. A run is 4+ cards in a row in one suit. Wilds can't outnumber natural cards in a meld. House rules: " + rulesLine(rules) + ". " +
+    "Players go down once per round with the contract; after that they may only lay off onto melds on the table. " + (r.goOut ? "This is the final round: the player must go down and go out in one move with no discard. " : "") +
+    "The photo shows the player's hand. Read the cards, then coach them in plain, short sentences a beginner understands. " +
+    "cards: the cards you read, like 7♠ 7♥ 9♦. have: melds or near-melds they already hold. aim: what to build toward. keep: cards to keep and why. discard: the best card to discard next and why. tip: one extra tip.", COACH_SCHEMA);
+}
 const SETTINGS_KEY = "mayi:settings:v6";
 const loadSettings = () => ({ look: "table", ...loadJSON(SETTINGS_KEY, {}) });
 function applyLook(name) {
@@ -1132,11 +1205,24 @@ function ScorePad({ game, pl, start, round, rs, setScore, onClose, onDone }) {
   const [idx, setIdx] = useState(start), [buf, setBuf] = useState(""), [mode, setMode] = useState(() => stored(start).length ? "cards" : "num"), [hand, setHand] = useState(() => stored(start));
   const id = ids[idx], p = pl(id), cur = rs[id], outId = ids.find(x => rs[x] === 0), outTaken = !!outId && outId !== id;
   // Opening a player whose cards were counted brings those cards back, so a recount starts from what was there.
-  const openPlayer = k => { const h = stored(k); setBuf(""); setHand(h); if (h.length) setMode("cards"); setIdx(k); };
+  const openPlayer = k => { const h = stored(k); setBuf(""); setHand(h); setDoubt([]); setScanMsg(null); if (h.length) setMode("cards"); setIdx(k); };
+  // Photo scan: the reader fills the hand; cards it guessed are outlined so they get a second look.
+  const [doubt, setDoubt] = useState([]), [scanning, setScanning] = useState(false), [scanMsg, setScanMsg] = useState(null), fileRef = useRef(null);
+  async function onPhoto(e) {
+    const f = e.target.files && e.target.files[0]; e.target.value = ""; if (!f) return;
+    setScanning(true); setScanMsg(null);
+    try { const data = await resizeImage(f); const r = await scanHand(data);
+      setHand(r.cards.map(c => c.token)); setDoubt(r.cards.map(c => !c.sure)); haptic(12);
+      const guessed = r.cards.filter(c => !c.sure).length;
+      setScanMsg(!r.cards.length ? { err: true, t: "No cards found. Try again with the cards spread out in good light." }
+        : { t: "Read " + r.cards.length + (r.cards.length === 1 ? " card" : " cards") + "." + (guessed ? " Check the " + guessed + " outlined." : "") + (r.unclear ? " " + r.unclear + " couldn't be read, so add them by hand." : "") });
+    } catch (err) { setScanMsg({ err: true, t: err.message, key: !getAiKey() }); }
+    setScanning(false);
+  }
   const cardTotal = hand.reduce((s, c) => s + cardValue(c, rules), 0);
   const val = mode === "cards" ? (hand.length ? cardTotal : null) : buf !== "" ? parseInt(buf, 10) : null;
   const shown = val != null ? val : typeof cur === "number" ? cur : null;
-  const reset = () => { setBuf(""); setHand([]); };
+  const reset = () => { setBuf(""); setHand([]); setDoubt([]); setScanMsg(null); };
   function move(next) { const v = { ...rs }; if (next.v != null) v[id] = next.v;
     if (next.v > 0 && !ids.some(x => v[x] === 0)) { const left = ids.filter(x => typeof v[x] !== "number"); if (left.length === 1) v[left[0]] = 0; }
     const after = ids.map((_, k) => (idx + 1 + k) % ids.length).find(k => typeof v[ids[k]] !== "number");
@@ -1164,7 +1250,11 @@ function ScorePad({ game, pl, start, round, rs, setScore, onClose, onDone }) {
       ? ce("div", { className: "numpad" }, ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "del"].map((k, j) => k === "" ? ce("span", { key: j }) :
           ce("button", { key: k, className: "nk" + (k === "del" ? " fn" : ""), onClick: () => key(k), "aria-label": k === "del" ? "Delete" : k }, k === "del" ? ce(Icon, { n: "back", size: 24 }) : k)))
       : ce(Fragment, null,
-          ce("div", { className: "hand" }, hand.length ? hand.map((c, i) => ce("button", { key: i + c, className: "hcard", onClick: () => setHand(h => h.filter((_, j) => j !== i)), "aria-label": "Remove " + face(c) },
+          ce("div", { className: "scanbar" },
+            ce("input", { ref: fileRef, type: "file", accept: "image/*", capture: "environment", hidden: true, onChange: onPhoto }),
+            ce("button", { className: "btn tonal sm", disabled: scanning, onClick: () => fileRef.current && fileRef.current.click() }, ce(Icon, { n: "camera", size: 18 }), scanning ? "Reading cards…" : "Scan the hand"),
+            scanMsg && ce("p", { className: "scan-msg" + (scanMsg.err ? " err" : ""), role: scanMsg.err ? "alert" : "status" }, scanMsg.t)),
+          ce("div", { className: "hand" + (scanning ? " busy" : "") }, hand.length ? hand.map((c, i) => ce("button", { key: i + c, className: "hcard" + (doubt[i] ? " doubt" : ""), onClick: () => { setHand(h => h.filter((_, j) => j !== i)); setDoubt(d => d.filter((_, j) => j !== i)); }, "aria-label": "Remove " + face(c) + (doubt[i] ? ", unsure" : "") },
               ce("b", null, face(c)), ce("small", null, cardValue(c, rules)))) : ce("p", { className: "hint" }, "Tap each card left in " + p.name + "'s hand. Tap a card here to remove it.")),
           ce("div", { className: "keys" }, keys.map(c => ce("button", { key: c, className: "key", onClick: () => { haptic(5); setHand(h => [...h, c]); } },
             ce("b", null, face(c)), ce("small", null, c === "A1" ? "1" : c === "A15" ? "15" : cardValue(c, rules)))))));
@@ -1393,6 +1483,19 @@ function TableSheet({ onClose, group, onRename, onDelete }) {
     ce("div", { className: "list gap" }, ce("button", { className: "row tap danger", onClick: onDelete },
       ce("span", { className: "row-main" }, ce("b", null, "Delete table"), ce("small", null, "Removes its players and every game. You can undo this for a few seconds.")))));
 }
+function AiKeyCard() {
+  const [key, setKey] = useState(getAiKey), [draft, setDraft] = useState(""), [show, setShow] = useState(false);
+  const save = () => { const k = draft.trim(); if (!k) return; setAiKey(k); setKey(k); setDraft(""); setShow(false); haptic(10); };
+  return ce("div", { className: "list" },
+    key ? ce(Row, { lead: ce("span", { className: "row-ic soft" }, ce(Icon, { n: "camera", size: 19 })), title: "Scanner is on", sub: "Key ending " + key.slice(-4) + " · saved on this device only",
+        trail: ce("button", { className: "btn plain sm", onClick: () => { setAiKey(""); setKey(""); } }, "Remove") })
+      : show ? ce("form", { className: "row col", onSubmit: e => { e.preventDefault(); save(); } },
+          ce("b", null, "Your Anthropic API key"),
+          ce("input", { className: "row-input boxed", type: "password", value: draft, placeholder: "sk-ant-…", autoComplete: "off", spellCheck: false, "aria-label": "Anthropic API key", onChange: e => setDraft(e.target.value), autoFocus: true }),
+          ce("small", { className: "rule-hint" }, "Get one at console.anthropic.com. It stays on this phone and goes only to Anthropic. Each scan costs a few cents on your account."),
+          ce("button", { className: "btn primary block", type: "submit", disabled: !draft.trim() }, "Turn on the scanner"))
+      : ce(Row, { lead: ce("span", { className: "row-ic soft" }, ce(Icon, { n: "camera", size: 19 })), title: "Count cards from a photo", sub: "Uses your own Anthropic API key", chevron: true, onClick: () => setShow(true) }));
+}
 function LevelSheet({ onClose, onPick }) {
   return ce(Sheet, { title: "Have you played before?", onClose },
     ce("p", { className: "sheet-lede" }, "We'll set the coaching to suit you. You can change it in Settings."),
@@ -1415,6 +1518,8 @@ function SettingsSheet({ onClose, settings, setSettings, game, onEnd, onHelp }) 
         ce(Seg, { label: "Experience", value: settings.level || "new", onChange: v => setSettings(x => ({ ...x, level: v })), options: [["new", "Still learning"], ["pro", "I know it well"]] }),
         ce("small", { className: "rule-hint" }, (settings.level || "new") === "new" ? "The round guide opens at the start of each round." : "Guides stay closed. Tap the contract any time to open one.")),
       ce(Row, { lead: ce("span", { className: "row-ic" }, ce(Icon, { n: "book", size: 19 })), title: game ? "Round guide and rules" : "How to play", tone: "accent", chevron: true, onClick: onHelp })),
+    ce("h3", { className: "group-h" }, "Card scanner"),
+    ce(AiKeyCard),
     game && ce(Fragment, null,
       ce("h3", { className: "group-h" }, "This game"),
       ce("div", { className: "list" }, ce("button", { className: "row tap danger", onClick: onEnd },
@@ -1426,7 +1531,22 @@ function Steps({ items, limitText }) {
   return ce("ol", { className: "steps" }, items.map((x, i) => ce("li", { key: i }, ce("span", { className: "step-n" }, i + 1),
     ce("span", null, ce("b", null, x.t), ce("small", null, limitText ? x.d.replace("{limit}", limitText) : x.d)))));
 }
-function RoundGuide({ round, level }) {
+function HandCoach({ round, rules }) {
+  const [busy, setBusy] = useState(false), [res, setRes] = useState(null), [err, setErr] = useState(null), ref = useRef(null);
+  async function onPhoto(e) { const f = e.target.files && e.target.files[0]; e.target.value = ""; if (!f) return;
+    setBusy(true); setErr(null); setRes(null);
+    try { setRes(await adviseHand(await resizeImage(f), round, rules)); haptic(12); } catch (x) { setErr(x.message); }
+    setBusy(false); }
+  return ce("section", { className: "coach" },
+    ce("div", { className: "coach-head" }, ce("span", { className: "row-ic soft" }, ce(Icon, { n: "spark", size: 20 })),
+      ce("span", null, ce("b", null, "Hand coach"), ce("small", null, "Photograph your hand, privately, for advice on this contract."))),
+    ce("input", { ref, type: "file", accept: "image/*", capture: "environment", hidden: true, onChange: onPhoto }),
+    ce("button", { className: "btn tonal block", disabled: busy, onClick: () => ref.current && ref.current.click() }, ce(Icon, { n: "camera", size: 18 }), busy ? "Reading your hand…" : res ? "Ask again" : "Photograph my hand"),
+    err && ce("p", { className: "scan-msg err", role: "alert" }, err),
+    res && ce("dl", { className: "coach-out" }, [["I see", res.cards], ["You have", res.have], ["Aim for", res.aim], ["Keep", res.keep], ["Discard", res.discard], ["Tip", res.tip]]
+      .filter(x => x[1]).map(([k, v]) => ce(Fragment, { key: k }, ce("dt", null, k), ce("dd", null, v)))));
+}
+function RoundGuide({ round, level, coach, rules }) {
   const r = ROUNDS[round], G = GUIDE[round], [showPro, setShowPro] = useState(level === "pro");
   return ce(Fragment, null,
     ce("div", { className: "rule-card" },
@@ -1441,7 +1561,8 @@ function RoundGuide({ round, level }) {
     ce("h3", { className: "group-h" }, "Tips"),
     ce("ul", { className: "tips" }, G.tips.map(t => ce("li", { key: t }, ce(Icon, { n: "bolt", size: 16 }), t))),
     showPro ? ce(Fragment, null, ce("h3", { className: "group-h" }, "Pro tips"), ce("ul", { className: "tips pro" }, G.pro.map(t => ce("li", { key: t }, ce(Icon, { n: "crown", size: 16 }), t))))
-      : ce("button", { className: "btn plain block", onClick: () => setShowPro(true) }, "Show pro tips"));
+      : ce("button", { className: "btn plain block", onClick: () => setShowPro(true) }, "Show pro tips"),
+    coach && ce(HandCoach, { round, rules }));
 }
 function RulesSheet({ onClose, round, rules, setRules, level, initialTab }) {
   const [tab, setTab] = useState(initialTab || "round"), [r, setR] = useState(round || 0);
@@ -1450,7 +1571,7 @@ function RulesSheet({ onClose, round, rules, setRules, level, initialTab }) {
     ce(Seg, { label: "Rules section", value: tab, onChange: setTab, options: [["round", "Rounds"], ["how", "Basics"], ["faq", "Q&A"], ["house", "House"]] }),
     tab === "round" && ce(Fragment, null,
       ce("div", { className: "rpick", role: "tablist", "aria-label": "Round" }, ROUNDS.map((x, i) => ce("button", { key: i, role: "tab", "aria-selected": i === r, className: "rnum" + (i === r ? " on" : ""), onClick: () => setR(i) }, x.n))),
-      ce(RoundGuide, { key: r, round: r, level })),
+      ce(RoundGuide, { key: r, round: r, level, rules, coach: !!setRules && r === (round || 0) })),
     tab === "how" && ce(Fragment, null,
       ce("h3", { className: "group-h" }, "Learn in 60 seconds"), ce(Steps, { items: QUICK_START }),
       ce("h3", { className: "group-h" }, "Your turn"), ce(Steps, { items: TURN_STEPS }),
@@ -1819,6 +1940,18 @@ input { caret-color: var(--accent); }
 .level { display: grid; grid-template-columns: 44px 1fr; gap: 2px 12px; text-align: left; padding: 16px; border-radius: 16px; background: var(--surface); box-shadow: 0 0 0 var(--hair) var(--line); }
 .level .row-ic { grid-row: span 2; width: 44px; height: 44px; border-radius: 12px; } .level b { font-weight: 600; font-size: 1.05rem; } .level small { color: var(--ink2); line-height: 1.35; }
 .level:active { transform: scale(.98); }
+
+/* Card scanner and hand coach */
+.scanbar { display: grid; justify-items: center; gap: 6px; }
+.scan-msg { margin: 0; font-size: .86rem; color: var(--ink2); text-align: center; line-height: 1.35; } .scan-msg.err { color: var(--red); }
+.hand.busy { opacity: .45; }
+.hcard.doubt { box-shadow: 0 0 0 2px var(--gold-ring); }
+.hcard { min-width: 44px; width: auto; padding: 0 4px; }
+.row-input.boxed { background: var(--fill); border-radius: 10px; padding: 0 12px; }
+.coach { display: grid; gap: 12px; margin-top: 10px; padding: 16px; border-radius: 16px; background: var(--surface); box-shadow: 0 0 0 var(--hair) var(--line); }
+.coach-head { display: flex; gap: 12px; align-items: flex-start; } .coach-head b { display: block; font-weight: 600; } .coach-head small { color: var(--ink2); line-height: 1.35; }
+.coach-out { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; margin: 0; }
+.coach-out dt { font-size: .8rem; font-weight: 600; color: var(--ink3); padding-top: 2px; } .coach-out dd { margin: 0; line-height: 1.4; }
 @keyframes fade { from { opacity: 0; } }
 @keyframes up { from { transform: translateY(100%); } }
 @keyframes down { to { transform: translateY(100%); } }
