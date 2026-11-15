@@ -643,12 +643,7 @@ function TopBar({ title, onBack, backLabel, actions, sub }) {
       ce("span", { className: "grow" }), actions),
     title && ce("h1", { className: "title" }, title), sub && ce("p", { className: "subtitle" }, sub));
 }
-function TrackMark() {
-  return ce("svg", { className: "mark", width: 26, height: 26, viewBox: "0 0 26 26", "aria-hidden": true },
-    ce("rect", { x: 1, y: 1, width: 24, height: 24, rx: 7, fill: "var(--ink)" }),
-    ce("path", { d: "M6 9h14M6 13h14M6 17h14", stroke: "rgba(255,255,255,.28)", strokeWidth: 1.6, strokeLinecap: "round" }),
-    ce("circle", { cx: 17, cy: 9, r: 2.3, fill: PEGS[0].c }), ce("circle", { cx: 11, cy: 13, r: 2.3, fill: PEGS[3].c }), ce("circle", { cx: 14, cy: 17, r: 2.3, fill: PEGS[1].c }));
-}
+function TrackMark() { return ce("img", { className: "mark", src: "icon.svg", width: 28, height: 28, alt: "" }); }
 function SyncPill({ sync }) {
   if (sync === "local") return null;
   const t = { live: "Live", connecting: "Connecting", offline: "Offline" }[sync];
@@ -1148,6 +1143,7 @@ input { caret-color: var(--focus); }
 .topbar { position: sticky; top: 0; z-index: 5; background: rgba(233,239,246,.92); backdrop-filter: saturate(1.4) blur(12px); -webkit-backdrop-filter: saturate(1.4) blur(12px);
   padding: calc(env(safe-area-inset-top) + 8px) max(16px, env(safe-area-inset-right)) 8px max(16px, env(safe-area-inset-left)); }
 .topbar-row { display: flex; align-items: center; gap: 8px; min-height: 44px; max-width: 760px; margin: 0 auto; }
+.mark { border-radius: 8px; }
 .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.15rem; letter-spacing: -.02em; }
 .back { display: inline-flex; align-items: center; gap: 2px; min-height: 44px; padding-right: 8px; font-weight: 700; color: var(--ink); margin-left: -6px; }
 .back.light { color: var(--on-navy); }
