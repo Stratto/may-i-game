@@ -7,17 +7,16 @@ Constraints: single-file PWA, offline-first, readable in sunlight, no deep or of
 
 ## Direction contract
 
-THESIS: standings are a race you can see. Every player row is a lane with a coloured peg that slides toward the finish as scores land, so the gap to first reads from across the table. This replaces the category default: a ranked list of numbers.
+THESIS: a card table in your pocket. The game screen is a felt band with the round's contract dealt as real cards, and the players sit around it as seats in one clean card. Everything around the table is plain iOS: large titles, inset grouped lists, sheets.
 
-OWN-WORLD: a printed board-game score track. Pale blue board ground (#E9EFF6), white work surfaces, deep navy ink (#13233F) for type and the primary action, and eight bright peg colours that identify each player everywhere (dot, peg, recap). Gold marks the leader. One sans (Manrope), with tabular numerals. Flat: 1px hairlines, round pegs, no heavy shadows.
+OWN-WORLD: "The Table". Felt band (radial, per look), ivory playing cards with real corners, gold only for the leader, the dealer badge and the current round pip. System SF type for UI, ui-rounded tabular numbers, Fraunces for display names (titles, contract, intro, recap). Four looks: Table (green), Midnight (navy), Parlour (burgundy), with dark mode, plus Daylight (max contrast, for sunlight).
 
-STORY: open a group, see who's leading all-time, and start a game. Each round shows its contract and the one rule to watch. Tap buys, enter scores, and watch the pegs move. At the end comes a recap with the podium, round grid and awards, ready to share.
+STORY: Home lists tables and any game in progress. A table shows its champion, standings and history, with one button: deal or resume. In a game, tap the contract for rules, tap "May I?" for buys, and score the round in one sheet. A giant card announces each new round. The recap crowns the winner on a podium and shares a results image.
 
-FIRST VIEWPORT (game, phone): a navy contract bar shows the round (n/7), the contract name, a mini meld example and a one-line tip. Below it are the player lanes, each with a colour peg, name, large total and its lane track. The primary action is pinned at the bottom in thumb reach. On wide screens: big lanes on the left and the round panel with controls on the right. A Scoreboard mode hides the controls and scales the type for the table.
+FIRST VIEWPORT (game, phone): the felt band (back, gear, round n of 7, contract in Fraunces, mini cards, pips, dealer, Rules), then the seats card, then one primary action in the dock.
 
-FORM: Score Track, chosen by the user from a four-card hand (Score Track, Seven Frames, Departure Board, category standard).
-seed: none (unavailable). The engine wasn't run, so there was no concept-seed roll and the hand was derived by hand.
+RULE: one control per action. Rules open only from the contract. Share lives only in the nav bar. The dock holds the single next step.
 
-Signature interaction: when a round is committed, each peg slides along its lane (400ms, exponential ease-out) and the leader's peg takes the gold ring.
+Signature interaction: between rounds the next contract is dealt in as one big playing card, with Undo and Let's play.
 
-FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
+FINISH: reviewed in the browser at 375px and 1280px, in light, dark and Daylight; detector clean; DESIGN.md rewritten.
