@@ -1,4 +1,4 @@
-const CACHE = 'mayi-v40';
+const CACHE = 'mayi-v41';
 // 3D characters come from a pinned CDN commit, so once fetched they never change: keep them for offline play.
 const FIGS = 'mayi-figs-1';
 const isFig = url => url.startsWith('https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@');

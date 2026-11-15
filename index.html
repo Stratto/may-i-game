@@ -20,7 +20,6 @@
 </style>
 </head>
 <body>
-<div class="ambient" aria-hidden="true"><i class="suits"></i></div>
 <div id="root"></div>
 <script>/**
  * @license React
@@ -391,7 +390,7 @@ async function copyText(t) {
 }
 // A player in a game: the table's current player, else the name saved with the game.
 const plOf = (group, game) => id => (group && group.players.find(p => p.id === id)) || (game && game.names && game.names[id] && { id, ...game.names[id] }) || { id, name: "Former player", color: "red" };
-const namesOf = (group, ids) => Object.fromEntries(ids.map(id => { const p = group.players.find(x => x.id === id); return [id, p ? { name: p.name, color: p.color, ...(p.avatar && p.avatar.type === "face" ? { avatar: p.avatar } : {}) } : { name: "Former player", color: "red" }]; }));
+const namesOf = (group, ids) => Object.fromEntries(ids.map(id => { const p = group.players.find(x => x.id === id); return [id, p ? { name: p.name, color: p.color, ...(p.avatar && p.avatar.type !== "photo" ? { avatar: p.avatar } : {}) } : { name: "Former player", color: "red" }]; }));
 
 // Peg colours: each player keeps one for life in a group.
 const PEGS = [
@@ -1072,6 +1071,7 @@ function FigImg({ av, cls }) {
       onLoad: e => e.currentTarget.parentNode.classList.add("in") }));
 }
 function Peg({ color, name, size, ring, av }) {
+  if (!av) av = avSeed(name);
   const p = peg(color), cls = "peg" + (ring ? " ring" : ""), style = { "--peg": p.c, "--peg-ink": p.ink, width: size, height: size, fontSize: size * .42 };
   if (av && av.type === "photo" && av.src) return ce("span", { className: cls + " photo", "aria-hidden": true, style: { ...style, backgroundImage: "url(" + av.src + ")" } });
   if (av && av.type === "face") { const f = toFig(av);
@@ -1520,7 +1520,7 @@ function Home({ s, open, go, sync, rematch }) {
   const played = Object.values(s.games).filter(g => g.status === "done").length;
   return ce(Page, { title: "May I?", className: "home", actions: ce(Fragment, null, ce(SyncPill, { sync }), ce(NavIcon, { n: "gear", label: "Settings", onClick: () => open("settings") })),
       hero: ce(Fragment, null, ce("p", { className: "hero-sub" }, played ? played + (played === 1 ? " game" : " games") + " scored. Who's dealing tonight?" : "Seven contracts. One winner. We'll keep the score."), ce(Fan),
-        ce("button", { className: "btn gold lg hero-cta", onClick: () => open("quick") }, ce(Icon, { n: "plus", size: 20, stroke: 2.6 }), "New game")) },
+        ce("button", { className: "btn lg hero-cta " + (lives.length ? "on-band" : "gold"), onClick: () => open("quick") }, ce(Icon, { n: "plus", size: 20, stroke: 2.6 }), "New game")) },
     last && ce("button", { className: "now-card again", onClick: () => rematch(last) },
       ce("span", { className: "now-top" }, ce(Icon, { n: "deal", size: 15 }), "Play again"),
       ce("b", { className: "now-name" }, s.groups[last.groupId].name),
@@ -1545,7 +1545,7 @@ function Home({ s, open, go, sync, rematch }) {
       : ce(List, { header: "Tables", footer: "Each table keeps its own players, games and champion." },
           groups.map(g => { const st = groupStats(s, g.id), lead = Object.entries(st.wins).sort((a, b) => b[1] - a[1]), lp = lead[0] && !(lead[1] && lead[1][1] === lead[0][1]) && g.players.find(p => p.id === lead[0][0]);
             return ce(Row, { key: g.id, lead: ce(Avatars, { players: g.players }), title: g.name, chevron: true, onClick: () => go({ at: "group", groupId: g.id }),
-              sub: st.games.length ? [st.games.length + (st.games.length === 1 ? " game" : " games"), lp && lp.name + " leads", ago(st.games[0].endedAt)].filter(Boolean).join(" · ") : g.players.length + " players · no games yet" }); }),
+              sub: st.games.length ? [st.games.length + (st.games.length === 1 ? " game" : " games"), lp && "most wins: " + lp.name, ago(st.games[0].endedAt)].filter(Boolean).join(" · ") : g.players.length + " players · no games yet" }); }),
           ce(Row, { lead: ce("span", { className: "row-ic" }, ce(Icon, { n: "plus", size: 20 })), title: "New table", tone: "accent", onClick: () => open("newGroup") }),
           syncOn && ce(Row, { lead: ce("span", { className: "row-ic" }, ce(Icon, { n: "link", size: 20 })), title: "Join with a code", tone: "accent", onClick: () => open("join") })));
 }
@@ -1604,6 +1604,7 @@ function Records({ s, group }) {
   if (r.mostGames && group.players.filter(p => playedBy(p.id) === r.mostGames.v).length === 1) rows.push(["users", "Most games played", r.mostGames.v, name(r.mostGames.id)]);
   return rows.length ? ce(List, { header: "Records" }, rows.map(([ic, t, v, who]) => ce(Row, { key: t, lead: ce("span", { className: "row-ic soft" }, ce(Icon, { n: ic, size: 19 })), title: t, sub: who, trail: ce("span", { className: "num-trail" }, ce("b", null, v)) }))) : null;
 }
+const AWARD_DESC = { clean: "Went out the most times", bargain: "Said “May I?” the most", comeback: "Biggest jump up the table in one round", steady: "Every round within 20 points", heavy: "Caught with the biggest hand", joker: "Caught holding the most jokers" };
 const AWARD_META = { clean: ["out", "Clean hands"], bargain: ["mayi", "Bargain hunter"], comeback: ["bolt", "Comeback kid"], steady: ["chart", "Steady hand"], heavy: ["calc", "Heavy pockets"], joker: ["flag", "Joker juggler"] };
 function ProfileSheet({ onClose, s, group, playerId, onDress }) {
   const p = plOf(group, null)(playerId), pr = playerProfile(s, group.id, playerId), name = id => plOf(group, null)(id).name;
@@ -1611,8 +1612,8 @@ function ProfileSheet({ onClose, s, group, playerId, onDress }) {
     ["Best game", pr.bestGame ? pr.bestGame.total : "–"], ["Times out", pr.outs], ["Buys", pr.buys], ["Best streak", pr.streak.best]];
   const badges = Object.entries(pr.badges);
   return ce(Sheet, { title: p.name, onClose, tall: true },
-    ce("div", { className: "profile-head" + (p.avatar && p.avatar.type === "face" ? " has-fig" : ""), style: { "--peg": peg(p.color).c } },
-      p.avatar && p.avatar.type === "face" ? ce(FigImg, { av: p.avatar, cls: "profile-fig" }) : ce(Peg, { color: p.color, name: p.name, av: p.avatar, size: 64, ring: pr.streak.current > 1 }),
+    ce("div", { className: "profile-head" + (!p.avatar || p.avatar.type === "face" ? " has-fig" : ""), style: { "--peg": peg(p.color).c } },
+      !p.avatar || p.avatar.type === "face" ? ce(FigImg, { av: p.avatar || avSeed(p.name), cls: "profile-fig" }) : ce(Peg, { color: p.color, name: p.name, av: p.avatar, size: 64, ring: pr.streak.current > 1 }),
       onDress && ce("button", { className: "btn tonal sm profile-dress", onClick: onDress }, ce(Icon, { n: "spark", size: 16 }), "Dress up"),
       ce("p", null, pr.streak.current > 1 ? "On a " + pr.streak.current + "-game winning streak" : pr.wins ? pr.wins + (pr.wins === 1 ? " win" : " wins") + " at " + group.name : "Still chasing a first win at " + group.name)),
     ce("div", { className: "tiles" }, tiles.map(([k, v]) => ce("div", { key: k }, ce("b", null, v), ce("span", null, k)))),
@@ -1788,7 +1789,7 @@ function ScorePad({ game, pl, start, round, rs, setScore, onClose, onDone, fixin
   const remaining = ids.filter(x => typeof rs[x] !== "number" && x !== id).length, last = fixing ? idx === ids.length - 1 : !remaining;
   // Everyone else has points and nobody is out yet, so this player most likely went out.
   const likelyOut = !fixing && !outId && typeof cur !== "number" && !remaining && ids.length > 1;
-  const primary = val === 0 && outTaken ? "Out instead of " + pl(outId).name : val != null ? (last ? (fixing ? "Save · done" : "Save round " + (R + 1)) : "Save · next player") : typeof cur === "number" ? (last ? "Done" : "Next player") : "Enter " + p.name + "'s points";
+  const primary = val === 0 && outTaken ? "Out instead of " + pl(outId).name : val != null ? (last ? (fixing ? "Save · done" : "Save round " + (R + 1)) : "Save · next player") : typeof cur === "number" ? (last ? "Done" : "Next player") : "Enter points";
   const keys = (rules.aceValue == null && rules.acesPosition === "both" ? ["A1", "A15"] : ["A"]).concat(RANKS.slice(1)).concat(rules.jokersWild ? ["JOKER"] : []);
   const face = c => { const k = rankPart(c), su = k !== c ? SUIT[c.slice(-1)][0] : ""; return (k === "JOKER" ? "Jkr" : k[0] === "A" ? "A" : k) + su; };
   return ce(Sheet, { title: (fixing ? "Fix round " : "Round ") + (R + 1) + (fixing ? "" : " scores"), onClose, tall: true,
@@ -1929,7 +1930,7 @@ function Recap({ s, game, go, setToast, rematch, onDelete, onReopen }) {
 }
 function resultsImage(name, rows, endedAt) {
   const load = src => new Promise(r => { if (!src) return r(null); const im = new Image(); if (/^https:/.test(src)) im.crossOrigin = "anonymous"; im.onload = () => r(im); im.onerror = () => r(null); im.src = src; });
-  return Promise.all(rows.map(r => load(avatarSrc(r.avatar)))).then(imgs => new Promise(res => { try {
+  return Promise.all(rows.map(r => load(avatarSrc(r.avatar || avSeed(r.name))))).then(imgs => new Promise(res => { try {
     const css = getComputedStyle(document.documentElement), band = css.getPropertyValue("--band").trim() || "#17644A", band2 = css.getPropertyValue("--band2").trim() || "#0B3D2B";
     const W = 1080, H = 1350, c = document.createElement("canvas"); c.width = W; c.height = H; const x = c.getContext("2d");
     const g = x.createRadialGradient(W * .3, 0, 50, W * .5, H * .4, H); g.addColorStop(0, band); g.addColorStop(1, band2);
@@ -2003,8 +2004,8 @@ const AV_CATS = [["looks", "Looks"], ["costumes", "Costumes"], ["moods", "Moods"
 const avShuffle = () => { const r = a => a[Math.floor(Math.random() * a.length)], g = r(["Woman", "Man", "Person"]), k = Math.random();
   return { type: "face", v: 4, who: k < .7 ? r(FIG.looks.slice(0, -1)) : k < .9 ? figRole(g, r(FIG.costumes)) : figMood(g, r(FIG.moods.slice(0, 5))), tone: r(FIG.tones.slice(0, 5)) }; };
 function AvatarSheet({ player, taken, onClose, onSave, dress }) {
-  const a0 = player.avatar || null;
-  const [color, setColor] = useState(player.color), [mode, setMode] = useState(a0 ? a0.type : dress ? "face" : "initials"), [cat, setCat] = useState("looks");
+  const a0 = player.avatar || avSeed(player.name);
+  const [color, setColor] = useState(player.color), [mode, setMode] = useState(dress ? "face" : a0.type), [cat, setCat] = useState("looks");
   const [face, setFace] = useState(a0 && a0.type === "face" ? toFig(a0) : avSeed(player.name)), [magic, setMagic] = useState(null), magicRef = useRef(null);
   // From a photo: Claude picks the closest character. Without a key, the key card opens here first.
   const fromPhoto = () => { if (!getAiKey()) { setMagic({ key: true }); return; } magicRef.current.click(); };
@@ -2037,8 +2038,8 @@ function AvatarSheet({ player, taken, onClose, onSave, dress }) {
   const cropped = () => { const c = document.createElement("canvas"), OUT = 192; c.width = c.height = OUT; const x = c.getContext("2d"), k = OUT / VIEW;
     x.fillStyle = peg(color).c; x.fillRect(0, 0, OUT, OUT);
     const w = raw.w * zoom * k, h = raw.h * zoom * k; x.drawImage(raw.img, (OUT - w) / 2 + pos.x * k, (OUT - h) / 2 + pos.y * k, w, h); return c.toDataURL("image/jpeg", .85); };
-  const result = () => mode === "photo" ? (raw ? { type: "photo", src: cropped() } : photo ? { type: "photo", src: photo } : null) : mode === "face" ? face : null;
-  const preview = mode === "photo" ? (photo && !raw ? { type: "photo", src: photo } : null) : mode === "face" ? face : null;
+  const result = () => mode === "photo" ? (raw ? { type: "photo", src: cropped() } : photo ? { type: "photo", src: photo } : null) : mode === "face" ? face : { type: "initials" };
+  const preview = mode === "photo" ? (photo && !raw ? { type: "photo", src: photo } : null) : mode === "face" ? face : { type: "initials" };
   const pick = (f, c) => { haptic(6); sound("tap"); if (f === "color") setColor(c); else setFace(f); };
   const colours = ce("div", { className: "av-grid", role: "radiogroup", "aria-label": "Colour" }, PEGS.map(c => ce("button", { key: c.k, role: "radio", "aria-checked": color === c.k, "aria-label": c.k + (taken.includes(c.k) ? ", taken" : ""),
     disabled: taken.includes(c.k), className: "av-tile" + (color === c.k ? " on" : ""), onClick: () => pick("color", c.k) },
@@ -2365,8 +2366,8 @@ function RulesBody({ tab, setTab, round, rules, setRules, level }) {
 function LearnPage({ s, open, level }) {
   const last = Object.values(s.games).sort((a, b) => (b.startedAt || 0) - (a.startedAt || 0))[0];
   const [tab, setTab] = useState("how");
-  return ce(Page, { title: "Learn", className: "learn", actions: ce(NavIcon, { n: "gear", label: "Settings", onClick: () => open("settings") }) },
-    ce("p", { className: "page-lede" }, "Seven rounds, each with its own contract. Lowest score after round 7 wins."),
+  return ce(Page, { title: "Learn", className: "learn", actions: ce(NavIcon, { n: "gear", label: "Settings", onClick: () => open("settings") }),
+      hero: ce(Fragment, null, ce("p", { className: "hero-sub" }, "Seven rounds, each with its own contract. Lowest score after round 7 wins."), ce(Fan)) },
     ce(RulesBody, { tab, setTab, round: 0, rules: { ...DEFAULT_RULES, ...((last && last.rules) || {}) }, setRules: null, level }));
 }
 // ── Stats tab: the trophy room across every table ─────────────────
@@ -2380,13 +2381,14 @@ function StatsPage({ s, open, go }) {
   });
   const tables = s.groupOrder.map(id => s.groups[id]).filter(Boolean).map(g => { const st = groupStats(s, g.id), top = Object.entries(st.wins).sort((a, b) => b[1] - a[1]);
     const champ = top[0] && !(top[1] && top[1][1] === top[0][1]) ? plOf(g, null)(top[0][0]) : null; return { g, st, champ, wins: top[0] ? top[0][1] : 0 }; });
-  return ce(Page, { title: "Stats", className: "stats", actions: ce(NavIcon, { n: "gear", label: "Settings", onClick: () => open("settings") }) },
-    !done.length ? ce("section", { className: "empty-state" }, ce("span", { className: "empty-ic", "aria-hidden": true }, ce(Icon, { n: "trophy", size: 30 })),
-        ce("h2", null, "Your trophy room"), ce("p", null, "Finish a game and the awards, records and champions show up here."))
-      : ce(Fragment, null,
+  const won = cabinet.filter(c => c.best).length;
+  return ce(Page, { title: "Stats", className: "stats", actions: ce(NavIcon, { n: "gear", label: "Settings", onClick: () => open("settings") }),
+      hero: ce(Fragment, null, ce("p", { className: "hero-sub" }, done.length ? done.length + (done.length === 1 ? " game" : " games") + " played · " + won + " of 6 awards claimed" : "Finish a game and the awards, records and champions show up here."),
+        ce("span", { className: "hero-badge", "aria-hidden": true }, ce(Crown, { place: 1, size: 64, quiet: true }))) },
+    done.length > 0 && ce(Fragment, null,
         ce("h3", { className: "group-h" }, "Trophy cabinet"),
         ce("div", { className: "cabinet" }, cabinet.map(c => ce("div", { key: c.key, className: "trophy" + (c.best ? "" : " empty") },
-          ce("span", { className: "trophy-ic", "aria-hidden": true }, ce(Icon, { n: c.ic, size: 20 })), ce("b", null, c.t),
+          ce("span", { className: "trophy-ic", "aria-hidden": true }, ce(Icon, { n: c.ic, size: 20 })), ce("b", null, c.t), ce("span", { className: "trophy-d" }, AWARD_DESC[c.key]),
           c.best ? ce("span", { className: "trophy-who" }, ce(Peg, { color: c.best.p.color, name: c.best.p.name, av: c.best.p.avatar, size: 22 }), c.best.p.name, ce("small", null, "× " + c.best.n))
             : ce("small", null, c.tie ? "Shared at the top" : "Not won yet")))),
         ce("p", { className: "group-f" }, "Who has won each award most often, across " + done.length + (done.length === 1 ? " game." : " games."))),
@@ -2551,7 +2553,7 @@ input { caret-color: var(--accent); }
 .pips i.now { width: 18px; background: #F2C766; }
 .tag { display: inline-flex; align-items: center; gap: 2px; font-size: .78rem; font-weight: 600; padding: 4px 10px; border-radius: 99px; background: color-mix(in srgb, var(--band-ink) 14%, transparent); }
 .rules-tag { margin-left: auto; }
-.table-body { max-width: 720px; margin: 0 auto; padding: 14px max(16px, env(safe-area-inset-right)) calc(110px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
+.table-body { max-width: 720px; margin: 0 auto; padding: 14px max(16px, env(safe-area-inset-right)) calc(132px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
 .seats-head { display: flex; justify-content: space-between; font-size: .8rem; font-weight: 600; color: var(--ink3); margin: 4px 16px 7px; }
 .seats { list-style: none; margin: 0; padding: 0; background: var(--surface); border-radius: 22px; overflow: hidden; box-shadow: 0 0 0 var(--hair) var(--line), 0 6px 20px -8px rgba(10,30,20,.18); }
 .seat { position: relative; display: flex; align-items: center; gap: 12px; min-height: 74px; padding: 10px 12px 10px 14px; animation: rise .45s calc(var(--i) * 40ms) var(--out-e) both; }
@@ -2568,7 +2570,7 @@ input { caret-color: var(--accent); }
 .chip { min-height: 30px; padding: 0 9px; border-radius: 9px; background: var(--fill); color: var(--ink2); font: 600 .82rem var(--num); font-variant-numeric: tabular-nums; flex: none; }
 .chip.out { background: var(--out-soft); color: var(--out); }
 .buy { display: flex; align-items: center; gap: 2px; flex: none; }
-.buy-pill { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-width: 66px; min-height: 48px; padding: 4px 10px; border-radius: 13px; background: var(--fill); font-weight: 600; font-size: .85rem; line-height: 1; }
+.buy-pill { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-width: 58px; min-height: 44px; padding: 4px 8px; border-radius: 12px; background: transparent; color: var(--ink2); font-weight: 600; font-size: .78rem; line-height: 1; }
 .buy-pill.has { background: var(--gold-soft); color: var(--gold); }
 .buy-pill:disabled { opacity: .5; }
 .dots { display: inline-flex; gap: 4px; } .dots i { width: 7px; height: 7px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px currentColor; opacity: .5; transition: transform .3s var(--spring); }
@@ -2597,9 +2599,9 @@ input { caret-color: var(--accent); }
 .podium.mini .pod-block { font-size: 1.2rem; padding-top: 6px; }
 .race-h { display: flex; align-items: baseline; justify-content: space-between; margin: 0 16px 7px; font-size: .8rem; font-weight: 600; color: var(--ink3); }
 .race-h small { font-weight: 500; }
-.race-row { display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 6px; margin: 0 -2px; scroll-snap-type: x mandatory; scrollbar-width: none; }
+.race-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; padding: 2px 0 4px; }
 .race-row::-webkit-scrollbar { display: none; }
-.race-chip { flex: none; scroll-snap-align: start; display: flex; align-items: center; gap: 9px; padding: 9px 10px 9px 9px; border-radius: 16px; background: var(--surface); box-shadow: 0 0 0 var(--hair) var(--line); animation: rise .45s var(--out-e) both; }
+.race-chip { min-width: 0; display: flex; align-items: center; gap: 9px; padding: 9px 10px 9px 9px; border-radius: 16px; background: var(--surface); box-shadow: 0 0 0 var(--hair) var(--line); animation: rise .45s var(--out-e) both; }
 .race-ic { width: 30px; height: 30px; border-radius: 10px; display: grid; place-items: center; background: var(--gold-soft); color: var(--ink); flex: none; }
 .race-t { display: grid; line-height: 1.2; } .race-t b { font-size: .85rem; } .race-t small { color: var(--ink3); font-size: .78rem; }
 .tip { display: flex; gap: 8px; align-items: flex-start; color: var(--ink2); font-size: .9rem; margin: 14px 16px 0; }
@@ -2872,7 +2874,6 @@ html.locked, html.locked body { overflow: hidden; overscroll-behavior: none; }
 .seat-main small .mv { font-size: .95em; margin-left: 2px; }
 .sb-chase { margin: 0; color: var(--band-ink2); font-size: clamp(1rem, 1.6vw, 1.4rem); text-align: center; }
 .row-ic.award { background: var(--gold-soft); color: var(--gold); }
-.row-ic.award.comeback, .row-ic.award.clean { background: var(--out-soft); color: var(--out); }
 .list.pad { padding: 14px 16px; display: grid; gap: 10px; }
 .bar-row { display: grid; grid-template-columns: 110px 1fr 40px; gap: 10px; align-items: center; font-size: .88rem; }
 .bar { height: 10px; border-radius: 5px; background: var(--fill); overflow: hidden; } .bar i { display: block; height: 100%; border-radius: 5px; background: var(--accent); }
@@ -2900,9 +2901,12 @@ html.locked, html.locked body { overflow: hidden; overscroll-behavior: none; }
 .hero.felt { position: relative; overflow: hidden; color: var(--band-ink); border-radius: 26px; padding: 18px 18px 20px; margin: 4px 0 18px; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 4px 12px; }
 .hero.felt .large-title { margin: 0; font-size: 2.4rem; grid-column: 1; }
 .hero-sub { margin: 0; grid-column: 1; color: var(--band-ink2); font-size: .95rem; line-height: 1.35; text-wrap: pretty; }
-.home .hero .fan { grid-column: 2; grid-row: 1 / span 2; height: 96px; width: 108px; }
-.home .hero .fan > span { font-size: 15px; }
+.hero .fan { grid-column: 2; grid-row: 1 / span 2; height: 96px; width: 108px; }
+.hero .fan > span { font-size: 15px; }
+.hero-badge { grid-column: 2; grid-row: 1 / span 2; width: 92px; height: 92px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,.16); box-shadow: inset 0 0 0 2px rgba(255,255,255,.22); }
+.trophy-d { color: var(--ink3); font-size: .8rem; line-height: 1.3; }
 .hero-cta { grid-column: 1 / -1; margin-top: 12px; justify-self: stretch; }
+.now-foot > span { white-space: nowrap; }
 .deal-pick { display: flex; flex-wrap: wrap; gap: 8px; } .deal-pick .deal-chip { min-height: 40px; font-size: .9rem; padding: 0 16px; }
 .row.tap:disabled { opacity: .5; }
 .hero-champ { grid-column: 1 / -1; display: flex; align-items: center; gap: 14px; margin-top: 10px; }
@@ -2940,20 +2944,11 @@ html.locked, html.locked body { overflow: hidden; overscroll-behavior: none; }
   .home .content > .now-card { grid-column: 1; margin: 0; } .home .content > .now-card + .group { grid-column: 2; margin-top: 0; }
   .home .content > .large-title, .tablepage .content > .large-title { grid-column: 1 / -1; }
   .home .nav-row, .tablepage .nav-row { max-width: 1040px; }
-  .hero.felt { padding: 26px 28px 22px; } .hero.felt .large-title { font-size: 3rem; } .home .hero .fan { height: 130px; width: 150px; } .home .hero .fan > span { font-size: 17px; }
+  .hero.felt { padding: 26px 28px 22px; } .hero.felt .large-title { font-size: 3rem; } .hero .fan { height: 130px; width: 150px; } .hero .fan > span { font-size: 17px; }
 }
 
-/* Behind every screen: a slow drift of coloured suits, like confetti on a games table */
-:root { --suit-tile: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cpath transform='translate(22 26) rotate(-14) scale(1.25)' fill='%232A5BEA' d='M12 2C9 7 3 9 3 14a4.5 4.5 0 0 0 7.7 3.2L10 21h4l-.7-3.8A4.5 4.5 0 0 0 21 14c0-5-6-7-9-12z'/%3E%3Cpath transform='translate(140 18) rotate(12) scale(1.15)' fill='%23F2435B' d='M12 21s-9-5.6-9-11.5A4.9 4.9 0 0 1 12 6.4a4.9 4.9 0 0 1 9 3.1C21 15.4 12 21 12 21z'/%3E%3Cpath transform='translate(84 104) rotate(-8) scale(1.3)' fill='%23FFB800' d='M12 2l7 10-7 10-7-10z'/%3E%3Cpath transform='translate(168 150) rotate(18) scale(1.2)' fill='%2322A559' d='M12 3a4 4 0 0 0-3.6 5.8A4 4 0 1 0 10 16l-1 5h6l-1-5a4 4 0 1 0 1.6-7.2A4 4 0 0 0 12 3z'/%3E%3Ccircle cx='40' cy='170' r='6' fill='%237D4FE0'/%3E%3Ccircle cx='196' cy='92' r='4' fill='%23FFB800'/%3E%3Ccircle cx='118' cy='196' r='4' fill='%232A5BEA'/%3E%3C/svg%3E"); --suit-op: .09; }
-[data-scheme="dark"] { --suit-op: .08; }
-[data-look="daylight"] { --suit-op: .05; }
-.ambient { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
 #root { position: relative; z-index: 1; }
-.ambient .suits { position: absolute; inset: -220px; opacity: var(--suit-op); background: var(--suit-tile) 0 0 / 220px 220px repeat; animation: suitDrift 160s linear infinite; }
-[data-look="daylight"] .ambient .suits { filter: grayscale(1) contrast(4); }
-@keyframes suitDrift { to { transform: translate(220px, 220px); } }
 .band, .hero.felt, .now-card:not(.again), .finale, .scoreboard { position: relative; isolation: isolate; overflow: hidden; }
-@media (prefers-reduced-motion: reduce) { .ambient .suits { animation: none !important; } }
 /* Playing now is the thing to tap, so it wears the same sunny yellow as the buttons */
 :root:not([data-look="daylight"]) .now-card:not(.again) { --band: #FFC83D; --band2: #F7A600; --band-ink: #1B2150; --band-ink2: rgba(27,33,80,.8); --gold-ring: #1B2150; }
 :root:not([data-look="daylight"]) .now-card:not(.again) { background-image: radial-gradient(circle, rgba(255,255,255,.3) 0 2.6px, transparent 3.1px), radial-gradient(circle, rgba(255,255,255,.16) 0 2.6px, transparent 3.1px), linear-gradient(180deg, #FFDE7A 0%, #FFC83D 45%, #F9B10E 100%); }
