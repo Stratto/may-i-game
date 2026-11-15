@@ -70,7 +70,10 @@ main > *, .stack > *, .cols > * { min-width: 0; }
 .hero { display: grid; justify-items: center; gap: 6px; text-align: center; padding-top: 8px; }
 .hero h1 { margin: 0; line-height: 0; }
 .hero .logo { width: min(360px, 84vw); height: auto; filter: drop-shadow(0 16px 20px rgba(0, 0, 0, .35)); }
-.hero .hand { width: min(420px, 92%); margin-top: 14px; filter: drop-shadow(0 22px 26px rgba(0, 0, 0, .38)); }
+/* The hero fan is dealt from the real deck: three sevens and the Joker. */
+.hero .fan { position: relative; width: min(400px, 92%); aspect-ratio: 1.62; margin-top: 12px; filter: drop-shadow(0 18px 22px rgba(0, 0, 0, .3)); }
+.hero .fan .dcard { position: absolute; left: 33%; bottom: 7%; width: 34%; transform-origin: 50% 160%; rotate: var(--r); transition: rotate .55s var(--spring), translate .45s var(--spring); }
+@media (hover: hover) and (pointer: fine) { .hero .fan:hover .dcard { rotate: calc(var(--r) * 1.22); } .hero .fan:hover .dcard:last-child { translate: 0 -10px; } }
 
 /* ── Icons, suits, colour, type ────────────────────────────────────── */
 .icons { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 18px 10px; }
@@ -874,9 +877,9 @@ input { caret-color: var(--teal); }
 .rule.drawn::after { transition: transform 1s var(--out); }
 .waiting, .waiting * { animation-play-state: paused !important; }
 .hero .logo { animation: logoin .9s .1s var(--spring) both; }
-.hero .hand { animation: fanin .9s .35s var(--out) both; }
+.hero .fan .dcard { animation: fanin .85s calc(.35s + var(--i) * 90ms) var(--spring) both; }
 @keyframes logoin { from { opacity: 0; scale: .86; translate: 0 -16px; } }
-@keyframes fanin { from { opacity: 0; translate: 0 34px; rotate: -3deg; } }
+@keyframes fanin { from { opacity: 0; translate: 0 40px; rotate: 0deg; } }
 @media print { .pre { opacity: 1 !important; } .rule.pre-line::after { transform: none; } }
 
 @media (prefers-reduced-motion: reduce) {
@@ -948,26 +951,26 @@ input { caret-color: var(--teal); }
 <main>
   <header class="hero">
     <h1><img class="logo" src="../art/logo-wordmark.webp" width="900" height="628" alt="May I? Rummy"></h1>
-    <img class="hand" src="../art/hero-hand.webp" alt="A fan of three sevens and a jester card">
+    <div class="fan" role="img" aria-label="A fan of three sevens and the Joker"></div>
   </header>
 
   <!-- ═══ Logo ═══ -->
   <section class="stack">
-    <h2 class="rule" id="logo">Logo · Three concepts</h2>
-    <p class="note">Drawn in the same style as the cards: an embossed teal serif, a gold rim and the crown from the medal set. Pick one to lead. The other two can still work as the crest and the home-screen icon.</p>
+    <h2 class="rule" id="logo">Logo · Wordmark and app icon</h2>
+    <p class="note">Drawn in the same style as the cards: an embossed teal serif, a gold rim and the crown from the medal set. The wordmark leads inside the app and the app icon goes on the home screen. The crest is kept in reserve.</p>
     <div class="logos">
       <article class="lcard">
-        <div class="lk"><b>A</b>Wordmark</div>
+        <div class="lk"><b>A</b>Wordmark · in the app</div>
         <div class="stage"><img src="../art/logo-wordmark.webp" alt="May I? in teal and gold letters, a crown resting on the I, over a Rummy ribbon"></div>
         <p>For the start screen and shared links. Reads at a glance, and the crown on the I hints at who's winning.</p>
       </article>
       <article class="lcard">
-        <div class="lk"><b>B</b>Crest</div>
+        <div class="lk"><b>B</b>Crest · in reserve</div>
         <div class="stage"><img src="../art/logo-emblem.webp" alt="Round gold crest with three suit cards, a crown and a May I? ribbon"></div>
         <p>A badge for the start and loading screens. It has the most detail, so it needs room to breathe.</p>
       </article>
       <article class="lcard">
-        <div class="lk"><b>C</b>App icon</div>
+        <div class="lk"><b>C</b>App icon · home screen</div>
         <div class="stage"><img class="appicon" src="../art/logo-appicon.webp" alt="Three fanned cards, the front one a teal question mark wearing a crown"></div>
         <p>Full-bleed for the home screen. The question-mark card stands in for the name where letters won't fit.</p>
       </article>
@@ -1372,14 +1375,14 @@ input { caret-color: var(--teal); }
     </div>
     <div>
       <h3 class="sub">Awards</h3>
-      <p class="note">Comeback, Steady, Heavy pockets and Joker use stand-in art until their own icons are drawn.</p>
+      <p class="note">Every award has its own icon. One nobody has won yet sits greyed out in a dashed slot.</p>
       <div class="awards">
         <div class="award"><span class="med"><img src="../art/icons/out.webp" alt=""></span><b>Clean hands</b><small>Went out the most times</small><span class="who2"><span class="av sm" data-p="dee"></span>Dee</span></div>
         <div class="award"><span class="med"><img src="../art/icons/mayi.webp" alt=""></span><b>Bargain hunter</b><small>Said May I? the most</small><span class="who2"><span class="av sm" data-p="ben"></span>Ben</span></div>
-        <div class="award"><span class="med"><img src="../art/icons/star.webp" alt=""></span><b>Comeback kid</b><small>Biggest jump in one round</small><span class="who2"><span class="av sm" data-p="cy"></span>Cy</span></div>
-        <div class="award"><span class="med"><img src="../art/icons/emblem.webp" alt=""></span><b>Steady hand</b><small>Every round within 20</small><span class="who2"><span class="av sm" data-p="ana"></span>Ana</span></div>
-        <div class="award"><span class="med"><img src="../art/icons/count.webp" alt=""></span><b>Heavy pockets</b><small>Caught with the biggest hand</small><span class="who2"><span class="av sm" data-p="ben"></span>Ben</span></div>
-        <div class="award empty"><span class="med"><img src="../art/crown.webp" alt=""></span><b>Joker juggler</b><small>Not won yet</small></div>
+        <div class="award"><span class="med"><img src="../art/icons/comeback.webp" alt=""></span><b>Comeback kid</b><small>Biggest jump in one round</small><span class="who2"><span class="av sm" data-p="cy"></span>Cy</span></div>
+        <div class="award"><span class="med"><img src="../art/icons/steady.webp" alt=""></span><b>Steady hand</b><small>Every round within 20</small><span class="who2"><span class="av sm" data-p="ana"></span>Ana</span></div>
+        <div class="award"><span class="med"><img src="../art/icons/heavy.webp" alt=""></span><b>Heavy pockets</b><small>Caught with the biggest hand</small><span class="who2"><span class="av sm" data-p="ben"></span>Ben</span></div>
+        <div class="award empty"><span class="med"><img src="../art/icons/joker.webp" alt=""></span><b>Joker juggler</b><small>Not won yet</small></div>
       </div>
     </div>
     <div class="cols">
@@ -1706,6 +1709,12 @@ input { caret-color: var(--teal); }
     view.addEventListener("keydown", function (e) { if (e.key === "ArrowRight") show(at + 1); if (e.key === "ArrowLeft") show(at - 1); });
 
     var shown = "heart"; render(shown, false); renderArt(shown);
+    // Hero: a hand of three sevens and the Joker, dealt from the same deck. Decorative, so the cards aren't buttons here.
+    var heroFan = document.querySelector(".hero .fan");
+    if (heroFan) [card("7", "heart"), card("7", "spade"), card("7", "club"), joker()].forEach(function (c, i, all) {
+      c.removeAttribute("tabindex"); c.removeAttribute("role"); c.removeAttribute("aria-label");
+      c.style.setProperty("--r", ((i - (all.length - 1) / 2) * 14).toFixed(1) + "deg"); c.style.setProperty("--i", i); heroFan.appendChild(c);
+    });
     var sw = document.querySelector(".deck-suits");
     // The shared segmented handler sets aria-pressed; this only redeals when the suit changes.
     if (sw) sw.addEventListener("click", function (e) {
