@@ -7,7 +7,7 @@ Three materials, nothing else. **Felt**: a navy table radial (#24426E → #13233
 
 **Playing cards**: ivory gradient stock, rank and suit stacked in the top-left corner, large pip bottom-right, overlapping fans. They are the most crafted object on screen.
 
-## Colour
+## Colors
 | Token | Value | Use |
 |---|---|---|
 | `--board` | #F3EFE7 | Page ground, quiet control fills |
@@ -24,7 +24,7 @@ Three materials, nothing else. **Felt**: a navy table radial (#24426E → #13233
 
 **Peg colours** stay with a player for life inside a group: red #D63B3B, blue #2563D9, green #178A4C, amber #F0A81C (navy initial), purple #7A4BD8, teal #0B8F9E, pink #D13F93, orange #E5631A. They never carry meaning beyond identity.
 
-## Type
+## Typography
 Fraunces 600–700 (display serif: page titles, contract names, the intro, the recap headline, sheet titles, panel headings) paired with Manrope 500–800 for everything you read or tap. Tabular numerals on every score. Scale: page title 2rem/800/-0.03em; contract name 2rem/800/-0.035em; lane total 1.6rem (2rem wide, clamp up to 4rem on the scoreboard); body 1rem/500; meta 0.8–0.875rem/600. No eyebrow labels.
 
 ## Shape and depth
