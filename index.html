@@ -1584,6 +1584,8 @@ function GameScreen({ s, api, game, open, go, wide, setToast, level }) {
   }
   const firstOpen = Math.max(0, game.players.findIndex(id => typeof rs[id] !== "number"));
   const chase = scored ? [] : chaseNotes(game, id => pl(id).name), moves = rankMoves(game);
+  // Awards are a surprise at the end; mid-game they show as a race so everyone has something to chase.
+  const doneN = ROUNDS.filter((_, i) => roundDone(game, i)).length, race = !scored && doneN >= 2 ? gameAwards(game) : [];
   const seats = ce("ol", { className: "seats", "aria-label": "Players" }, totals.map((t, i) => {
     const p = pl(t.id), isLead = hasAny && t.total === lead, buys = (game.buys[game.round] && game.buys[game.round][t.id]) || 0;
     const place = hasAny ? 1 + totals.filter(o => o.total < t.total).length : 0;   // ties share a place
@@ -1622,6 +1624,11 @@ function GameScreen({ s, api, game, open, go, wide, setToast, level }) {
         ce("span", { className: "seats-meta" }, scored ? scored + " of " + game.players.length + " in" : limit === Infinity ? "Unlimited buys" : limit + " buys each",
           ce("button", { className: "seats-edit", onClick: () => open("gamePlayers", { gameId: game.id }) }, ce(Icon, { n: "users", size: 15 }), "Add or remove"))),
       seats,
+      race.length > 0 && ce("section", { className: "arace", "aria-label": "Award race" },
+        ce("div", { className: "race-h" }, ce("span", null, "Award race"), ce("small", null, "If the game ended now")),
+        ce("div", { className: "race-row" }, race.map(a => { const w = pl(a.id);
+          return ce("div", { key: a.key, className: "race-chip" }, ce("span", { className: "race-ic", "aria-hidden": true }, ce(Icon, { n: a.ic, size: 15 })),
+            ce("span", { className: "race-t" }, ce("b", null, a.t), ce("small", null, w.name)), ce(Peg, { color: w.color, name: w.name, av: w.avatar, size: 26 })); }))),
       ce("p", { className: "tip" }, ce(Icon, { n: "bolt", size: 16 }), r.goOut ? "Go out in one turn. " + r.tip : r.tip),
       chase.length > 0 && ce(List, { header: "Still in it" }, chase.map(c => ce(Row, { key: c.id, lead: ce(Peg, { color: pl(c.id).color, name: pl(c.id).name, av: pl(c.id).avatar, size: 32 }), title: pl(c.id).name, sub: c.text }))),
       wide && ce(RoundGrid, { game, pl })),
@@ -2410,6 +2417,27 @@ input { caret-color: var(--accent); }
 .dots { display: inline-flex; gap: 4px; } .dots i { width: 7px; height: 7px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px currentColor; opacity: .5; transition: transform .3s var(--spring); }
 .dots i.on { background: currentColor; opacity: 1; transform: scale(1.15); }
 .buy-minus { width: 30px; height: 44px; display: grid; place-items: center; color: var(--ink3); }
+/* May I? pill: a small lit tile; each buy drops a poker chip into the row. */
+.buy-pill { box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 45%, transparent), inset 0 0 0 var(--hair) var(--line); }
+.buy-pill.has { color: var(--ink); box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 45%, transparent), inset 0 0 0 1px color-mix(in srgb, var(--gold-ring) 55%, transparent); }
+.buy-pill .dots i { width: 8px; height: 8px; }
+.buy-pill .dots i.on { background: radial-gradient(circle, var(--surface) 0 1.3px, transparent 1.8px), var(--gold-ring); box-shadow: none; transform: scale(1.12); }
+/* Score pad keys: number keys are lit tiles; card keys look like the cards they stand for. */
+.numpad .nk { background: var(--surface); box-shadow: inset 0 0 0 var(--hair) var(--line), inset 0 -2px 0 color-mix(in srgb, var(--line) 70%, transparent); transition: transform .25s var(--spring), background .12s; }
+.numpad .nk:active { background: var(--fill); box-shadow: inset 0 0 0 var(--hair) var(--line); }
+.numpad .nk.fn { box-shadow: none; background: transparent; }
+.keys .key { position: relative; min-height: 60px; border-radius: 10px; background: linear-gradient(170deg, #FFFFFF, #F4F2EC); color: #15181A;
+  box-shadow: 0 0 0 .5px rgba(20,24,30,.28), 0 1px 0 rgba(20,24,30,.12); }
+.keys .key b { font: 650 1.2rem var(--display); } .keys .key small { color: #6B6F72; font-weight: 600; }
+.keys .key:active { background: #EEEBE3; }
+.arace { margin: 18px 0 0; }
+.race-h { display: flex; align-items: baseline; justify-content: space-between; margin: 0 16px 7px; font-size: .8rem; font-weight: 600; color: var(--ink3); }
+.race-h small { font-weight: 500; }
+.race-row { display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 6px; margin: 0 -2px; scroll-snap-type: x mandatory; scrollbar-width: none; }
+.race-row::-webkit-scrollbar { display: none; }
+.race-chip { flex: none; scroll-snap-align: start; display: flex; align-items: center; gap: 9px; padding: 9px 10px 9px 9px; border-radius: 16px; background: var(--surface); box-shadow: 0 0 0 var(--hair) var(--line); animation: rise .45s var(--out-e) both; }
+.race-ic { width: 30px; height: 30px; border-radius: 10px; display: grid; place-items: center; background: var(--gold-soft); color: var(--ink); flex: none; }
+.race-t { display: grid; line-height: 1.2; } .race-t b { font-size: .85rem; } .race-t small { color: var(--ink3); font-size: .78rem; }
 .tip { display: flex; gap: 8px; align-items: flex-start; color: var(--ink2); font-size: .9rem; margin: 14px 16px 0; }
 .tip svg { flex: none; margin-top: 2px; color: var(--gold-ring); }
 .game.wide .table-body { max-width: 1000px; display: grid; grid-template-columns: 1.2fr 1fr; gap: 0 24px; align-items: start; }
