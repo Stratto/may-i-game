@@ -494,18 +494,72 @@ main > *, .stack > *, .cols > * { min-width: 0; }
 .confetti i.paper { background: #FFF6DC; border: 1px solid #D9B166; }
 .confetti img { position: absolute; top: -30px; left: var(--x); width: var(--w); animation: fall var(--t) var(--delay) cubic-bezier(.25, .5, .5, 1) both; }
 @keyframes fall { 0% { transform: translate(0, 0) rotate(0); opacity: 1; } 85% { opacity: 1; } 100% { transform: translate(var(--dx), var(--fy, 640px)) rotate(var(--r)); opacity: 0; } }
-.awards { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
-.award { display: grid; justify-items: center; gap: 4px; padding: 14px 10px 14px; border-radius: 18px; border: 2px solid transparent; text-align: center; color: var(--ink); }
+.awards { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; max-width: 760px; }
+.award { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 14px 10px 14px; border-radius: 18px; border: 2px solid transparent; text-align: center; color: var(--ink); }
 .award:not(.empty) { background: radial-gradient(120% 90% at 50% 0%, var(--paper-hi), var(--paper) 62%, var(--paper-lo)) padding-box, var(--rim) border-box; }
 .award .med { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; border: 3px solid transparent; margin-bottom: 4px;
   background: radial-gradient(circle at 50% 35%, var(--teal-hi), var(--teal-lo)) padding-box, var(--rim) border-box; }
 .award .med img { width: 46px; height: 46px; object-fit: contain; }
 .award b { font: 800 1rem/1.15 var(--display); }
-.award small { color: var(--ink2); font-size: .82rem; line-height: 1.3; }
-.award .who2 { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; font: 700 .9rem/1 var(--display); }
+.award small { color: var(--ink2); font-size: .82rem; line-height: 1.3; text-wrap: balance; }
+.award .who2 { display: inline-flex; align-items: center; gap: 6px; margin-top: auto; padding-top: 8px; font: 700 .9rem/1 var(--display); }
 .award.empty { background-color: rgba(3, 38, 46, .55); border: 2px dashed rgba(255, 233, 166, .38); color: var(--on-bg); }
 .award.empty .med { filter: grayscale(.9) brightness(.7); opacity: .6; }
 .award.empty small { color: var(--on-bg2); }
+.award[hidden] { display: none; }
+.awards-more { display: flex; justify-content: center; max-width: 760px; margin-top: 18px; }
+/* Table moments: a plaque for the whole table, under the podium. */
+.tplaque { display: flex; align-items: center; gap: 14px; max-width: 520px; padding: 10px 16px 10px 10px; border-radius: 18px; border: 2.5px solid transparent; color: var(--ink);
+  background: radial-gradient(120% 120% at 0% 0%, var(--paper-hi), var(--paper) 58%, var(--paper-lo)) padding-box, var(--rim) border-box; box-shadow: var(--lift); }
+.tplaque .med { flex: none; width: 66px; height: 66px; border-radius: 50%; display: grid; place-items: center; border: 3px solid transparent;
+  background: radial-gradient(circle at 50% 35%, var(--teal-hi), var(--teal-lo)) padding-box, var(--rim) border-box; }
+.tplaque .med img { width: 50px; height: 50px; object-fit: contain; }
+.tplaque > div { flex: 1; min-width: 0; }
+.tplaque b { display: block; font: 800 1.25rem/1.1 var(--display); letter-spacing: -.01em; }
+.tplaque span { display: block; margin-top: 3px; color: var(--ink2); font-size: .92rem; line-height: 1.3; text-wrap: pretty; }
+.tplaque .table { display: flex; flex: none; padding-left: 6px; }
+.tplaque .table .av { margin-left: -9px; box-shadow: 0 0 0 2px var(--paper); }
+.tm-list { list-style: none; margin: 16px 0 0; padding: 4px 0; max-width: 520px; }
+.tm-list li { display: grid; grid-template-columns: 40px 1fr; align-items: center; column-gap: 12px; padding: 8px 14px; }
+.tm-list li + li { border-top: 1px solid var(--hair); }
+.tm-list img { grid-row: span 2; width: 40px; height: 40px; object-fit: contain; }
+.tm-list b { font: 700 1rem/1.15 var(--display); }
+.tm-list span { color: var(--on-bg2); font-size: .88rem; line-height: 1.3; }
+@media (max-width: 520px) { .tplaque .table { display: none; } }
+/* The cabinet: every award a player can win, on shelves. Tap one to bring it to the front. */
+.cab { display: grid; gap: 20px; max-width: 780px; }
+.cab-top { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 20px; }
+.cab-top .owner { display: inline-flex; align-items: center; gap: 10px; font: 800 1.2rem/1 var(--display); }
+.cab-top .kseg { flex: 1 1 300px; max-width: 400px; }
+.kseg .ct { margin-left: 5px; font: 600 .82em/1 var(--num); font-variant-numeric: tabular-nums; opacity: .78; }
+.cab-spot { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 18px; min-height: 120px; }
+.cab-spot .med { width: 112px; height: 112px; }
+.cab-spot .med img { width: 84px; height: 84px; }
+.cab-spot b { display: block; font: 800 1.55rem/1.1 var(--display); letter-spacing: -.015em; color: #FFE7A3; text-wrap: balance; }
+.cab-spot p { margin: 5px 0 9px; color: var(--on-bg); font-size: 1rem; line-height: 1.35; max-width: 42ch; }
+.cab-spot .st { font: 700 .78rem/1 var(--label); letter-spacing: .12em; text-transform: uppercase; color: var(--on-bg2); }
+.cab-spot.no b { color: var(--on-bg); }
+.cab .med { position: relative; display: grid; place-items: center; border-radius: 50%; border: 3px solid transparent;
+  background: radial-gradient(circle at 50% 35%, var(--teal-hi), var(--teal-lo)) padding-box, var(--rim) border-box; box-shadow: 0 8px 14px -6px rgba(0, 0, 0, .55); }
+.cab .med img { object-fit: contain; filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .3)); }
+.cab .no .med { background: rgba(3, 38, 46, .62); border: 2px dashed rgba(255, 233, 166, .42); box-shadow: none; }
+.cab .no .med img { filter: grayscale(1) brightness(.78); opacity: .5; }
+/* Rows are shelves: each 132px row carries a gold rail under the medallions, so a short last row still sits on a full shelf. */
+.cab-grid { --row: 132px; display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); grid-auto-rows: var(--row); padding: 0 6px;
+  background: linear-gradient(180deg, transparent 80px, #FFEDB0 80px, #E6B04A 82px, #A86F1B 85px, rgba(2, 30, 36, .55) 86px, rgba(2, 30, 36, 0) 98px) 0 0 / 100% var(--row) repeat-y; }
+.cab-cell { position: relative; display: grid; grid-template-rows: 80px auto; justify-items: center; padding: 0 3px; border: 0; background: none; cursor: pointer; color: var(--on-bg); text-align: center; -webkit-tap-highlight-color: transparent; }
+.cab-cell .med { align-self: end; width: 66px; height: 66px; margin-bottom: 2px; transition: translate .4s var(--spring), box-shadow .3s ease; }
+.cab-cell .med img { width: 50px; height: 50px; }
+.cab-cell .nm { padding-top: 12px; font: 700 .92rem/1.12 var(--label); letter-spacing: .01em; text-wrap: balance; }
+.cab-cell.no .nm { color: var(--on-bg2); }
+.cab-cell .n { position: absolute; right: -6px; top: -4px; min-width: 24px; height: 22px; padding: 0 6px; border-radius: 99px; display: grid; place-items: center;
+  font: 700 .78rem/1 var(--num); font-style: normal; font-variant-numeric: tabular-nums; color: var(--ink); background: linear-gradient(180deg, #FFEDB0, #E9B44C); box-shadow: 0 2px 4px rgba(0, 0, 0, .35); }
+.cab-cell[aria-pressed="true"] .med { translate: 0 -7px; box-shadow: 0 0 0 3px rgba(255, 237, 176, .9), 0 16px 18px -8px rgba(0, 0, 0, .6); }
+.cab-cell[aria-pressed="true"] .nm { color: #FFE7A3; }
+.cab-cell:focus-visible { outline: none; }
+.cab-cell:focus-visible .med { outline: 3px solid var(--gold-hi); outline-offset: 4px; }
+@media (hover: hover) and (pointer: fine) { .cab-cell:hover .med { translate: 0 -4px; } .cab-cell[aria-pressed="true"]:hover .med { translate: 0 -7px; } }
+@media (min-width: 760px) { .cab-spot .med { width: 128px; height: 128px; } .cab-spot .med img { width: 96px; height: 96px; } .cab-spot b { font-size: 1.8rem; } }
 .race { display: grid; gap: 12px; padding: 16px; }
 .lane { display: grid; grid-template-columns: 52px 1fr 40px; align-items: center; gap: 10px; }
 .lane .nm { font: 700 .95rem/1 var(--display); }
@@ -1375,15 +1429,31 @@ input { caret-color: var(--teal); }
     </div>
     <div>
       <h3 class="sub">Awards</h3>
-      <p class="note">Every award has its own icon. One nobody has won yet sits greyed out in a dashed slot.</p>
-      <div class="awards">
-        <div class="award"><span class="med"><img src="../art/icons/out.webp" alt=""></span><b>Clean hands</b><small>Went out the most times</small><span class="who2"><span class="av sm" data-p="dee"></span>Dee</span></div>
-        <div class="award"><span class="med"><img src="../art/icons/mayi.webp" alt=""></span><b>Bargain hunter</b><small>Said May I? the most</small><span class="who2"><span class="av sm" data-p="ben"></span>Ben</span></div>
-        <div class="award"><span class="med"><img src="../art/icons/comeback.webp" alt=""></span><b>Comeback kid</b><small>Biggest jump in one round</small><span class="who2"><span class="av sm" data-p="cy"></span>Cy</span></div>
-        <div class="award"><span class="med"><img src="../art/icons/steady.webp" alt=""></span><b>Steady hand</b><small>Every round within 20</small><span class="who2"><span class="av sm" data-p="ana"></span>Ana</span></div>
-        <div class="award"><span class="med"><img src="../art/icons/heavy.webp" alt=""></span><b>Heavy pockets</b><small>Caught with the biggest hand</small><span class="who2"><span class="av sm" data-p="ben"></span>Ben</span></div>
-        <div class="award empty"><span class="med"><img src="../art/icons/joker.webp" alt=""></span><b>Joker juggler</b><small>Not won yet</small></div>
+      <p class="note">The finale shows the four rarest awards from tonight, and the rest wait behind All awards. Each line says what actually happened. A tie means nobody gets that award.</p>
+      <div class="awards" id="finaleAwards">
+        <div class="award"><span class="med"><img src="../art/icons/hattrick.webp" alt=""></span><b>Hat trick</b><small>Went out in rounds 3, 4 and 5</small><span class="who2"><span class="av sm" data-p="dee"></span>Dee</span></div>
+        <div class="award"><span class="med"><img src="../art/icons/hotheels.webp" alt=""></span><b>Hot on their heels</b><small>Second, just 7 points behind</small><span class="who2"><span class="av sm" data-p="cy"></span>Cy</span></div>
+        <div class="award"><span class="med"><img src="../art/icons/aceupsleeve.webp" alt=""></span><b>Ace up the sleeve</b><small>Caught holding 3 Aces</small><span class="who2"><span class="av sm" data-p="ben"></span>Ben</span></div>
+        <div class="award"><span class="med"><img src="../art/icons/goodsport.webp" alt=""></span><b>Good sport</b><small>Last, but still went out twice</small><span class="who2"><span class="av sm" data-p="ana"></span>Ana</span></div>
+        <div class="award" data-more hidden><span class="med"><img src="../art/icons/out.webp" alt=""></span><b>Clean hands</b><small>Went out 4 times</small><span class="who2"><span class="av sm" data-p="dee"></span>Dee</span></div>
+        <div class="award" data-more hidden><span class="med"><img src="../art/icons/comeback.webp" alt=""></span><b>Comeback kid</b><small>Up two places in round 5</small><span class="who2"><span class="av sm" data-p="cy"></span>Cy</span></div>
+        <div class="award" data-more hidden><span class="med"><img src="../art/icons/mayi.webp" alt=""></span><b>Bargain hunter</b><small>Said May I? 6 times</small><span class="who2"><span class="av sm" data-p="ben"></span>Ben</span></div>
+        <div class="award" data-more hidden><span class="med"><img src="../art/icons/heavy.webp" alt=""></span><b>Heavy pockets</b><small>Caught with 85 in round 6</small><span class="who2"><span class="av sm" data-p="ben"></span>Ben</span></div>
+        <div class="award" data-more hidden><span class="med"><img src="../art/icons/steady.webp" alt=""></span><b>Steady hand</b><small>Every round within 20 points</small><span class="who2"><span class="av sm" data-p="ana"></span>Ana</span></div>
       </div>
+      <div class="awards-more"><button class="kb cream more-awards" aria-expanded="false" aria-controls="finaleAwards">All 9 awards</button></div>
+    </div>
+    <div>
+      <h3 class="sub">Table moments</h3>
+      <p class="note">A moment belongs to the whole table, not one player. It sits as a plaque under the podium.</p>
+      <div class="tplaque" id="tMarathon"><span class="med"><img src="../art/icons/marathon.webp" alt=""></span><div><b>Marathon</b><span>2 hours 14 minutes from the first deal to the last score</span></div><span class="table" aria-label="The whole table"><span class="av sm" data-p="dee"></span><span class="av sm" data-p="cy"></span><span class="av sm" data-p="ben"></span><span class="av sm" data-p="ana"></span></span></div>
+      <ul class="tm-list panel">
+        <li><img src="../art/icons/sharedcrown.webp" alt=""><b>Shared crown</b><span>A tie for the win</span></li>
+        <li><img src="../art/icons/twins.webp" alt=""><b>Twins</b><span>Two players finish on the same total</span></li>
+        <li><img src="../art/icons/nailbiter.webp" alt=""><b>Nail-biter</b><span>The top three finish within 10 points</span></li>
+        <li><img src="../art/icons/marathon.webp" alt=""><b>Marathon</b><span>More than two hours from the first deal to the last score</span></li>
+        <li><img src="../art/icons/packedtable.webp" alt=""><b>Packed table</b><span>Six or more players</span></li>
+      </ul>
     </div>
     <div class="cols">
       <div>
@@ -1412,6 +1482,20 @@ input { caret-color: var(--teal); }
   </section>
 
   <!-- ═══ Moments ═══ -->
+  <!-- ═══ Awards cabinet ═══ -->
+  <section class="stack">
+    <h2 class="rule" id="cabinet">Awards cabinet</h2>
+    <p class="note">Every profile keeps a cabinet. Achievements are earned once, and game awards count every win. Anything not earned yet waits on its shelf, greyed, with how to win it, so players find things like the camera on their own. Tap any award.</p>
+    <div class="cab" id="cab">
+      <div class="cab-top">
+        <span class="owner"><span class="av lg ring" data-p="dee"></span>Dee</span>
+        <div class="kseg cab-tabs" role="group" aria-label="Cabinet shelves"><button aria-pressed="true" data-set="life">Achievements<span class="ct"></span></button><button aria-pressed="false" data-set="game">Game awards<span class="ct"></span></button></div>
+      </div>
+      <div class="cab-spot" aria-live="polite"><span class="med"><img src="../art/icons/grandtour.webp" alt=""></span><div><b></b><p></p><span class="st"></span></div></div>
+      <div class="cab-grid" role="group" aria-label="Achievements"></div>
+    </div>
+  </section>
+
   <section class="stack">
     <h2 class="rule" id="moments">Moments of fun</h2>
     <p class="note">Each one plays once, on the event, and is skipped when the phone asks for reduced motion.</p>
@@ -1754,6 +1838,79 @@ input { caret-color: var(--teal); }
     if (window.ResizeObserver) new ResizeObserver(place).observe(g);
   });
 
+  // Finale: the four rarest awards show; the rest deal in behind them on request.
+  var moreBtn = document.querySelector(".more-awards");
+  if (moreBtn) moreBtn.addEventListener("click", function () {
+    var open = moreBtn.getAttribute("aria-expanded") !== "true";
+    moreBtn.setAttribute("aria-expanded", open);
+    $$("#finaleAwards [data-more]").forEach(function (el, i) {
+      el.hidden = !open;
+      if (open) anim(el, [{ opacity: 0, translate: "0 16px", scale: .94 }, { opacity: 1, translate: "0 0", scale: 1 }], { duration: 560, delay: i * 70, easing: SPRING });
+    });
+    setLabel(moreBtn, open ? "Just the top four" : "All 9 awards");
+    glint(moreBtn);
+  });
+
+  // The cabinet. Order is fixed, so an award lights up in its own place on the shelf rather than jumping to the front.
+  (function () {
+    var cab = document.getElementById("cab"); if (!cab) return;
+    var SETS = {
+      life: { label: "Achievements", items: [
+        ["crown", "Crowned", "Won a game", "12 Sep"], ["out", "Out of the gate", "Went out in a round", "12 Sep"], ["beginnersluck", "Beginner's luck", "Won their very first game"],
+        ["grandtour", "Grand tour", "Went out in all seven contracts", "1 Nov"], ["fullcabinet", "Full cabinet", "Won every game award at least once"],
+        ["backtoback", "Back to back", "Won two games in a row at one table", "25 Oct"], ["dynasty", "Dynasty", "Won three games in a row at one table"],
+        ["payback", "Payback", "Won the rematch after losing the game before", "8 Nov"], ["recordbreaker", "Record breaker", "Lowest winning total ever at their table"],
+        ["untouchable", "Untouchable", "Went out in four rounds of one game", "15 Nov"], ["nemesis", "Nemesis", "Beat the same person five times"],
+        ["socialbutterfly", "Social butterfly", "Played with 10 different people", "18 Oct"], ["regular", "Regular", "Played 25 games"], ["furniture", "Part of the furniture", "Played 100 games"],
+        ["nightowl", "Night owl", "Finished a game after midnight", "8 Nov"], ["earlybird", "Early bird", "Started a game before 9 am"], ["camera", "Say cheese", "Scored a hand with the camera", "15 Nov"]
+      ] },
+      game: { label: "Game awards", items: [
+        ["out", "Clean hands", "Went out the most times", "15 Nov", 6], ["mayi", "Bargain hunter", "Said May I? the most", "8 Nov", 2], ["comeback", "Comeback kid", "Biggest jump up the table in one round", "1 Nov", 3],
+        ["steady", "Steady hand", "Every round within 20 points", "18 Oct", 1], ["heavy", "Heavy pockets", "Caught with the biggest hand"], ["joker", "Joker juggler", "Caught holding the most Jokers"],
+        ["hattrick", "Hat trick", "Went out three rounds in a row", "15 Nov", 2], ["wiretowire", "Wire to wire", "Led after every round and won", "25 Oct", 1], ["photofinish", "Photo finish", "Won by 5 points or fewer", "8 Nov", 2],
+        ["heist", "Last-round heist", "Behind before the last round, and won anyway", "1 Nov", 1], ["upfrombottom", "Up from the bottom", "Was last at some point, and still won"],
+        ["selfmade", "Self-made", "Won without a single May I?"], ["curtaincall", "Curtain call", "Went out in Three Runs, the last round", "25 Oct", 1],
+        ["quickoff", "Quick off the mark", "First to go out in the game", "15 Nov", 4], ["dealerschoice", "Dealer's choice", "Went out in a round they dealt", "8 Nov", 3],
+        ["soclose", "So close", "Smallest hand caught that wasn't zero", "18 Oct", 1], ["rollercoaster", "Rollercoaster", "Biggest gap between their best and worst round"],
+        ["friends", "Friends in high places", "Caught holding the most Jacks, Queens and Kings"], ["aceupsleeve", "Ace up the sleeve", "Caught holding the most Aces"],
+        ["hotheels", "Hot on their heels", "Came second, within 10 points of the winner"], ["goodsport", "Good sport", "Finished last, but still went out"],
+        ["runmaker", "Run maker", "Went out in Two Runs and in Three Runs", "1 Nov", 2], ["setcollector", "Set collector", "Went out in Two Sets and in Three Sets", "25 Oct", 1],
+        ["flawless", "Flawless", "Went out in all seven rounds"]
+      ] }
+    };
+    var tabs = cab.querySelector(".cab-tabs"), grid = cab.querySelector(".cab-grid"), spot = cab.querySelector(".cab-spot");
+    var spotImg = spot.querySelector("img"), spotMed = spot.querySelector(".med"), spotTxt = spot.querySelector("div");
+    var cur = "life", picked = { life: 3, game: 6 };
+    var src = function (k) { return "../art/icons/" + k + ".webp"; };
+    var times = function (n) { return n === 1 ? "once" : n === 2 ? "twice" : n + " times"; };
+    $$("button", tabs).forEach(function (b) { var s = SETS[b.dataset.set], got = s.items.filter(function (it) { return it[3]; }).length; b.querySelector(".ct").textContent = got + "/" + s.items.length; });
+
+    function status(it) { return !it[3] ? "Not yet" : cur !== "game" ? "Earned " + it[3] : it[4] === 1 ? "Won once · " + it[3] : "Won " + times(it[4]) + " · last on " + it[3]; }
+    function said(it) { return it[1] + ", " + (!it[3] ? "not earned yet" : cur === "game" ? "won " + times(it[4]) : "earned"); }
+    function spotlight(i, animate) {
+      var it = SETS[cur].items[i]; picked[cur] = i;
+      spotImg.src = src(it[0]); spot.classList.toggle("no", !it[3]);
+      spotTxt.querySelector("b").textContent = it[1]; spotTxt.querySelector("p").textContent = it[2]; spotTxt.querySelector(".st").textContent = status(it);
+      $$(".cab-cell", grid).forEach(function (c, j) { c.setAttribute("aria-pressed", j === i); });
+      if (!animate) return;
+      anim(spotMed, [{ scale: .55, rotate: "-14deg", opacity: .4 }, { scale: 1, rotate: "0deg", opacity: 1 }], { duration: 620, easing: SPRING });
+      anim(spotTxt, [{ opacity: 0, translate: "10px 0" }, { opacity: 1, translate: "0 0" }], { duration: 380, delay: 60 });
+    }
+    function build(animate) {
+      var items = SETS[cur].items; grid.setAttribute("aria-label", SETS[cur].label);
+      grid.innerHTML = items.map(function (it, i) {
+        var n = cur === "game" && it[4] > 1 ? '<i class="n" aria-hidden="true">×' + it[4] + "</i>" : "";
+        return '<button class="cab-cell' + (it[3] ? "" : " no") + '" data-i="' + i + '" aria-pressed="false" aria-label="' + said(it).replace(/"/g, "&quot;") + '">' +
+          '<span class="med"><img src="' + src(it[0]) + '" alt="" loading="lazy" decoding="async">' + n + '</span><span class="nm">' + it[1] + "</span></button>";
+      }).join("");
+      spotlight(picked[cur], animate);
+      if (animate) $$(".cab-cell", grid).forEach(function (c, i) { anim(c.querySelector(".med"), [{ opacity: 0, translate: "0 -18px", scale: .8 }, { opacity: 1, translate: "0 0", scale: 1 }], { duration: 480, delay: i * 22, easing: SPRING }); });
+    }
+    grid.addEventListener("click", function (e) { var c = e.target.closest(".cab-cell"); if (c && c.getAttribute("aria-pressed") !== "true") spotlight(+c.dataset.i, true); });
+    tabs.addEventListener("click", function (e) { var b = e.target.closest("button"); if (!b || b.dataset.set === cur) return; cur = b.dataset.set; build(true); });
+    build(false);
+  })();
+
   // Stepper: digits roll in the direction you pushed; the buttons stop at the limits.
   $$(".kstep").forEach(function (s) {
     var out = s.querySelector("b"), btn = s.querySelectorAll("button"), min = 1, max = 5, v = +out.textContent;
@@ -1993,7 +2150,7 @@ input { caret-color: var(--teal); }
 
     [[".rstrip", ".rs", "deal"], [".values", ".val", "deal"], [".pcards", ".pcard", "deal"], [".awards", ".award", "deal"], [".looks", ".look", "deal"], ["#guides", ".gcard", "deal"],
      [".icons", ".icon", "deal"], [".blocks", ".blk", "deal"], [".choices", ".choice", "list"], [".steps", "li", "list"], [".seats", ".seat", "list"], [".toasts", ".kt", "toast"],
-     [".logos", ".lcard", "settle"], [".moments", ".moment", "settle"], [".deck", ".dcard", "deal"]].forEach(function (g) {
+     [".logos", ".lcard", "settle"], [".moments", ".moment", "settle"], [".deck", ".dcard", "deal"], [".cab-grid", ".cab-cell", "deal"]].forEach(function (g) {
       $$(g[0]).forEach(function (box) {
         var kids = $$(":scope > " + g[1], box); kids.forEach(function (k) { claimed.add(k); });
         if (!below(box)) return;
@@ -2001,7 +2158,7 @@ input { caret-color: var(--teal); }
         watch(box, function () { kids.forEach(function (k, i) { k.classList.remove("pre"); KIND[g[2]](k, i); }); });
       });
     });
-    [[".race", "race"], [".ksheet", "rise"], [".km", "pop"], [".contract, .faq, .sgrid-wrap", "unroll"], [".now, .tabbar, .navbar, .empty, .lcheck, .call, .intro-stage, .finale, .loading", "settle"], [".panel", "settle"]].forEach(function (s) {
+    [[".race", "race"], [".ksheet", "rise"], [".km", "pop"], [".contract, .faq, .sgrid-wrap", "unroll"], [".now, .tabbar, .navbar, .empty, .lcheck, .call, .intro-stage, .finale, .loading, .tplaque, .cab-spot", "settle"], [".panel", "settle"]].forEach(function (s) {
       $$(s[0]).forEach(function (el) {
         if (claimed.has(el) || (s[1] !== "rise" && el.closest(".ksheet"))) return; claimed.add(el);
         if (!below(el)) return;
