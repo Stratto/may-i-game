@@ -368,11 +368,6 @@ main > *, .stack > *, .cols > * { min-width: 0; }
 .hc b { font: 800 1.05rem/1 var(--display); } .hc small { font: 700 .74rem/1 var(--label); color: #8B6420; }
 .hc.h { color: var(--heart); }
 .hc.doubt { outline: 2.5px dashed var(--gold); outline-offset: 2px; }
-.photo { display: grid; justify-items: center; gap: 8px; padding: 18px 16px; border-radius: 18px; border: 2px solid rgba(196, 148, 62, .5); background: rgba(255, 255, 255, .55); text-align: center; }
-.photo img { width: 74px; }
-.photo b { font: 800 1.2rem/1.15 var(--display); }
-.photo p { margin: 0; max-width: 32ch; color: var(--ink2); font-size: .94rem; }
-.photo .row { gap: 16px 26px; justify-content: center; margin-top: 6px; }
 .pcards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; max-width: 460px; }
 .pcard { position: relative; display: grid; justify-items: center; gap: 4px; padding: 16px 10px 12px; border-radius: 20px; border: 2.5px solid transparent; text-align: center; color: var(--ink);
   background: radial-gradient(120% 90% at 50% 0%, var(--paper-hi), var(--paper) 62%, var(--paper-lo)) padding-box, var(--rim-soft) border-box; box-shadow: 0 12px 22px -14px rgba(0, 0, 0, .6); }
@@ -559,6 +554,235 @@ main > *, .stack > *, .cols > * { min-width: 0; }
 .cab-cell:focus-visible { outline: none; }
 .cab-cell:focus-visible .med { outline: 3px solid var(--gold-hi); outline-offset: 4px; }
 @media (hover: hover) and (pointer: fine) { .cab-cell:hover .med { translate: 0 -4px; } .cab-cell[aria-pressed="true"]:hover .med { translate: 0 -7px; } }
+/* Hall of fame: the holder's character sits on the medallion's edge; a shared award shows both. */
+.cab-cell .holder { position: absolute; right: -8px; bottom: -6px; display: flex; }
+.cab-cell .holder .av { --s: 30px; box-shadow: 0 2px 4px rgba(0, 0, 0, .35); }
+.cab-cell .holder .av img { width: 92%; height: 92%; }
+.cab-cell .holder .av + .av { margin-left: -12px; }
+.st-hero { display: flex; align-items: center; gap: 14px; }
+.st-hero img { width: 76px; height: 76px; object-fit: contain; flex: none; filter: drop-shadow(0 8px 10px rgba(0, 0, 0, .35)); }
+.st-hero p { margin: 0; font: 700 1.25rem/1.3 var(--display); letter-spacing: -.01em; color: var(--on-bg); text-wrap: balance; }
+/* Profile: a tall sheet. The player stands on a stage in their own colour; the stats read like a score card. */
+.ksheet.profile .body { gap: 22px; padding-top: 4px; }
+.pf-stage { position: relative; display: grid; place-items: end center; height: 200px; margin: 8px 12px 0; border-radius: 20px; overflow: hidden; isolation: isolate;
+  background: radial-gradient(75% 85% at 50% 28%, color-mix(in srgb, var(--peg) 52%, #FFF4D6) 0%, var(--peg) 58%, color-mix(in srgb, var(--peg) 62%, #1A0A08) 100%); }
+.pf-stage::before { content: ""; position: absolute; z-index: -1; left: 50%; bottom: 10px; width: 170px; height: 26px; translate: -50% 0; border-radius: 50%; background: radial-gradient(closest-side, rgba(20, 6, 4, .42), rgba(20, 6, 4, 0)); }
+.pf-fig { display: block; width: 172px; height: 172px; margin-bottom: 14px; }
+.pf-fig img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 10px 12px rgba(30, 8, 4, .35)); }
+.ksheet.profile:not(.pre) .pf-fig { animation: pfhop .8s .3s var(--spring) both; }
+@keyframes pfhop { 0% { opacity: 0; translate: 0 26px; scale: .86; } 55% { opacity: 1; translate: 0 -10px; scale: 1.03; } 100% { translate: 0 0; scale: 1; } }
+.pf-close { position: absolute; top: 10px; right: 10px; }
+.pf-dress { flex: none; display: inline-flex; align-items: center; gap: 7px; min-height: 44px; padding: 0 16px 2px 13px; border-radius: 99px; border: 2px solid transparent; cursor: pointer;
+  font: 700 .98rem/1 var(--display); color: var(--ink); background: linear-gradient(180deg, var(--paper-hi), var(--paper-lo)) padding-box, var(--rim) border-box; box-shadow: inset 0 -2px 0 #D9BE86; }
+.pf-dress svg { width: 18px; height: 18px; color: var(--gold-deep); transition: rotate .45s var(--spring); }
+.pf-dress:active { box-shadow: inset 0 2px 4px rgba(110, 74, 16, .25); translate: 0 1px; }
+@media (hover: hover) and (pointer: fine) { .pf-dress:hover svg { rotate: -12deg; } }
+.pf-who { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 12px; padding: 16px 16px 10px 20px; }
+.pf-who p { grid-column: 1 / -1; }
+.ksheet.profile .body { padding-top: 10px; }
+.cab-spot p { text-wrap: balance; }
+.pf-who h3 { margin: 0; font: 800 2.1rem/1 var(--display); letter-spacing: -.02em; }
+.pf-who p { display: inline-flex; align-items: center; gap: 6px; margin: 8px 0 0; color: var(--ink2); font-size: .98rem; }
+.pf-who p img { width: 24px; height: 24px; object-fit: contain; }
+.ledger { display: grid; grid-template-columns: 1fr 1fr; column-gap: 22px; row-gap: 2px; margin: 0; }
+.ledger div { display: flex; align-items: baseline; gap: 6px; padding: 7px 0; }
+.ledger dt { font: 700 1rem/1 var(--label); letter-spacing: .02em; color: var(--ink2); }
+.ledger div::after { content: ""; order: 1; flex: 1; min-width: 12px; translate: 0 -3px; border-bottom: 2px dotted rgba(168, 111, 27, .45); }
+.ledger dd { order: 2; margin: 0; font: 700 1.3rem/1 var(--num); font-variant-numeric: tabular-nums; color: var(--ink); }
+.pf-cab { display: grid; gap: 6px; width: 100%; padding: 12px 14px 0; border-radius: 20px; border: 1px solid rgba(196, 148, 62, .4); background: rgba(255, 255, 255, .45); color: var(--ink); text-align: left; cursor: pointer; transition: background .15s ease; }
+.pf-cab:active { background: rgba(168, 111, 27, .09); }
+@media (hover: hover) and (pointer: fine) { .pf-cab:hover { background: rgba(255, 255, 255, .62); } .pf-cab:hover .chev { translate: 3px 0; } }
+.pf-cab-h { display: flex; align-items: center; gap: 10px; }
+.pf-cab-h b { display: block; font: 800 1.1rem/1.1 var(--display); }
+.pf-cab-h small { display: block; margin-top: 3px; color: var(--ink2); font-size: .86rem; }
+.pf-cab .chev { width: 18px; height: 18px; color: var(--gold-lo); flex: none; transition: translate .3s var(--spring); }
+.pf-cab-h small { text-wrap: balance; }
+.pf-cab .cab-grid { --row: 122px; position: relative; grid-template-columns: repeat(4, 1fr); padding: 0; background: none; }
+.pf-cab .cab-grid::before { content: ""; position: absolute; left: 0; right: 0; top: 80px; height: 12px; pointer-events: none;
+  background: linear-gradient(180deg, #FFEDB0 0, #E6B04A 2px, #A86F1B 5px, rgba(110, 74, 16, .28) 6px, rgba(110, 74, 16, 0) 12px); }
+.pf-cab .cab-cell { cursor: inherit; color: var(--ink); }
+.ksheet .h2h { cursor: default; }
+.ksheet .wl { font: 700 1.25rem/1 var(--num); font-variant-numeric: tabular-nums; }
+.wl.up { color: var(--club); } .wl.down { color: var(--ruby); }
+.ksheet .fine { margin: 10px 4px 0; color: var(--ink2); font-size: .85rem; line-height: 1.4; }
+/* Dressing room. --stage carries the player's colour so a new colour washes across the stage and the picked tiles. */
+@property --stage { syntax: "<color>"; inherits: true; initial-value: #D63B3B; }
+.ksheet.dress { --stage: var(--peg); transition: --stage .6s ease; }
+.ksheet.dress .body { gap: 12px; }
+.dr-stage { position: relative; display: grid; place-items: end center; height: 212px; border-radius: 20px; overflow: hidden; isolation: isolate;
+  background: radial-gradient(75% 85% at 50% 28%, color-mix(in srgb, var(--stage) 52%, #FFF4D6) 0%, var(--stage) 58%, color-mix(in srgb, var(--stage) 62%, #1A0A08) 100%); }
+.dr-stage::before { content: ""; position: absolute; z-index: -1; left: 50%; bottom: 12px; width: 160px; height: 24px; translate: -50% 0; border-radius: 50%; background: radial-gradient(closest-side, rgba(20, 6, 4, .42), rgba(20, 6, 4, 0)); }
+.dr-fig { display: block; width: 160px; height: 160px; margin-bottom: 18px; perspective: 700px; }
+.dr-fig img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 10px 12px rgba(30, 8, 4, .35)); }
+.dr-peek { position: absolute; left: 12px; top: 12px; display: grid; justify-items: center; gap: 5px; }
+.dr-peek .av { --s: 48px; }
+.dr-peek small { padding: 3px 8px 4px; border-radius: 99px; background: #FFF8E6; color: var(--ink); font: 700 .72rem/1 var(--label); letter-spacing: .05em; text-transform: uppercase; }
+.dr-rail { position: absolute; right: 12px; top: 50%; translate: 0 -50%; display: grid; gap: 10px; }
+.dr-act { display: grid; justify-items: center; gap: 4px; width: 66px; padding: 8px 0; border-radius: 16px; border: 2px solid transparent; cursor: pointer; color: var(--ink);
+  background: linear-gradient(180deg, var(--paper-hi), var(--paper-lo)) padding-box, var(--rim) border-box; box-shadow: inset 0 -2px 0 #D9BE86; font: 700 .78rem/1 var(--label); letter-spacing: .05em; text-transform: uppercase; }
+.dr-act img, .dr-act svg { width: 28px; height: 28px; object-fit: contain; }
+.dr-act svg { color: var(--gold-deep); }
+.dr-act:active { box-shadow: inset 0 2px 4px rgba(110, 74, 16, .25); translate: 0 1px; }
+.dr-act[disabled] { cursor: progress; }
+.dr-stage.busy::after { content: ""; position: absolute; z-index: 2; top: 0; bottom: 0; left: -60%; width: 60%; pointer-events: none;
+  background: linear-gradient(100deg, rgba(255, 250, 230, 0), rgba(255, 250, 230, .55), rgba(255, 250, 230, 0)); animation: drscan 1.1s ease-in-out infinite; }
+@keyframes drscan { to { translate: 270% 0; } }
+.dr-frame, .dr-init, .dr-photo { display: none; }
+.dress[data-mode="photo"] .dr-frame { display: grid; place-items: center; width: 150px; height: 150px; margin-bottom: 31px; border-radius: 50%; border: 3px dashed rgba(255, 244, 214, .85); background: rgba(255, 244, 214, .14); }
+.dr-frame img { width: 58px; height: 58px; object-fit: contain; }
+.dr-init { place-items: center; width: 140px; height: 140px; margin-bottom: 36px; border-radius: 50%; border: 4px solid transparent;
+  background: radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--stage) 86%, #fff), var(--stage) 70%) padding-box, var(--rim) border-box; box-shadow: 0 14px 20px -10px rgba(20, 6, 4, .55);
+  font: 800 4.4rem/1 var(--display); color: var(--peg-ink, #fff); padding-bottom: 6px; }
+.dress[data-mode="initials"] .dr-init { display: grid; }
+.dress:not([data-mode="face"]) :is(.dr-fig, .dr-peek, .dr-rail, .dr-cats) { display: none; }
+.dress[data-mode="photo"] .dr-grid { display: none; }
+.dress[data-mode="photo"] .dr-photo { display: grid; gap: 4px; }
+.dr-photo-btns { display: flex; gap: 8px; }
+.dr-photo-btns .qp { flex: 1 1 auto; justify-content: center; white-space: nowrap; min-height: 44px; padding: 0 10px; font-weight: 700; }
+.dr-photo-btns .qp img { width: 24px; height: 24px; object-fit: contain; margin-left: -4px; }
+.dr-note { margin: 0 2px; color: var(--ink2); font-size: .9rem; line-height: 1.4; }
+.dr-note:empty { display: none; }
+.dr-cats { position: relative; display: flex; padding-bottom: 6px; overflow-x: auto; scrollbar-width: none; border-bottom: 1.5px solid rgba(196, 148, 62, .4); }
+.dr-cats::-webkit-scrollbar { display: none; }
+.dr-cats button { flex: 1 0 auto; min-height: 44px; padding: 0 8px; border: 0; background: none; cursor: pointer; color: #6B5530; font: 700 1.02rem/1 var(--label); letter-spacing: .02em; white-space: nowrap; transition: color .2s ease; }
+.dr-cats button[aria-selected="true"] { color: var(--ink); }
+.dr-cats .ul { position: absolute; left: 0; bottom: 0; height: 3px; width: var(--uw, 0); translate: var(--ux, 0) 0; border-radius: 3px 3px 0 0; background: var(--gold-deep); transition: translate .45s var(--spring), width .45s var(--spring); }
+.dr-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); align-content: start; gap: 12px 8px; max-height: 334px; overflow-y: auto; overscroll-behavior: contain; margin: 0 -4px; padding: 8px 4px 10px; scrollbar-width: thin; }
+.dr-tile { position: relative; display: grid; justify-items: center; align-content: start; gap: 5px; padding: 0; border: 0; background: none; cursor: pointer; color: var(--ink); -webkit-tap-highlight-color: transparent; }
+.dr-tile .ph { display: grid; place-items: center; width: 100%; aspect-ratio: 1; border-radius: 18px; border: 2px solid rgba(196, 148, 62, .32); background: rgba(255, 255, 255, .5); transition: border-color .2s ease, scale .35s var(--spring); }
+.dr-tile .ph img { width: 82%; height: 82%; object-fit: contain; }
+.dr-tile .nm { font: 700 .84rem/1.1 var(--label); letter-spacing: .02em; color: var(--ink2); text-align: center; text-wrap: balance; }
+.dr-tile[aria-checked="true"] .ph { border-color: transparent; background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--stage) 50%, #FFF4D6), var(--stage) 78%) padding-box, var(--rim) border-box; }
+.dr-tile[aria-checked="true"] .nm { color: var(--ink); }
+.dr-tile .ok { position: absolute; right: -5px; top: -5px; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; border: 2px solid #FFF4D6; color: #fff;
+  background: linear-gradient(180deg, var(--teal-face), var(--teal-lo)); box-shadow: 0 2px 4px rgba(0, 0, 0, .25); }
+.dr-tile .ok svg { width: 13px; height: 13px; }
+.dr-tile:active .ph { scale: .94; }
+.dr-tile:focus-visible { outline: none; }
+.dr-tile:focus-visible .ph { outline: 3px solid var(--gold-deep); outline-offset: 3px; }
+@media (hover: hover) and (pointer: fine) { .dr-tile:not([aria-checked="true"]):not(:disabled):hover .ph { border-color: rgba(168, 111, 27, .7); } }
+.dr-tile.dr-sw .ph { border-radius: 50%; border: 3px solid rgba(255, 255, 255, .75); background: radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--c) 70%, #fff), var(--c) 72%); }
+.dr-tile.dr-sw[aria-checked="true"] .ph { border-color: transparent; background: radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--c) 70%, #fff), var(--c) 72%) padding-box, var(--rim) border-box; }
+.dr-tile.dr-sw .ph img { width: 86%; height: 86%; margin-top: 12%; }
+.dr-tile.dr-sw .ph b { font: 800 1.7rem/1 var(--display); }
+.dr-tile.dr-sw:disabled { cursor: not-allowed; }
+.dr-tile.dr-sw:disabled .ph { opacity: .42; }
+.dr-tile .owner { position: absolute; right: -4px; top: -4px; }
+.dr-tile .owner .av { --s: 28px; box-shadow: 0 2px 4px rgba(0, 0, 0, .3); }
+/* Settings: kit parts on parchment. Looks shrink to three across so all six fit in two rows. */
+.st-looks { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 10px; padding: 4px 2px 2px; }
+.st-looks .look { aspect-ratio: 1; padding: 9px 10px; border-radius: 16px; }
+.st-looks .look img { top: 9%; width: auto; max-width: 62%; height: 52%; object-fit: contain; }
+.st-looks .look b { font-size: 1rem; text-wrap: balance; }
+.st-looks .look small { display: none; }
+.st-looks .look.surprise .die { top: 9%; width: auto; height: 52%; }
+.st-looks .tick { top: 6px; right: 6px; width: 24px; height: 24px; }
+.st-looks .tick svg { width: 12px; height: 12px; }
+.look.surprise { --c2: #FFF8E6; --c3: #F3E3BE; --c5: #DCC08A; }
+.look.surprise b { color: var(--ink); text-shadow: none; } .look.surprise small { color: #5C4A2A; }
+.look.surprise::before { background: rgba(110, 74, 16, .08); }
+.look.surprise .die { position: absolute; top: 12%; left: 50%; width: 44%; aspect-ratio: 1; translate: -50% 0; display: grid; place-items: center; color: var(--gold-deep); }
+.look.surprise .die svg { width: 72%; height: 72%; }
+.look.surprise.rolling .die svg { animation: dieroll .45s linear infinite; }
+.ksheet.settings .body > div > .sub { margin-top: 0; }
+.ksheet .prow .ic { width: 40px; height: 40px; object-fit: contain; flex: none; filter: drop-shadow(0 3px 4px rgba(60, 40, 10, .25)); }
+.ksheet .prow .chev { color: var(--gold-lo); transition: rotate .3s var(--spring); }
+.ksheet .prow b { text-wrap: balance; } .ksheet .prow small { text-wrap: pretty; }
+.scan-off[aria-expanded="true"] .chev { rotate: 90deg; }
+.ksheet .choice { box-shadow: 0 8px 16px -12px rgba(60, 40, 10, .5); }
+.ksheet .choice small, .ksheet .fine { text-wrap: pretty; }
+.ksheet .kfield label { color: #7A5A1E; }
+.ksheet .kfield small { color: var(--ink2); line-height: 1.4; }
+.ksheet .kfield input:not(:focus) { background: linear-gradient(180deg, #FFFDF6, #FBF2DC) padding-box, var(--rim-soft) border-box; }
+.scan [hidden] { display: none; }
+.scan-form { display: grid; gap: 14px; padding: 14px 16px 18px; }
+.scan-form .kb { justify-self: stretch; }
+.scan-on .qp { flex: none; }
+.tip { color: var(--ink); text-decoration: none; }
+/* Players: names edit in place, a picture opens the dressing room, and people slide between the game and the bench. */
+.pe-list .prow { min-height: 66px; gap: 10px; padding: 8px 10px 8px 12px; }
+.pe-rows .prow:first-child { border-top: 0; }
+.pe-rows:not(:empty) + .pe-add, .pe-rows .prow + .prow { border-top: 1px solid rgba(196, 148, 62, .3); }
+.pe-av { position: relative; flex: none; padding: 0; border: 0; background: none; cursor: pointer; border-radius: 50%; -webkit-tap-highlight-color: transparent; }
+.pe-av .av, .pe-list .prow > .av { --s: 46px; }
+.pe-badge { position: absolute; right: -5px; bottom: -4px; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; border: 2px solid #FFF8E6; color: #fff;
+  background: linear-gradient(180deg, var(--teal-face), var(--teal-lo)); box-shadow: 0 2px 4px rgba(0, 0, 0, .25); transition: rotate .4s var(--spring); }
+.pe-badge svg { width: 14px; height: 14px; }
+@media (hover: hover) and (pointer: fine) { .pe-av:hover .pe-badge { rotate: -14deg; } }
+.pe-av:focus-visible { outline: 3px solid var(--gold-deep); outline-offset: 3px; }
+.pe-in { flex: 1; min-width: 0; height: 44px; padding: 0 10px; border-radius: 12px; border: 2px solid transparent; font: 700 1.1rem/1 var(--display); color: var(--ink);
+  background: linear-gradient(90deg, rgba(168, 111, 27, .5) 50%, transparent 0) 10px calc(100% - 7px) / 6px 2px repeat-x; background-clip: padding-box; }
+.pe-in::placeholder { color: #7D6C4E; font-weight: 600; }
+.pe-in:focus { outline: none; background: linear-gradient(180deg, #FFFDF6, #FBF2DC) padding-box, var(--rim) border-box; }
+.pe-del { flex: none; }
+.pe-plus { flex: none; display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; border: 2px dashed rgba(168, 111, 27, .6); color: var(--gold-deep); }
+.pe-plus svg { width: 20px; height: 20px; }
+.pe-add .qp { flex: none; min-height: 44px; padding: 0 16px; font-weight: 700; }
+.pe-list [hidden] { display: none; }
+.ksheet .pe-rm { flex: none; min-height: 44px; color: var(--ruby); border-color: rgba(168, 38, 59, .4); }
+.ksheet .pe-rm:disabled { opacity: .45; cursor: default; }
+.pe-join { flex: none; display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; border: 2px solid transparent; color: #fff;
+  background: linear-gradient(180deg, var(--teal-face), var(--teal-lo)) padding-box, var(--rim) border-box; box-shadow: inset 0 -2px 0 var(--teal-deep); }
+.pe-join svg { width: 18px; height: 18px; }
+.pe-addsome .sub { margin-top: 0; }
+.pe-missed small { color: var(--ink2); font-size: .88rem; line-height: 1.4; text-wrap: pretty; }
+/* Photo scan: a viewfinder, a sweep that only says it's working, then the photo shrinks into a receipt and deals the cards into the hand. */
+.sc-pane { display: grid; justify-items: center; gap: 10px; text-align: center; }
+.sc-pane[data-pane="cards"], .sc-pane[data-pane="num"] { justify-items: stretch; text-align: left; }
+.sc [hidden] { display: none; }
+.sc-view { --in: 10px; position: relative; display: grid; place-items: center; width: 100%; aspect-ratio: 16 / 10; border-radius: 18px; overflow: hidden; isolation: isolate;
+  background: radial-gradient(80% 75% at 50% 45%, rgba(255, 255, 255, .75), rgba(238, 216, 170, .6)); box-shadow: inset 0 2px 10px rgba(110, 74, 16, .22), inset 0 0 0 1.5px rgba(196, 148, 62, .35); }
+.sc-view.lock { --in: 18px; }
+.sc-ghost { position: absolute; inset: 0; display: grid; place-items: center; }
+.sc-ghost i { grid-area: 1 / 1; width: 50px; height: 70px; border-radius: 8px; border: 2px dashed rgba(168, 111, 27, .42); transform-origin: 50% 135%; translate: 0 -4px; }
+.sc-ghost i:nth-child(1) { rotate: -18deg; } .sc-ghost i:nth-child(3) { rotate: 18deg; }
+.sc-cam { position: relative; width: 66px; height: 66px; object-fit: contain; filter: drop-shadow(0 6px 8px rgba(110, 74, 16, .3)); }
+.sc-view.shot .sc-ghost, .sc-view.shot .sc-cam { visibility: hidden; }
+.sc-shot { position: absolute; inset: 0; z-index: 1; overflow: hidden;
+  background: repeating-linear-gradient(93deg, rgba(70, 38, 12, 0) 0 11px, rgba(70, 38, 12, .16) 11px 13px, rgba(255, 222, 170, .07) 13px 27px), linear-gradient(170deg, #B4834F, #8A5D33 60%, #77502B); }
+.sc-shot::after { content: ""; position: absolute; inset: 0; z-index: 9; pointer-events: none;
+  background: radial-gradient(70% 60% at 24% 14%, rgba(255, 238, 200, .3), rgba(255, 238, 200, 0) 70%), radial-gradient(120% 100% at 50% 45%, rgba(30, 16, 4, 0) 55%, rgba(30, 16, 4, .5)); }
+.sc-shot .dcard { position: absolute; left: var(--x); top: var(--y); width: 19%; rotate: var(--r); transform-origin: 50% 120%; filter: drop-shadow(0 4px 5px rgba(30, 14, 0, .45)); }
+.sc-shot .dcard.blur { filter: blur(1.2px) drop-shadow(0 4px 5px rgba(30, 14, 0, .45)); }
+.sc-shot.dim { filter: brightness(.5) saturate(.6) blur(.8px); }
+.sc-bulb { position: absolute; inset: 0; z-index: 4; background: #FFFBEF; opacity: 0; pointer-events: none; }
+.sc-corners i { position: absolute; z-index: 5; width: 24px; height: 24px; border: 0 solid var(--gold-deep);
+  transition: top .4s var(--spring), left .4s var(--spring), right .4s var(--spring), bottom .4s var(--spring), border-color .25s ease; }
+.sc-corners i:nth-child(1) { top: var(--in); left: var(--in); border-width: 3px 0 0 3px; border-radius: 9px 0 0 0; }
+.sc-corners i:nth-child(2) { top: var(--in); right: var(--in); border-width: 3px 3px 0 0; border-radius: 0 9px 0 0; }
+.sc-corners i:nth-child(3) { bottom: var(--in); left: var(--in); border-width: 0 0 3px 3px; border-radius: 0 0 0 9px; }
+.sc-corners i:nth-child(4) { bottom: var(--in); right: var(--in); border-width: 0 3px 3px 0; border-radius: 0 0 9px 0; }
+.sc-view.shot .sc-corners i { border-color: #FFF4D6; }
+.sc-view.bad .sc-corners i { border-color: #FF8A9A; }
+.sc-view.busy::after { content: ""; position: absolute; z-index: 3; top: 0; bottom: 0; left: -45%; width: 45%; pointer-events: none;
+  background: linear-gradient(100deg, rgba(255, 250, 230, 0), rgba(255, 250, 230, .5), rgba(255, 250, 230, 0)); animation: scsweep 1.2s ease-in-out infinite; }
+.sc-view.busy .sc-corners i { animation: scpulse 1.2s ease-in-out infinite; }
+.sc-view.shake { animation: shake .36s ease; }
+@keyframes scsweep { to { translate: 322% 0; } }
+@keyframes scpulse { 50% { opacity: .4; } }
+.sc-title { font: 800 1.2rem/1.2 var(--display); text-wrap: balance; }
+.sc-tip { margin: 0; max-width: 40ch; color: var(--ink2); font-size: .94rem; line-height: 1.4; text-wrap: balance; }
+.sc-msg { margin: 0; max-width: 34ch; color: var(--ruby); font-size: .92rem; font-weight: 600; line-height: 1.4; text-wrap: pretty; }
+.sc-msg.ok { color: var(--ink); }
+.sc-msg:empty { display: none; }
+.sc-acts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; width: 100%; max-width: 360px; margin-top: 2px; }
+.sc-acts .kb.sm { padding: 0 12px 3px; white-space: nowrap; }
+.sc-acts .kb.cream:disabled { color: #8A7A5C; background: linear-gradient(180deg, #F4EBD6, #E9DCBC) padding-box, var(--rim-soft) border-box; box-shadow: inset 0 -3px 0 #D9C9A4; }
+.sc-receipt { display: flex; align-items: center; gap: 12px; padding: 8px 12px 8px 8px; border-radius: 14px; border: 1.5px solid rgba(196, 148, 62, .45); background: rgba(255, 255, 255, .55); }
+.sc-stub { position: relative; z-index: 3; flex: none; width: 64px; aspect-ratio: 16 / 10; border-radius: 8px; overflow: hidden; transform-origin: 0 0; box-shadow: 0 0 0 2px #FFF8E6, 0 0 0 3.5px rgba(196, 148, 62, .7); }
+.sc-stub .sc-shot .dcard { filter: none; }
+.sc-receipt p { display: grid; gap: 3px; margin: 0; min-height: 40px; align-content: center; }
+.sc-receipt b { font: 800 1rem/1.15 var(--display); }
+.sc-receipt small { color: var(--ink2); font-size: .86rem; line-height: 1.35; text-wrap: pretty; }
+.sc-intro, .sc-ready { display: grid; justify-items: center; gap: 10px; width: 100%; }
+.sc-key { display: grid; gap: 14px; width: 100%; text-align: left; }
+.sc-key .kb { justify-self: stretch; }
+.sc-on { margin: 0; font: 600 .86rem/1.35 var(--font); color: var(--ink2); }
+.hc .su { width: 11px; height: 11px; margin: 2px 0 3px; }
+.hc.c { color: var(--club); }
+.hc.wig { animation: wiggle .5s ease; }
+@media (prefers-reduced-motion: reduce) { .sc-view.busy::after { animation: none; left: 0; width: 100%; background: rgba(255, 250, 230, .2); } .sc-view.busy .sc-corners i { animation: none; } .sc-corners i { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .ksheet.dress { transition: none; } .dr-stage.busy::after { animation: none; left: 0; width: 100%; background: rgba(255, 250, 230, .22); } }
 @media (min-width: 760px) { .cab-spot .med { width: 128px; height: 128px; } .cab-spot .med img { width: 96px; height: 96px; } .cab-spot b { font-size: 1.8rem; } }
 .race { display: grid; gap: 12px; padding: 16px; }
 .lane { display: grid; grid-template-columns: 52px 1fr 40px; align-items: center; gap: 10px; }
@@ -957,6 +1181,8 @@ input { caret-color: var(--teal); }
   <symbol id="minus" viewBox="0 0 20 20"><path d="M4 10h12" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></symbol>
   <symbol id="gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2.8v2.6M12 18.6v2.6M21.2 12h-2.6M5.4 12H2.8M18.5 5.5l-1.8 1.8M7.3 16.7l-1.8 1.8M18.5 18.5l-1.8-1.8M7.3 7.3 5.5 5.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
   <symbol id="share" viewBox="0 0 24 24"><path d="M12 15V3.5M7.5 8 12 3.5 16.5 8M5 12.5V19a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 19v-6.5" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="bin" viewBox="0 0 24 24"><path d="M4.5 7h15M9.5 7V4.8h5V7M6.5 7l.9 12.2c.1 1 .9 1.8 1.9 1.8h5.4c1 0 1.8-.8 1.9-1.8L17.5 7M10.2 11v6M13.8 11v6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="hanger" viewBox="0 0 24 24"><path d="M9.8 5.2a2.2 2.2 0 1 1 3.3 1.9c-.7.4-1.1.9-1.1 1.6v.2M12 8.9l-8.4 6.3c-.9.7-.4 2.3.8 2.3h15.2c1.2 0 1.7-1.6.8-2.3L12 8.9z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4z" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linejoin="round"/></symbol>
   <symbol id="del" viewBox="0 0 24 24"><path d="M8.5 5H20v14H8.5L3 12z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="m11.5 9.5 5 5m0-5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
   <symbol id="flag" viewBox="0 0 24 24"><path d="M5 21V4h11l-1.5 4L16 12H5" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></symbol>
@@ -1171,7 +1397,7 @@ input { caret-color: var(--teal); }
       <div class="kfield">
         <label for="pn">Player name</label>
         <input id="pn" placeholder="Who's playing?" value="Dee">
-        <small>Up to 12 players at a table.</small>
+        <small>Up to 8 players at a table.</small>
       </div>
     </div>
   </section>
@@ -1308,16 +1534,6 @@ input { caret-color: var(--teal); }
             <div class="ckeys">
               <button class="ck"><b>A</b><small>15</small></button><button class="ck"><b>2</b><small>2</small></button><button class="ck"><b>3</b><small>3</small></button><button class="ck"><b>4</b><small>4</small></button><button class="ck"><b>5</b><small>5</small></button><button class="ck"><b>6</b><small>6</small></button><button class="ck"><b>7</b><small>7</small></button>
               <button class="ck"><b>8</b><small>8</small></button><button class="ck"><b>9</b><small>9</small></button><button class="ck"><b>10</b><small>10</small></button><button class="ck"><b>J</b><small>10</small></button><button class="ck"><b>Q</b><small>10</small></button><button class="ck"><b>K</b><small>10</small></button><button class="ck jk"><b>★</b><small>25</small></button>
-            </div>
-          </div>
-        </div>
-        <div class="ksheet">
-          <div class="body" style="padding-top:16px">
-            <div class="photo">
-              <img src="../art/icons/camera.webp" alt="">
-              <b>Photograph Cy's hand</b>
-              <p>Spread the cards face up in good light. Anything the app isn't sure of gets a gold outline.</p>
-              <div class="row"><button class="kb sm">Take photo</button><button class="kb sm cream">Choose photo</button></div>
             </div>
           </div>
         </div>
@@ -1496,6 +1712,274 @@ input { caret-color: var(--teal); }
     </div>
   </section>
 
+  <!-- ═══ Stats & profile ═══ -->
+  <section class="stack">
+    <h2 class="rule" id="stats">Stats &amp; profile</h2>
+    <p class="note">Stats shows who holds each award across every table, on the same shelves as the cabinet. Tap a player anywhere to open their profile.</p>
+    <div class="cols">
+      <div class="stack" style="gap:20px;max-width:460px">
+        <div class="navbar"><h3>Stats</h3><button class="ib" aria-label="Settings"><svg><use href="#gear"/></svg></button></div>
+        <div class="st-hero"><img src="../art/crown.webp" alt=""><p>86 games across 2 tables, and 23&nbsp;of&nbsp;24 awards claimed</p></div>
+        <div class="panel">
+          <h3 class="panel-h">Tables</h3>
+          <button class="prow"><span class="av ring" data-p="dee"></span><span class="grow"><b>Friday night</b><small>Dee leads with 9 wins · 52 games</small></span><svg class="chev"><use href="#chev"/></svg></button>
+          <button class="prow"><span class="av ring" data-p="cy"></span><span class="grow"><b>The cousins</b><small>Cy leads with 7 wins · 34 games</small></span><svg class="chev"><use href="#chev"/></svg></button>
+        </div>
+        <div>
+          <h3 class="sub">Hall of fame</h3>
+          <div class="cab hall" id="hall">
+            <div class="cab-spot" aria-live="polite"><span class="med"><img src="../art/icons/out.webp" alt=""></span><div><b></b><p></p><span class="st"></span></div></div>
+            <div class="cab-grid" role="group" aria-label="Hall of fame"></div>
+          </div>
+        </div>
+        <div class="tabbar" role="navigation" aria-label="Main">
+          <button class="tab"><img src="../art/icons/play.webp" alt="">Play</button>
+          <button class="tab"><img src="../art/icons/rules.webp" alt="">Learn</button>
+          <button class="tab" aria-current="page"><img src="../art/icons/trophy.webp" alt="">Stats</button>
+        </div>
+      </div>
+      <div class="ksheet profile" role="dialog" aria-label="Dee's profile">
+        <div class="grab"></div>
+        <div class="pf-stage" style="--peg:#D63B3B">
+          <button class="ib cream pf-close" aria-label="Close"><svg><use href="#xmark"/></svg></button>
+          <span class="pf-fig" data-fig="dee"></span>
+        </div>
+        <div class="pf-who"><h3>Dee</h3><button class="pf-dress"><svg><use href="#hanger"/></svg>Dress up</button><p><img src="../art/crown.webp" alt="">On a 3-game winning streak</p></div>
+        <div class="body">
+          <div>
+            <h3 class="sub">At Friday night</h3>
+            <dl class="ledger">
+              <div><dt>Games</dt><dd>24</dd></div><div><dt>Wins</dt><dd>9</dd></div>
+              <div><dt>Win rate</dt><dd>38%</dd></div><div><dt>Average</dt><dd>52</dd></div>
+              <div><dt>Best game</dt><dd>31</dd></div><div><dt>Times out</dt><dd>41</dd></div>
+              <div><dt>Buys</dt><dd>63</dd></div><div><dt>Best streak</dt><dd>3</dd></div>
+            </dl>
+          </div>
+          <button class="pf-cab">
+            <span class="pf-cab-h"><span class="grow"><b>Cabinet</b><small>9 achievements · 14 game awards</small></span><svg class="chev"><use href="#chev"/></svg></span>
+            <span class="cab" aria-hidden="true"><span class="cab-grid">
+              <span class="cab-cell"><span class="med"><img src="../art/icons/untouchable.webp" alt=""></span><span class="nm">Untouchable</span></span>
+              <span class="cab-cell"><span class="med"><img src="../art/icons/camera.webp" alt=""></span><span class="nm">Say cheese</span></span>
+              <span class="cab-cell"><span class="med"><img src="../art/icons/payback.webp" alt=""></span><span class="nm">Payback</span></span>
+              <span class="cab-cell"><span class="med"><img src="../art/icons/nightowl.webp" alt=""></span><span class="nm">Night owl</span></span>
+            </span></span>
+          </button>
+          <div>
+            <h3 class="sub">Head to head</h3>
+            <div class="panel">
+              <div class="prow h2h"><span class="av sm" data-p="cy"></span><span class="grow"><b>vs Cy</b><small>11 games</small></span><b class="wl up">7–4</b></div>
+              <div class="prow h2h"><span class="av sm" data-p="ben"></span><span class="grow"><b>vs Ben</b><small>14 games</small></span><b class="wl down">6–8</b></div>
+              <div class="prow h2h"><span class="av sm" data-p="ana"></span><span class="grow"><b>vs Ana</b><small>9 games</small></span><b class="wl up">5–4</b></div>
+            </div>
+            <p class="fine">Head to head counts the games where both of you played and who finished lower.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ Dressing room ═══ -->
+  <section class="stack">
+    <h2 class="rule" id="dressing">Dressing room</h2>
+    <p class="note">Opens from Dress up on a profile. Every choice is drawn on the player's own character, the stage takes their colour, and the stage stays put while the choices scroll.</p>
+    <div class="ksheet dress" id="dress" role="dialog" aria-label="Dress up Dee" data-mode="face" style="--peg:#D63B3B;--peg-ink:#fff">
+      <div class="grab"></div>
+      <div class="head"><h3>Dress up Dee</h3><button class="ib cream" aria-label="Close"><svg><use href="#xmark"/></svg></button></div>
+      <div class="body">
+        <div class="kseg dr-mode" role="group" aria-label="Picture"><button aria-pressed="true" data-mode="face">Character</button><button aria-pressed="false" data-mode="photo">Photo</button><button aria-pressed="false" data-mode="initials">Initials</button></div>
+        <div class="dr-stage">
+          <span class="dr-peek"><span class="av ring" data-p="dee"></span><small>At the table</small></span>
+          <span class="dr-fig"><img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Person%20red%20hair/Light/3D/person_red_hair_3d_light.png" alt=""></span>
+          <span class="dr-frame" aria-hidden="true"><img src="../art/icons/camera.webp" alt=""></span>
+          <span class="dr-init" aria-hidden="true">D</span>
+          <div class="dr-rail">
+            <button class="dr-act" data-act="selfie" aria-label="Make a character from a selfie"><img src="../art/icons/camera.webp" alt=""><span>Selfie</span></button>
+            <button class="dr-act" data-act="shuffle" aria-label="Surprise me with a random character"><svg><use href="#die"/></svg><span>Shuffle</span></button>
+          </div>
+        </div>
+        <p class="dr-note" role="status"></p>
+        <div class="dr-cats" role="tablist" aria-label="Character parts">
+          <button role="tab" aria-selected="true" data-cat="looks">Looks</button><button role="tab" aria-selected="false" data-cat="costumes">Costumes</button><button role="tab" aria-selected="false" data-cat="moods">Moods</button><button role="tab" aria-selected="false" data-cat="tones">Skin tone</button><button role="tab" aria-selected="false" data-cat="colour">Colour</button><i class="ul" aria-hidden="true"></i>
+        </div>
+        <div class="dr-grid" role="radiogroup" aria-label="Looks" data-own></div>
+        <div class="dr-photo">
+          <div class="dr-photo-btns"><button class="qp"><img src="../art/icons/camera.webp" alt="">Take photo</button><button class="qp">Choose</button><button class="qp">Paste</button></div>
+          <p class="fine">Use a photo, or copy one of your Memoji stickers and paste it here.</p>
+        </div>
+      </div>
+      <div class="foot"><button class="kb">Save</button></div>
+    </div>
+  </section>
+
+  <!-- ═══ Settings ═══ -->
+  <section class="stack">
+    <h2 class="rule" id="settings">Settings</h2>
+    <p class="note">Opens from the gear on Home, Learn and Stats, and from the game menu. Picking a look re-colours the whole app straight away, so there's nothing to save.</p>
+    <div class="ksheet settings" id="setSheet" role="dialog" aria-label="Settings">
+      <div class="grab"></div>
+      <div class="head"><h3>Settings</h3><button class="ib cream" aria-label="Close"><svg><use href="#xmark"/></svg></button></div>
+      <div class="body">
+        <div>
+          <h3 class="sub">Look</h3>
+          <div class="looks st-looks" role="radiogroup" aria-label="Look">
+            <button class="look" role="radio" aria-checked="true" style="--c2:#3DBDB1;--c3:#1C8E9D;--c5:#0B5866"><img src="../art/crown.webp" alt=""><span class="tick"><svg><use href="#tick"/></svg></span><b>Lagoon</b><small>The house look</small></button>
+            <button class="look" role="radio" aria-checked="false" style="--c2:#6F96FF;--c3:#3463D8;--c5:#17337E"><img src="../art/jewel-spade.webp" alt=""><span class="tick"><svg><use href="#tick"/></svg></span><b>Sapphire</b><small>Deep royal blue</small></button>
+            <button class="look" role="radio" aria-checked="false" style="--c2:#A8DB62;--c3:#458F25;--c5:#1F5212"><img src="../art/jewel-club.webp" alt=""><span class="tick"><svg><use href="#tick"/></svg></span><b>Jade</b><small>A garden table</small></button>
+            <button class="look" role="radio" aria-checked="false" style="--c2:#F07080;--c3:#C42645;--c5:#680D26"><img src="../art/jewel-heart.webp" alt=""><span class="tick"><svg><use href="#tick"/></svg></span><b>Ruby</b><small>Warm cherry red</small></button>
+            <button class="look day" role="radio" aria-checked="false"><img src="../art/jewel-diamond.webp" alt=""><span class="tick"><svg><use href="#tick"/></svg></span><b>Daylight</b><small>For playing outside</small></button>
+            <button class="look surprise"><span class="die"><svg><use href="#die"/></svg></span><b>Surprise me</b><small>Roll for a look</small></button>
+          </div>
+          <p class="fine">Lagoon, Sapphire, Jade and Ruby follow your phone's dark mode. Daylight stays bright for sunshine.</p>
+        </div>
+        <div class="panel">
+          <div class="prow" style="cursor:default"><span class="grow"><b>New look each time</b><small>Opens on a different look every time you start the app</small></span><button class="ksw" role="switch" aria-checked="false" aria-label="New look each time"><span>OFF</span><i></i></button></div>
+          <div class="prow" style="cursor:default"><span class="grow"><b>Sounds</b><small>Card snaps, chimes and a fanfare for the winner</small></span><button class="ksw" role="switch" aria-checked="true" aria-label="Sounds"><span>ON</span><i></i></button></div>
+        </div>
+        <div>
+          <h3 class="sub">Coaching</h3>
+          <div class="choices" role="radiogroup" aria-label="Coaching">
+            <button class="choice" role="radio" aria-checked="true"><img src="../art/icons/rules.webp" alt=""><span><b>I'm still learning</b><small>A short guide opens at the start of every round.</small></span><span class="tick"><svg><use href="#tick"/></svg></span></button>
+            <button class="choice" role="radio" aria-checked="false"><img src="../art/icons/crown.webp" alt=""><span><b>I know the game</b><small>Guides stay out of the way. Tap the contract for one.</small></span><span class="tick"><svg><use href="#tick"/></svg></span></button>
+          </div>
+        </div>
+        <div>
+          <h3 class="sub">Card scanner</h3>
+          <div class="panel scan" id="scanCard">
+            <button class="prow scan-off" aria-expanded="false" aria-controls="scanForm"><img class="ic" src="../art/icons/camera.webp" alt=""><span class="grow"><b>Count cards from a photo</b><small>Uses your own Anthropic API key</small></span><svg class="chev"><use href="#chev"/></svg></button>
+            <form class="scan-form" id="scanForm" hidden>
+              <div class="kfield"><label for="akey">Your Anthropic API key</label><input id="akey" type="password" placeholder="sk-ant-…" autocomplete="off" spellcheck="false"><small>Get one at console.anthropic.com. It stays on this phone and goes only to Anthropic. Each photo costs a few cents on your account.</small></div>
+              <button class="kb" type="submit" disabled>Turn on the scanner</button>
+            </form>
+            <div class="prow scan-on" hidden><img class="ic" src="../art/icons/camera.webp" alt=""><span class="grow"><b>Scanner is on</b><small></small></span><button class="qp scan-remove">Remove</button></div>
+          </div>
+        </div>
+        <div class="panel"><a class="prow tip" href="#settings"><img class="ic" src="../art/icons/star.webp" alt=""><span class="grow"><b>Tip the dealer</b><small>If you're enjoying May I?</small></span><svg class="chev"><use href="#chev"/></svg></a></div>
+        <p class="fine">3D characters: Fluent Emoji by Microsoft (MIT). Type: Fraunces by Undercase Type and Barlow by Jeremy Tribby (OFL).</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ Players ═══ -->
+  <section class="stack">
+    <h2 class="rule" id="players">Players</h2>
+    <p class="note">A table's players are edited from its page; the players in a game change from the game menu. Tap a picture to open the dressing room.</p>
+    <div class="cols">
+      <div class="ksheet pe" id="peTable" role="dialog" aria-label="Friday night players">
+        <div class="grab"></div>
+        <div class="head"><h3>Friday night players</h3><button class="ib cream" aria-label="Close"><svg><use href="#xmark"/></svg></button></div>
+        <div class="body">
+          <div class="panel pe-list">
+            <div class="pe-rows"></div>
+            <form class="prow pe-add"><span class="pe-plus" aria-hidden="true"><svg><use href="#plus"/></svg></span><input class="pe-in" placeholder="Add a player" aria-label="New player's name" maxlength="20" enterkeyhint="done"><button class="qp" type="submit" hidden>Add</button></form>
+          </div>
+          <p class="fine pe-foot">Tap a picture to dress someone up, add a photo or change their colour. Up to 8 players. Removing someone keeps their past games.</p>
+        </div>
+        <div class="foot"><button class="kb">Save</button></div>
+      </div>
+      <div class="ksheet pe" id="peGame" role="dialog" aria-label="Players in this game">
+        <div class="grab"></div>
+        <div class="head"><h3>Players in this game</h3><button class="ib cream" aria-label="Close"><svg><use href="#xmark"/></svg></button></div>
+        <div class="body">
+          <div class="panel pe-list"><div class="pe-rows in"></div></div>
+          <p class="fine pe-hint"></p>
+          <div class="pe-addsome">
+            <h3 class="sub">Add someone</h3>
+            <div class="panel pe-list">
+              <div class="pe-rows bench"></div>
+              <form class="prow pe-add"><span class="pe-plus" aria-hidden="true"><svg><use href="#plus"/></svg></span><input class="pe-in" placeholder="New player's name" aria-label="New player's name" maxlength="20" enterkeyhint="done"><button class="qp" type="submit" hidden>Add</button></form>
+            </div>
+          </div>
+          <div class="panel pe-missed">
+            <div class="prow" style="display:grid;gap:10px;cursor:default"><b>Rounds they missed</b>
+              <div class="kseg" role="group" aria-label="Rounds they missed"><button aria-pressed="true" data-miss="worst">Highest score</button><button aria-pressed="false" data-miss="zero">Zero</button></div>
+              <small class="miss-hint">Each finished round counts as that round's highest score, so joining late never helps.</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ Photo scan ═══ -->
+  <section class="stack">
+    <h2 class="rule" id="scan">Photo scan</h2>
+    <p class="note">The Photo tab of the score pad. The card reader can't report progress, so the sweep only shows it's working. When it answers, the photo shrinks into a receipt and deals each card into the hand, where a guess wears a gold outline. The photo isn't kept, and the next player opens on Photo again.</p>
+    <div class="cols">
+      <div class="ksheet sc" id="scLive" role="dialog" aria-label="Round 3 scores">
+        <div class="grab"></div>
+        <div class="head"><h3>Round 3 scores</h3><button class="ib cream" aria-label="Close"><svg><use href="#xmark"/></svg></button></div>
+        <div class="body">
+          <div class="who-strip" role="tablist" aria-label="Players">
+            <button class="who done" role="tab" aria-selected="false" data-id="dee"><span class="av" data-p="dee"></span><span>Dee</span><em>Out</em></button>
+            <button class="who done" role="tab" aria-selected="false" data-id="ben"><span class="av" data-p="ben"></span><span>Ben</span><em>12</em></button>
+            <button class="who" role="tab" aria-selected="true" data-id="cy"><span class="av" data-p="cy"></span><span>Cy</span><em>–</em></button>
+            <button class="who" role="tab" aria-selected="false" data-id="ana"><span class="av" data-p="ana"></span><span>Ana</span><em>–</em></button>
+          </div>
+          <div class="plaque"><b>0</b><small>points left in hand</small></div>
+          <div class="kseg sc-mode" role="group" aria-label="How to enter"><button aria-pressed="false" data-m="num">Type points</button><button aria-pressed="false" data-m="cards">Tap cards</button><button aria-pressed="true" data-m="photo">Photo</button></div>
+          <div class="sc-pane" data-pane="photo">
+            <div class="sc-view"><span class="sc-ghost" aria-hidden="true"><i></i><i></i><i></i></span><img class="sc-cam" src="../art/icons/camera.webp" alt=""><div class="sc-shot" role="img" aria-label="Your photo of the cards" hidden></div><i class="sc-bulb" aria-hidden="true"></i><span class="sc-corners" aria-hidden="true"><i></i><i></i><i></i><i></i></span></div>
+            <b class="sc-title">Photograph Cy's hand</b>
+            <p class="sc-tip">Spread the cards face up in good light. Cards it isn't sure of get a gold outline.</p>
+            <p class="sc-msg" role="alert"></p>
+            <div class="sc-acts"><button class="kb sm sc-take"><img src="../art/icons/camera.webp" alt="">Take photo</button><button class="kb sm cream sc-pick">Choose photo</button></div>
+          </div>
+          <div class="sc-pane" data-pane="cards" hidden>
+            <div class="sc-receipt" hidden><span class="sc-stub" aria-hidden="true"></span><p role="status"></p></div>
+            <div class="tapped"><span class="none">No cards yet</span></div>
+            <div class="ckeys">
+              <button class="ck"><b>A</b><small>15</small></button><button class="ck"><b>2</b><small>2</small></button><button class="ck"><b>3</b><small>3</small></button><button class="ck"><b>4</b><small>4</small></button><button class="ck"><b>5</b><small>5</small></button><button class="ck"><b>6</b><small>6</small></button><button class="ck"><b>7</b><small>7</small></button>
+              <button class="ck"><b>8</b><small>8</small></button><button class="ck"><b>9</b><small>9</small></button><button class="ck"><b>10</b><small>10</small></button><button class="ck"><b>J</b><small>10</small></button><button class="ck"><b>Q</b><small>10</small></button><button class="ck"><b>K</b><small>10</small></button><button class="ck jk"><b>★</b><small>25</small></button>
+            </div>
+          </div>
+          <div class="sc-pane" data-pane="num" hidden>
+            <div class="numpad">
+              <button class="nk">1</button><button class="nk">2</button><button class="nk">3</button><button class="nk">4</button><button class="nk">5</button><button class="nk">6</button>
+              <button class="nk">7</button><button class="nk">8</button><button class="nk">9</button><span></span><button class="nk">0</button><button class="nk fn" aria-label="Delete"><svg><use href="#del"/></svg></button>
+            </div>
+          </div>
+        </div>
+        <div class="foot col"><button class="kb cream"><img src="../art/icons/out.webp" alt="">Out instead of Dee</button><button class="kb sc-save" disabled>Enter points</button></div>
+      </div>
+      <div class="stack" style="gap:22px">
+        <div>
+          <h3 class="sub">Before a key is added</h3>
+          <div class="ksheet sc">
+            <div class="body" style="padding-top:16px">
+              <div class="sc-pane" id="scKey">
+                <div class="sc-intro"><img class="sc-cam" src="../art/icons/camera.webp" alt=""><b class="sc-title">Count a hand from a photo</b><p class="sc-tip">Spread the cards face up and take one photo. The app reads the cards and adds them up.</p></div>
+                <form class="sc-key">
+                  <div class="kfield"><label for="scAkey">Your Anthropic API key</label><input id="scAkey" type="password" placeholder="sk-ant-…" autocomplete="off" spellcheck="false"><small>Get one at console.anthropic.com. It stays on this phone and goes only to Anthropic. Each photo costs a few cents on your account.</small></div>
+                  <button class="kb" type="submit" disabled>Turn on the scanner</button>
+                </form>
+                <div class="sc-ready" hidden>
+                  <div class="sc-view"><span class="sc-ghost" aria-hidden="true"><i></i><i></i><i></i></span><img class="sc-cam" src="../art/icons/camera.webp" alt=""><div class="sc-shot" role="img" aria-label="Your photo of the cards" hidden></div><i class="sc-bulb" aria-hidden="true"></i><span class="sc-corners" aria-hidden="true"><i></i><i></i><i></i><i></i></span></div>
+                  <b class="sc-title">Photograph Dee's hand</b>
+                  <p class="sc-on" role="status"></p>
+                  <p class="sc-msg" role="alert"></p>
+                  <div class="sc-acts"><button class="kb sm sc-take"><img src="../art/icons/camera.webp" alt="">Take photo</button><button class="kb sm cream sc-pick">Choose photo</button></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <h3 class="sub">When it can't read the photo</h3>
+          <div class="ksheet sc">
+            <div class="body" style="padding-top:16px">
+              <div class="sc-pane" id="scBad">
+                <div class="sc-view"><span class="sc-ghost" aria-hidden="true"><i></i><i></i><i></i></span><img class="sc-cam" src="../art/icons/camera.webp" alt=""><div class="sc-shot" role="img" aria-label="Your photo of the cards" hidden></div><i class="sc-bulb" aria-hidden="true"></i><span class="sc-corners" aria-hidden="true"><i></i><i></i><i></i><i></i></span></div>
+                <b class="sc-title">Photograph Ben's hand</b>
+                <p class="sc-msg" role="alert">No cards found. Try again with the cards spread out in good light.</p>
+                <div class="sc-acts"><button class="kb sm sc-take"><img src="../art/icons/camera.webp" alt="">Take photo</button><button class="kb sm cream sc-pick">Choose photo</button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section class="stack">
     <h2 class="rule" id="moments">Moments of fun</h2>
     <p class="note">Each one plays once, on the event, and is skipped when the phone asks for reduced motion.</p>
@@ -1600,6 +2084,10 @@ input { caret-color: var(--teal); }
     var p = P[el.dataset.p]; el.style.setProperty("--peg", p[2]);
     var im = new Image(); im.alt = ""; im.src = fig(p[0], p[1]); el.appendChild(im);
   });
+  // Full-size figures (the profile stage) use the same character, standing.
+  document.querySelectorAll("[data-fig]").forEach(function (el) {
+    var p = P[el.dataset.fig], im = new Image(); im.alt = ""; im.src = fig(p[0], p[1]); el.appendChild(im);
+  });
 
   // Round guide cards, from the app's own seven contracts.
   var R = [
@@ -1622,7 +2110,7 @@ input { caret-color: var(--teal); }
   // Controls behave.
   document.querySelectorAll(".ksw").forEach(function (b) { b.addEventListener("click", function () { var on = b.getAttribute("aria-checked") !== "true"; b.setAttribute("aria-checked", on); b.querySelector("span").textContent = on ? "ON" : "OFF"; }); });
   document.querySelectorAll(".kseg").forEach(function (g) { g.addEventListener("click", function (e) { var t = e.target.closest("button"); if (!t) return; g.querySelectorAll("button").forEach(function (x) { x.setAttribute("aria-pressed", x === t); }); }); });
-  document.querySelectorAll('[role="radiogroup"]').forEach(function (g) { g.addEventListener("click", function (e) { var t = e.target.closest('[role="radio"]'); if (!t) return; g.querySelectorAll('[role="radio"]').forEach(function (x) { x.setAttribute("aria-checked", x === t); }); }); });
+  document.querySelectorAll('[role="radiogroup"]:not([data-own])').forEach(function (g) { g.addEventListener("click", function (e) { var t = e.target.closest('[role="radio"]'); if (!t) return; g.querySelectorAll('[role="radio"]').forEach(function (x) { x.setAttribute("aria-checked", x === t); }); }); });
   document.querySelectorAll('.prow[role="checkbox"]').forEach(function (r) { r.addEventListener("click", function (e) { if (e.target.closest(".deal-chip")) return; r.setAttribute("aria-checked", r.getAttribute("aria-checked") !== "true"); }); });
   document.querySelectorAll(".who-strip").forEach(function (g) { g.addEventListener("click", function (e) { var t = e.target.closest(".who"); if (!t) return; g.querySelectorAll(".who").forEach(function (x) { x.setAttribute("aria-selected", x === t); }); }); });
 
@@ -1700,6 +2188,7 @@ input { caret-color: var(--teal); }
   /* ══ Deck ══════════════════════════════════════════════════════════════
      A to K for the chosen suit, built from one card recipe. Built before Feel so the
      switcher glides and the cards deal in with everything else. */
+  var deckCard = null, deckBack = null; // the deck builds every card face; the photo scan borrows it
   (function () {
     var grid = document.getElementById("deck-grid"), scale = document.getElementById("deck-scale"); if (!grid) return;
     var SUIT = { heart: "hearts", diamond: "diamonds", spade: "spades", club: "clubs" };
@@ -1731,6 +2220,7 @@ input { caret-color: var(--teal); }
       return el;
     }
     function back() { var el = document.createElement("div"); el.className = "dcard back"; el.tabIndex = 0; el.setAttribute("role", "button"); el.setAttribute("aria-label", "Card back, view full size"); el.innerHTML = '<div class="face"><img src="../art/card-back-hi.webp" alt="" width="796" height="1112" decoding="async"></div>'; return el; }
+    deckCard = card; deckBack = back;
     function render(suit, deal) {
       grid.innerHTML = ""; RANKS.forEach(function (r) { grid.appendChild(card(r, suit)); });
       if (scale) {
@@ -1824,7 +2314,7 @@ input { caret-color: var(--teal); }
   $$(".icon img, .tab img").forEach(function (im) { var k = (im.getAttribute("src").match(/icons\/(\w+)\./) || [])[1]; if (FEEL[k]) im.dataset.feel = FEEL[k]; });
 
   // Pickers: selecting a look or a level catches the light; the look snaps square.
-  $$('[role="radiogroup"]').forEach(function (g) { g.addEventListener("click", function (e) { var t = e.target.closest('[role="radio"]'); if (!t) return; glint(t); if (t.classList.contains("look")) retrigger(t, "snap"); }); });
+  $$('[role="radiogroup"]:not([data-own])').forEach(function (g) { g.addEventListener("click", function (e) { var t = e.target.closest('[role="radio"]'); if (!t) return; glint(t); if (t.classList.contains("look")) retrigger(t, "snap"); }); });
   $$(".who-strip").forEach(function (g) { g.addEventListener("click", function (e) { var t = e.target.closest(".who"); if (t) retrigger(t.querySelector(".av"), "pop"); }); });
 
   // Segmented controls: one pill glides to the pressed option.
@@ -1851,11 +2341,41 @@ input { caret-color: var(--teal); }
     glint(moreBtn);
   });
 
-  // The cabinet. Order is fixed, so an award lights up in its own place on the shelf rather than jumping to the front.
-  (function () {
-    var cab = document.getElementById("cab"); if (!cab) return;
-    var SETS = {
-      life: { label: "Achievements", items: [
+  // Shelves of medallions with a spotlight. The profile cabinet and the Stats hall of fame share them.
+  // Order is fixed, so an award lights up in its own place rather than jumping to the front.
+  var times = function (n) { return n === 1 ? "once" : n === 2 ? "twice" : n + " times"; };
+  var iconSrc = function (k) { return "../art/icons/" + k + ".webp"; };
+  var NAME = { dee: "Dee", ben: "Ben", cy: "Cy", ana: "Ana" };
+  function avHtml(k) { var q = P[k]; return '<span class="av sm" style="--peg:' + q[2] + '"><img src="' + fig(q[0], q[1]) + '" alt=""></span>'; }
+  function shelf(root, sets, o) {
+    var tabs = root.querySelector(".cab-tabs"), grid = root.querySelector(".cab-grid"), spot = root.querySelector(".cab-spot");
+    var spotImg = spot.querySelector("img"), spotMed = spot.querySelector(".med"), spotTxt = spot.querySelector("div");
+    var cur = o.first, picked = {}; Object.keys(sets).forEach(function (k) { picked[k] = sets[k].pick || 0; });
+    if (tabs) $$("button", tabs).forEach(function (b) { var st = sets[b.dataset.set]; b.querySelector(".ct").textContent = st.items.filter(o.got).length + "/" + st.items.length; });
+    function spotlight(i, animate) {
+      var it = sets[cur].items[i]; picked[cur] = i;
+      spotImg.src = iconSrc(it[0]); spot.classList.toggle("no", !o.got(it));
+      spotTxt.querySelector("b").textContent = it[1]; spotTxt.querySelector("p").textContent = it[2]; spotTxt.querySelector(".st").textContent = o.status(it, cur);
+      $$(".cab-cell", grid).forEach(function (c, j) { c.setAttribute("aria-pressed", j === i); });
+      if (!animate) return;
+      anim(spotMed, [{ scale: .55, rotate: "-14deg", opacity: .4 }, { scale: 1, rotate: "0deg", opacity: 1 }], { duration: 620, easing: SPRING });
+      anim(spotTxt, [{ opacity: 0, translate: "10px 0" }, { opacity: 1, translate: "0 0" }], { duration: 380, delay: 60 });
+    }
+    function build(animate) {
+      grid.setAttribute("aria-label", sets[cur].label);
+      grid.innerHTML = sets[cur].items.map(function (it, i) {
+        return '<button class="cab-cell' + (o.got(it) ? "" : " no") + '" data-i="' + i + '" aria-pressed="false" aria-label="' + o.said(it, cur).replace(/"/g, "&quot;") + '">' +
+          '<span class="med"><img src="' + iconSrc(it[0]) + '" alt="" loading="lazy" decoding="async">' + (o.badge(it, cur) || "") + '</span><span class="nm">' + it[1] + "</span></button>";
+      }).join("");
+      spotlight(picked[cur], animate);
+      if (animate) $$(".cab-cell", grid).forEach(function (c, i) { anim(c.querySelector(".med"), [{ opacity: 0, translate: "0 -18px", scale: .8 }, { opacity: 1, translate: "0 0", scale: 1 }], { duration: 480, delay: i * 22, easing: SPRING }); });
+    }
+    grid.addEventListener("click", function (e) { var c = e.target.closest(".cab-cell"); if (c && c.getAttribute("aria-pressed") !== "true") spotlight(+c.dataset.i, true); });
+    if (tabs) tabs.addEventListener("click", function (e) { var b = e.target.closest("button"); if (!b || b.dataset.set === cur) return; cur = b.dataset.set; build(true); });
+    build(false);
+  }
+
+  var LIFE = [
         ["crown", "Crowned", "Won a game", "12 Sep"], ["out", "Out of the gate", "Went out in a round", "12 Sep"], ["beginnersluck", "Beginner's luck", "Won their very first game"],
         ["grandtour", "Grand tour", "Went out in all seven contracts", "1 Nov"], ["fullcabinet", "Full cabinet", "Won every game award at least once"],
         ["backtoback", "Back to back", "Won two games in a row at one table", "25 Oct"], ["dynasty", "Dynasty", "Won three games in a row at one table"],
@@ -1863,8 +2383,8 @@ input { caret-color: var(--teal); }
         ["untouchable", "Untouchable", "Went out in four rounds of one game", "15 Nov"], ["nemesis", "Nemesis", "Beat the same person five times"],
         ["socialbutterfly", "Social butterfly", "Played with 10 different people", "18 Oct"], ["regular", "Regular", "Played 25 games"], ["furniture", "Part of the furniture", "Played 100 games"],
         ["nightowl", "Night owl", "Finished a game after midnight", "8 Nov"], ["earlybird", "Early bird", "Started a game before 9 am"], ["camera", "Say cheese", "Scored a hand with the camera", "15 Nov"]
-      ] },
-      game: { label: "Game awards", items: [
+  ];
+  var GAME = [
         ["out", "Clean hands", "Went out the most times", "15 Nov", 6], ["mayi", "Bargain hunter", "Said May I? the most", "8 Nov", 2], ["comeback", "Comeback kid", "Biggest jump up the table in one round", "1 Nov", 3],
         ["steady", "Steady hand", "Every round within 20 points", "18 Oct", 1], ["heavy", "Heavy pockets", "Caught with the biggest hand"], ["joker", "Joker juggler", "Caught holding the most Jokers"],
         ["hattrick", "Hat trick", "Went out three rounds in a row", "15 Nov", 2], ["wiretowire", "Wire to wire", "Led after every round and won", "25 Oct", 1], ["photofinish", "Photo finish", "Won by 5 points or fewer", "8 Nov", 2],
@@ -1876,39 +2396,228 @@ input { caret-color: var(--teal); }
         ["hotheels", "Hot on their heels", "Came second, within 10 points of the winner"], ["goodsport", "Good sport", "Finished last, but still went out"],
         ["runmaker", "Run maker", "Went out in Two Runs and in Three Runs", "1 Nov", 2], ["setcollector", "Set collector", "Went out in Two Sets and in Three Sets", "25 Oct", 1],
         ["flawless", "Flawless", "Went out in all seven rounds"]
-      ] }
-    };
-    var tabs = cab.querySelector(".cab-tabs"), grid = cab.querySelector(".cab-grid"), spot = cab.querySelector(".cab-spot");
-    var spotImg = spot.querySelector("img"), spotMed = spot.querySelector(".med"), spotTxt = spot.querySelector("div");
-    var cur = "life", picked = { life: 3, game: 6 };
-    var src = function (k) { return "../art/icons/" + k + ".webp"; };
-    var times = function (n) { return n === 1 ? "once" : n === 2 ? "twice" : n + " times"; };
-    $$("button", tabs).forEach(function (b) { var s = SETS[b.dataset.set], got = s.items.filter(function (it) { return it[3]; }).length; b.querySelector(".ct").textContent = got + "/" + s.items.length; });
+  ];
+  // Dee's cabinet: achievements carry the date earned; game awards carry the last win and a count.
+  var cabEl = document.getElementById("cab");
+  if (cabEl) shelf(cabEl, { life: { label: "Achievements", pick: 3, items: LIFE }, game: { label: "Game awards", pick: 6, items: GAME } }, {
+    first: "life", got: function (it) { return !!it[3]; },
+    status: function (it, set) { return !it[3] ? "Not yet" : set !== "game" ? "Earned " + it[3] : it[4] === 1 ? "Won once · " + it[3] : "Won " + times(it[4]) + " · last on " + it[3]; },
+    said: function (it, set) { return it[1] + ", " + (!it[3] ? "not earned yet" : set === "game" ? "won " + times(it[4]) : "earned"); },
+    badge: function (it, set) { return set === "game" && it[4] > 1 ? '<i class="n" aria-hidden="true">×' + it[4] + "</i>" : ""; }
+  });
+  // Hall of fame on Stats: who has won each game award most, across every table. A tie is shared.
+  var HOLD = { out: [["dee"], 14], mayi: [["ben"], 11], comeback: [["cy"], 7], steady: [["ana"], 5], heavy: [["ben"], 9], joker: [["cy", "ben"], 3], hattrick: [["dee"], 2],
+    wiretowire: [["cy"], 2], photofinish: [["dee"], 3], heist: [["ana"], 1], upfrombottom: [["cy"], 1], selfmade: [["ana"], 3], curtaincall: [["dee"], 1], quickoff: [["ben"], 6],
+    dealerschoice: [["cy"], 5], soclose: [["ana"], 4], rollercoaster: [["ben"], 6], friends: [["ben"], 5], aceupsleeve: [["cy"], 4], hotheels: [["cy"], 6], goodsport: [["ana"], 3],
+    runmaker: [["dee"], 2], setcollector: [["ben"], 2], flawless: [[], 0] };
+  var hallEl = document.getElementById("hall");
+  var holders = function (h) { return h.map(function (k) { return NAME[k]; }).join(" and "); };
+  if (hallEl) shelf(hallEl, { hall: { label: "Hall of fame", pick: 0, items: GAME.map(function (it) { var h = HOLD[it[0]]; return [it[0], it[1], it[2], h[0], h[1]]; }) } }, {
+    first: "hall", got: function (it) { return it[3].length > 0; },
+    status: function (it) { return !it[3].length ? "Not won yet" : it[3].length > 1 ? "Shared by " + holders(it[3]) + " · " + times(it[4]) + " each" : "Held by " + holders(it[3]) + " · won " + times(it[4]); },
+    said: function (it) { return it[1] + ", " + (!it[3].length ? "not won yet" : (it[3].length > 1 ? "shared by " : "held by ") + holders(it[3])); },
+    badge: function (it) { return it[3].length ? '<span class="holder" aria-hidden="true">' + it[3].map(avHtml).join("") + "</span>" : ""; }
+  });
 
-    function status(it) { return !it[3] ? "Not yet" : cur !== "game" ? "Earned " + it[3] : it[4] === 1 ? "Won once · " + it[3] : "Won " + times(it[4]) + " · last on " + it[3]; }
-    function said(it) { return it[1] + ", " + (!it[3] ? "not earned yet" : cur === "game" ? "won " + times(it[4]) : "earned"); }
-    function spotlight(i, animate) {
-      var it = SETS[cur].items[i]; picked[cur] = i;
-      spotImg.src = src(it[0]); spot.classList.toggle("no", !it[3]);
-      spotTxt.querySelector("b").textContent = it[1]; spotTxt.querySelector("p").textContent = it[2]; spotTxt.querySelector(".st").textContent = status(it);
-      $$(".cab-cell", grid).forEach(function (c, j) { c.setAttribute("aria-pressed", j === i); });
-      if (!animate) return;
-      anim(spotMed, [{ scale: .55, rotate: "-14deg", opacity: .4 }, { scale: 1, rotate: "0deg", opacity: 1 }], { duration: 620, easing: SPRING });
-      anim(spotTxt, [{ opacity: 0, translate: "10px 0" }, { opacity: 1, translate: "0 0" }], { duration: 380, delay: 60 });
+  // Dressing room: every choice is drawn on Dee's own character. A pick turns the figure for a quick change.
+  (function () {
+    var root = document.getElementById("dress"); if (!root) return;
+    var stage = root.querySelector(".dr-stage"), figImg = root.querySelector(".dr-fig img"), peek = root.querySelector(".dr-peek .av"),
+      grid = root.querySelector(".dr-grid"), cats = root.querySelector(".dr-cats"), note = root.querySelector(".dr-note");
+    var me = { who: "Person red hair", tone: "Light", peg: "red" }, cat = "looks";
+    var TICK = '<i class="ok" aria-hidden="true"><svg><use href="#tick"/></svg></i>';
+    // Colours: key, name, colour, ink, and who already has it at this table.
+    var PEGS = [["red", "Red", "#D63B3B", "#fff"], ["blue", "Blue", "#2563D9", "#fff", "ben"], ["green", "Green", "#178A4C", "#fff", "ana"], ["amber", "Amber", "#F0A81C", "#13233F"],
+      ["purple", "Purple", "#7A4BD8", "#fff", "cy"], ["teal", "Teal", "#0B8F9E", "#fff"], ["pink", "Pink", "#D13F93", "#fff"], ["orange", "Orange", "#E5631A", "#fff"]];
+    var LOOKS = ["Person", "Person curly hair", "Person red hair", "Person blonde hair", "Person white hair", "Person bald", "Person beard", "Person wearing turban",
+      "Person with skullcap", "Older person", "Woman", "Woman curly hair", "Woman with headscarf", "Man", "Man beard", "Child"];
+    var COSTUMES = [["cook", "Cook"], ["astronaut", "Astronaut"], ["artist", "Artist"], ["detective", "Detective"], ["firefighter", "Firefighter"], ["scientist", "Scientist"],
+      ["pilot", "Pilot"], ["farmer", "Farmer"], ["singer", "Singer"], ["teacher", "Teacher"], ["health worker", "Health worker"], ["technologist", "Technologist"],
+      ["superhero", "Superhero"], ["supervillain", "Supervillain"], ["mage", "Wizard"], ["elf", "Elf"], ["vampire", "Vampire"], ["fairy", "Fairy"], ["royal", "Royalty"], ["claus", "Claus"], ["ninja", "Ninja"]];
+    var MOODS = [["raising hand", "Hand up"], ["tipping hand", "Tipping hand"], ["gesturing ok", "OK"], ["shrugging", "Shrug"], ["facepalming", "Facepalm"],
+      ["gesturing no", "No way"], ["pouting", "Pout"], ["frowning", "Frown"], ["bowing", "Bow"]];
+    var TONES = [["Light", "Light"], ["Medium-Light", "Medium light"], ["Medium", "Medium"], ["Medium-Dark", "Medium dark"], ["Dark", "Dark"], ["Default", "Sunny yellow"]];
+    var FANTASY = ["superhero", "supervillain", "mage", "elf", "vampire", "fairy"];
+    var gender = function (w) { return /^(Woman|Old woman|Girl|Princess|Mrs claus)/.test(w) ? "Woman" : /^(Man|Old man|Boy|Santa claus)/.test(w) || w === "Prince" ? "Man" : "Person"; };
+    function role(g, r) {
+      if (r === "royal") return { Woman: "Princess", Man: "Prince", Person: "Person with crown" }[g];
+      if (r === "claus") return { Woman: "Mrs claus", Man: "Santa claus", Person: "Mx claus" }[g];
+      if (r === "ninja") return "Ninja";
+      return g !== "Person" ? g + " " + r : FANTASY.indexOf(r) >= 0 ? "Person " + r : r[0].toUpperCase() + r.slice(1);
     }
-    function build(animate) {
-      var items = SETS[cur].items; grid.setAttribute("aria-label", SETS[cur].label);
-      grid.innerHTML = items.map(function (it, i) {
-        var n = cur === "game" && it[4] > 1 ? '<i class="n" aria-hidden="true">×' + it[4] + "</i>" : "";
-        return '<button class="cab-cell' + (it[3] ? "" : " no") + '" data-i="' + i + '" aria-pressed="false" aria-label="' + said(it).replace(/"/g, "&quot;") + '">' +
-          '<span class="med"><img src="' + src(it[0]) + '" alt="" loading="lazy" decoding="async">' + n + '</span><span class="nm">' + it[1] + "</span></button>";
+    var lookName = function (w) { return w === "Person" ? "Classic" : w.indexOf("Person ") === 0 ? w[7].toUpperCase() + w.slice(8) : w; };
+    var pegOf = function (k) { return PEGS.filter(function (p) { return p[0] === k; })[0]; };
+    function options() {
+      var g = gender(me.who);
+      if (cat === "looks") return LOOKS.map(function (w) { return { label: lookName(w), who: w, tone: me.tone, quiet: true }; });
+      if (cat === "costumes") return COSTUMES.map(function (c) { return { label: c[1], who: role(g, c[0]), tone: me.tone }; });
+      if (cat === "moods") return MOODS.map(function (m) { return { label: m[1], who: g + " " + m[0], tone: me.tone }; });
+      return TONES.map(function (t) { return { label: t[1], who: me.who, tone: t[0] }; });
+    }
+    function render(animate) {
+      var initials = root.dataset.mode === "initials", colour = initials || cat === "colour";
+      grid.setAttribute("aria-label", colour ? "Colour" : cats.querySelector('[aria-selected="true"]').textContent);
+      grid.innerHTML = colour ? PEGS.map(function (p) {
+        var on = p[0] === me.peg, owner = p[4];
+        return '<button class="dr-tile dr-sw" role="radio" data-peg="' + p[0] + '" aria-checked="' + on + '"' + (owner ? " disabled" : "") + ' aria-label="' + p[1] + (owner ? ", " + NAME[owner] + "'s colour" : "") +
+          '" style="--c:' + p[2] + '"><span class="ph">' + (initials ? '<b style="color:' + p[3] + '">D</b>' : '<img src="' + fig(me.who, me.tone) + '" alt="">') + "</span>" +
+          (owner ? '<span class="owner" aria-hidden="true">' + avHtml(owner) + "</span>" : "") + (on ? TICK : "") + '<span class="nm">' + (owner ? NAME[owner] : p[1]) + "</span></button>";
+      }).join("") : options().map(function (o, i) {
+        var on = o.who === me.who && o.tone === me.tone;
+        return '<button class="dr-tile" role="radio" data-i="' + i + '" aria-checked="' + on + '" aria-label="' + o.label + '"><span class="ph"><img src="' + fig(o.who, o.tone) + '" alt="" loading="lazy" decoding="async"></span>' +
+          (on ? TICK : "") + (o.quiet ? "" : '<span class="nm">' + o.label + "</span>") + "</button>";
       }).join("");
-      spotlight(picked[cur], animate);
-      if (animate) $$(".cab-cell", grid).forEach(function (c, i) { anim(c.querySelector(".med"), [{ opacity: 0, translate: "0 -18px", scale: .8 }, { opacity: 1, translate: "0 0", scale: 1 }], { duration: 480, delay: i * 22, easing: SPRING }); });
+      grid.scrollTop = 0;
+      if (animate) $$(".dr-tile", grid).forEach(function (t, i) { anim(t, [{ opacity: 0, translate: "0 10px", scale: .9 }, { opacity: 1, translate: "0 0", scale: 1 }], { duration: 420, delay: Math.min(i, 12) * 18, easing: SPRING }); });
     }
-    grid.addEventListener("click", function (e) { var c = e.target.closest(".cab-cell"); if (c && c.getAttribute("aria-pressed") !== "true") spotlight(+c.dataset.i, true); });
-    tabs.addEventListener("click", function (e) { var b = e.target.closest("button"); if (!b || b.dataset.set === cur) return; cur = b.dataset.set; build(true); });
-    build(false);
+    // The quick change: the figure turns away, the new outfit loads, and it turns back with a little hop.
+    var turn = 0;
+    function dress(next) {
+      me.who = next.who; me.tone = next.tone;
+      var src = fig(me.who, me.tone), t = ++turn, pk = peek.querySelector("img"); if (pk) pk.src = src;
+      var out = anim(figImg, [{ transform: "rotateY(0deg) scale(1)" }, { transform: "rotateY(90deg) scale(.94)" }], { duration: 150, easing: "ease-in", fill: "forwards" });
+      var pre = new Image(), done = false;
+      function back() {
+        if (done || t !== turn) return; done = true; figImg.src = src;
+        if (out) { out.cancel(); anim(figImg, [{ transform: "rotateY(-90deg) scale(.94)" }, { transform: "rotateY(0deg) scale(1.05) translateY(-8px)", offset: .6 }, { transform: "rotateY(0deg) scale(1) translateY(0)" }], { duration: 560, easing: SPRING }); }
+      }
+      pre.onload = pre.onerror = function () { setTimeout(back, out ? 150 : 0); }; pre.src = src; setTimeout(back, 900);
+    }
+    function setPeg(k) {
+      var p = pegOf(k); me.peg = k; root.style.setProperty("--peg", p[2]); root.style.setProperty("--peg-ink", p[3]); peek.style.setProperty("--peg", p[2]);
+      anim(stage, [{ scale: 1 }, { scale: 1.015 }, { scale: 1 }], { duration: 500, easing: SPRING });
+    }
+    function select(t) {
+      $$(".dr-tile", grid).forEach(function (x) { var on = x === t, ok = x.querySelector(".ok"); x.setAttribute("aria-checked", on);
+        if (on && !ok) x.insertAdjacentHTML("beforeend", TICK); if (!on && ok) ok.remove(); });
+      anim(t.querySelector(".ph"), [{ scale: .9 }, { scale: 1.06 }, { scale: 1 }], { duration: 440, easing: SPRING });
+      anim(t.querySelector(".ok"), [{ scale: 0, rotate: "-45deg" }, { scale: 1, rotate: "0deg" }], { duration: 440, delay: 60, easing: SPRING });
+    }
+    grid.addEventListener("click", function (e) {
+      var t = e.target.closest(".dr-tile"); if (!t || t.disabled || t.getAttribute("aria-checked") === "true") return;
+      note.textContent = ""; if (t.dataset.peg) setPeg(t.dataset.peg); else dress(options()[+t.dataset.i]); select(t);
+    });
+    function placeUl() { var on = cats.querySelector('[aria-selected="true"]'); if (!on.offsetWidth) return; cats.style.setProperty("--ux", on.offsetLeft + "px"); cats.style.setProperty("--uw", on.offsetWidth + "px"); }
+    cats.addEventListener("click", function (e) {
+      var b = e.target.closest("button[data-cat]"); if (!b || b.dataset.cat === cat) return;
+      $$("button[data-cat]", cats).forEach(function (x) { x.setAttribute("aria-selected", x === b); }); cat = b.dataset.cat; placeUl(); render(true);
+    });
+    root.querySelector(".dr-mode").addEventListener("click", function (e) {
+      var b = e.target.closest("button[data-mode]"); if (!b || b.dataset.mode === root.dataset.mode) return;
+      root.dataset.mode = b.dataset.mode; note.textContent = ""; if (b.dataset.mode !== "photo") render(true); if (b.dataset.mode === "face") placeUl();
+      anim(root.querySelector({ face: ".dr-fig", photo: ".dr-frame", initials: ".dr-init" }[b.dataset.mode]), [{ opacity: 0, scale: .8, translate: "0 14px" }, { opacity: 1, scale: 1, translate: "0 0" }], { duration: 500, easing: SPRING });
+    });
+    var pickOne = function (a) { return a[Math.floor(Math.random() * a.length)]; };
+    root.querySelector(".dr-rail").addEventListener("click", function (e) {
+      var b = e.target.closest(".dr-act"); if (!b || b.disabled) return; note.textContent = "";
+      if (b.dataset.act === "shuffle") {
+        anim(b.querySelector("svg"), [{ rotate: "0deg", translate: "0 0" }, { rotate: "200deg", translate: "0 -9px", offset: .5 }, { rotate: "360deg", translate: "0 0" }], { duration: 600, easing: SPRING });
+        var k = Math.random(), g = pickOne(["Woman", "Man", "Person"]);
+        dress({ who: k < .6 ? pickOne(LOOKS) : k < .85 ? role(g, pickOne(COSTUMES)[0]) : g + " " + pickOne(MOODS.slice(0, 5))[0], tone: pickOne(TONES.slice(0, 5))[0] }); render(false);
+        return;
+      }
+      // The selfie: the real app opens the camera first. Here the stage shows the "looking" state, then the match lands.
+      var lbl = b.querySelector("span"); b.disabled = true; lbl.textContent = "Looking"; stage.classList.add("busy");
+      setTimeout(function () {
+        stage.classList.remove("busy"); b.disabled = false; lbl.textContent = "Selfie";
+        dress({ who: "Person curly hair", tone: "Medium-Light" }); render(false); note.textContent = "Made from your photo, which wasn't saved. Change anything below.";
+      }, calm ? 500 : 1600);
+    });
+    figImg.src = fig(me.who, me.tone); render(false); placeUl();
+    if (document.fonts) document.fonts.ready.then(placeUl);
+    if (window.ResizeObserver) new ResizeObserver(placeUl).observe(cats);
+  })();
+
+  // Settings: Surprise me flicks the tick across the looks like a die settling, then lands on a different one.
+  (function () {
+    var sheet = document.getElementById("setSheet"); if (!sheet) return;
+    var looks = $$('.st-looks .look[role="radio"]', sheet), btn = sheet.querySelector(".look.surprise"), rolling = false;
+    function pick(el) { looks.forEach(function (x) { x.setAttribute("aria-checked", x === el); }); }
+    btn.addEventListener("click", function () {
+      if (rolling) return; rolling = true; btn.classList.add("rolling");
+      var cur = looks.filter(function (x) { return x.getAttribute("aria-checked") === "true"; })[0], start = cur, n = 0, steps = calm ? 1 : 7;
+      (function step() {
+        var last = n === steps - 1, others = looks.filter(function (x) { return x !== cur && !(last && x === start); });
+        cur = others[Math.floor(Math.random() * others.length)]; pick(cur);
+        if (++n < steps) { setTimeout(step, 80 + n * 26); return; }
+        rolling = false; btn.classList.remove("rolling"); retrigger(cur, "snap"); glint(cur);
+      })();
+    });
+    // The scanner: a row that opens the key form; a saved key turns it into a status row with Remove.
+    var card = document.getElementById("scanCard"), off = card.querySelector(".scan-off"), form = card.querySelector(".scan-form"), on = card.querySelector(".scan-on"),
+      input = form.querySelector("input"), go = form.querySelector(".kb");
+    off.addEventListener("click", function () { var open = off.getAttribute("aria-expanded") !== "true"; off.setAttribute("aria-expanded", open); form.hidden = !open;
+      if (open) { anim(form, [{ opacity: 0, translate: "0 -8px" }, { opacity: 1, translate: "0 0" }], { duration: 320 }); input.focus({ preventScroll: true }); } });
+    input.addEventListener("input", function () { go.disabled = !input.value.trim(); });
+    form.addEventListener("submit", function (e) { e.preventDefault(); var k = input.value.trim(); if (!k) return;
+      on.querySelector("small").textContent = "Key ending " + k.slice(-4) + ", kept on this phone"; input.value = ""; go.disabled = true;
+      form.hidden = true; off.hidden = true; off.setAttribute("aria-expanded", "false"); on.hidden = false;
+      anim(on, [{ opacity: 0, scale: .97 }, { opacity: 1, scale: 1 }], { duration: 380, easing: SPRING }); });
+    on.querySelector(".scan-remove").addEventListener("click", function () { on.hidden = true; off.hidden = false; off.focus({ preventScroll: true }); });
+  })();
+  // Players. New people get a starting character from their name, like the app, and the first free colour.
+  (function () {
+    var tableEl = document.getElementById("peTable"), gameEl = document.getElementById("peGame"); if (!tableEl || !gameEl) return;
+    var SEEDS = ["Person", "Person curly hair", "Person red hair", "Person blonde hair", "Person white hair"], TONES5 = ["Light", "Medium-Light", "Medium", "Medium-Dark", "Dark"];
+    var COLS = ["#D63B3B", "#2563D9", "#178A4C", "#F0A81C", "#7A4BD8", "#0B8F9E", "#D13F93", "#E5631A"], MAX = 8, uidN = 0;
+    function seed(name) { var h = 7; for (var i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0; return [SEEDS[(h >>> 4) % 5], TONES5[(h >>> 9) % 5]]; }
+    function person(k) { var q = P[k]; return { id: k, name: NAME[k], who: q[0], tone: q[1], col: q[2] }; }
+    function fresh(name, list) { var used = list.map(function (x) { return x.col; }), sd = seed(name);
+      return { id: "n" + (++uidN), name: name, who: sd[0], tone: sd[1], col: COLS.filter(function (c) { return used.indexOf(c) < 0; })[0] || COLS[list.length % 8] }; }
+    var av = function (x) { return '<span class="av" style="--peg:' + x.col + '"><img src="' + fig(x.who, x.tone) + '" alt=""></span>'; };
+    var esc = function (t) { return t.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;"); };
+    function arrive(row) { anim(row, [{ opacity: 0, translate: "0 -10px", scale: .97 }, { opacity: 1, translate: "0 0", scale: 1 }], { duration: 420, easing: SPRING });
+      anim(row.querySelector(".av"), [{ scale: 0, rotate: "-20deg" }, { scale: 1.15, rotate: "4deg", offset: .6 }, { scale: 1, rotate: "0deg" }], { duration: 560, delay: 80, easing: SPRING }); }
+    function leave(row, done) { var a = anim(row, [{ opacity: 1, translate: "0 0", height: row.offsetHeight + "px" }, { opacity: 0, translate: "40px 0", height: row.offsetHeight + "px", offset: .55 }, { opacity: 0, translate: "40px 0", height: "0px", paddingTop: "0px", paddingBottom: "0px", minHeight: "0px" }], { duration: 420, easing: EASE, fill: "forwards" });
+      if (a) a.onfinish = done; else done(); }
+    function adder(form, onAdd) {
+      var input = form.querySelector("input"), go = form.querySelector(".qp");
+      input.addEventListener("input", function () { go.hidden = !input.value.trim(); });
+      form.addEventListener("submit", function (e) { e.preventDefault(); var n = input.value.trim().slice(0, 20); if (!n) return; onAdd(n); input.value = ""; go.hidden = true; input.focus({ preventScroll: true }); });
+    }
+
+    // The table's players: rename in place, remove, add.
+    var tl = ["dee", "ben", "cy", "ana"].map(person), trows = tableEl.querySelector(".pe-rows"), tadd = tableEl.querySelector(".pe-add");
+    function trow(x) { return '<div class="prow pe-row" data-id="' + x.id + '"><button class="pe-av" aria-label="Dress up ' + esc(x.name) + '">' + av(x) + '<i class="pe-badge" aria-hidden="true"><svg><use href="#hanger"/></svg></i></button>' +
+      '<input class="pe-in" value="' + esc(x.name) + '" aria-label="Player name" maxlength="20"><button class="ib cream pe-del" aria-label="Remove ' + esc(x.name) + '"><svg><use href="#bin"/></svg></button></div>'; }
+    function tfull() { tadd.hidden = tl.length >= MAX; }
+    trows.innerHTML = tl.map(trow).join(""); tfull();
+    trows.addEventListener("click", function (e) {
+      var d = e.target.closest(".pe-del"); if (!d) return; var row = d.closest(".pe-row");
+      tl = tl.filter(function (x) { return x.id !== row.dataset.id; }); leave(row, function () { row.remove(); tfull(); });
+    });
+    trows.addEventListener("input", function (e) { var i = e.target.closest(".pe-in"); if (!i) return; var row = i.closest(".pe-row"), nm = i.value.trim() || "player";
+      row.querySelector(".pe-av").setAttribute("aria-label", "Dress up " + nm); row.querySelector(".pe-del").setAttribute("aria-label", "Remove " + nm); });
+    adder(tadd, function (n) { if (tl.length >= MAX) return; var x = fresh(n, tl); tl.push(x); trows.insertAdjacentHTML("beforeend", trow(x)); arrive(trows.lastElementChild); tfull(); });
+
+    // Players in this game: round 4 of 7, so late joiners take the missed-rounds rule. Removing someone puts them on the bench.
+    var ing = ["dee", "ben", "cy"].map(person), bench = [person("ana")], joined = { cy: 2 }, ROUND = 4;
+    var irows = gameEl.querySelector(".pe-rows.in"), brows = gameEl.querySelector(".pe-rows.bench"), gadd = gameEl.querySelector(".pe-add"), hint = gameEl.querySelector(".pe-hint"), some = gameEl.querySelector(".pe-addsome");
+    function irow(x) { return '<div class="prow pe-row" data-id="' + x.id + '">' + av(x) + '<span class="grow"><b>' + esc(x.name) + "</b>" + (joined[x.id] ? "<small>Joined in round " + joined[x.id] + "</small>" : "") +
+      '</span><button class="qp pe-rm" aria-label="Remove ' + esc(x.name) + ' from this game">Remove</button></div>'; }
+    function brow(x) { return '<button class="prow pe-row" data-id="' + x.id + '" aria-label="Add ' + esc(x.name) + ' to this game">' + av(x) + '<span class="grow"><b>' + esc(x.name) + "</b><small>From Friday night</small></span>" +
+      '<span class="pe-join" aria-hidden="true"><svg><use href="#plus"/></svg></span></button>'; }
+    function gsync() {
+      var two = ing.length <= 2, full = ing.length >= MAX;
+      $$(".pe-rm", irows).forEach(function (b) { b.disabled = two; });
+      hint.textContent = two ? "A game needs at least 2 players." : full ? "This game has the most players a deck can deal for (8)." : "Removing someone takes them out of this game's standings. You can add them back below.";
+      some.hidden = full; brows.hidden = !bench.length;
+    }
+    irows.innerHTML = ing.map(irow).join(""); brows.innerHTML = bench.map(brow).join(""); gsync();
+    function join(x) { joined[x.id] = joined[x.id] || ROUND; ing.push(x); irows.insertAdjacentHTML("beforeend", irow(x)); arrive(irows.lastElementChild); gsync(); }
+    irows.addEventListener("click", function (e) {
+      var b = e.target.closest(".pe-rm"); if (!b || b.disabled) return; var row = b.closest(".pe-row"), x = ing.filter(function (y) { return y.id === row.dataset.id; })[0];
+      ing = ing.filter(function (y) { return y !== x; }); delete joined[x.id]; bench.push(x); gsync();
+      leave(row, function () { row.remove(); brows.insertAdjacentHTML("beforeend", brow(x)); arrive(brows.lastElementChild); gsync(); });
+    });
+    brows.addEventListener("click", function (e) {
+      var row = e.target.closest(".pe-row"); if (!row || ing.length >= MAX) return; var x = bench.filter(function (y) { return y.id === row.dataset.id; })[0];
+      bench = bench.filter(function (y) { return y !== x; }); leave(row, function () { row.remove(); join(x); });
+    });
+    adder(gadd, function (n) { if (ing.length >= MAX) return; join(fresh(n, ing.concat(bench))); });
+    var mh = gameEl.querySelector(".miss-hint");
+    gameEl.querySelector(".pe-missed .kseg").addEventListener("click", function (e) { var b = e.target.closest("button[data-miss]"); if (!b) return;
+      mh.textContent = b.dataset.miss === "worst" ? "Each finished round counts as that round's highest score, so joining late never helps." : "Finished rounds count as 0. Friendlier, but a late player starts ahead."; });
   })();
 
   // Stepper: digits roll in the direction you pushed; the buttons stop at the limits.
@@ -2031,22 +2740,29 @@ input { caret-color: var(--teal); }
   })();
 
   // Tap cards: each key deals a card into the hand from where you tapped; tap a card to take it back.
-  (function () {
-    var keys = document.querySelector(".ckeys"); if (!keys) return;
+  // Every hand in the kit shares this, so a photo scan deals its cards the same way.
+  function cardPad(keys) {
     var box = keys.closest(".body"), hand = box.querySelector(".tapped"), num = box.querySelector(".plaque b"), note = box.querySelector(".plaque small"), MAX = 18,
-      NAMES = { A: "Ace", J: "Jack", Q: "Queen", K: "King", "★": "Joker" }, shown = +num.textContent;
+      NAMES = { A: "Ace", J: "Jack", Q: "Queen", K: "King", "★": "Joker" }, shown = +num.textContent || 0, gen = 0, pad = { onchange: null };
     var cards = function () { return $$(".hc", hand); };
+    pad.count = function () { return cards().length; };
+    pad.total = function () { return cards().reduce(function (s, c) { return s + +c.querySelector("small").textContent; }, 0); };
+    pad.list = function () { return cards().map(function (c) { return c._c; }); };
     function fan() {
       var cs = cards(), n = cs.length, ov = n > 1 ? Math.max(10, (n * 42 - (hand.clientWidth - 24)) / (n - 1)) : 10, step = Math.min(5, 26 / Math.max(1, n - 1));
       hand.style.setProperty("--ov", ov.toFixed(1) + "px");
       cs.forEach(function (c, i) { c.style.setProperty("--r", ((i - (n - 1) / 2) * step).toFixed(1) + "deg"); });
     }
-    function setTotal() {
-      var cs = cards(), to = cs.reduce(function (s, c) { return s + +c.querySelector("small").textContent; }, 0), from = shown, t0 = null; shown = to;
-      note.textContent = cs.length ? cs.length + (cs.length === 1 ? " card" : " cards") + " left in hand" : "Tap each card left in the hand";
-      retrigger(num, "nudge");
-      if (calm) { num.textContent = to; return; }
-      requestAnimationFrame(function f(t) { if (!t0) t0 = t; var k = Math.min(1, (t - t0) / 320); num.textContent = Math.round(from + (to - from) * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(f); });
+    // A quiet update leaves the plaque to its owner (the photo tab writes its own).
+    function setTotal(quiet) {
+      var cs = cards(), to = pad.total(), from = shown, t0 = null, g = ++gen; shown = to;
+      if (!quiet) {
+        note.textContent = cs.length ? cs.length + (cs.length === 1 ? " card" : " cards") + " left in hand" : "Tap each card left in the hand";
+        retrigger(num, "nudge");
+        if (calm) num.textContent = to;
+        else requestAnimationFrame(function f(t) { if (g !== gen) return; if (!t0) t0 = t; var k = Math.min(1, (t - t0) / 320); num.textContent = Math.round(from + (to - from) * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(f); });
+      }
+      if (pad.onchange) pad.onchange();
     }
     // FLIP: measure, change, then slide each card from where it was.
     function flip(change, after) {
@@ -2056,18 +2772,25 @@ input { caret-color: var(--teal); }
       cards().forEach(function (c) { var b = before.get(c); if (!b) return; var a = c.getBoundingClientRect(), dx = b.left - a.left, dy = b.top - a.top; if (Math.abs(dx) + Math.abs(dy) > .5) c.animate([{ translate: dx + "px " + dy + "px" }, { translate: "0 0" }], { duration: 380, easing: EASE }); });
       if (after) after();
     }
-    keys.addEventListener("click", function (e) {
-      var k = e.target.closest(".ck"); if (!k) return;
-      if (cards().length >= MAX) { retrigger(hand, "shake"); return; }
-      var rank = k.querySelector("b").textContent, c = document.createElement("button"), empty = hand.querySelector(".none");
-      c.className = "hc" + (k.classList.contains("jk") || cards().length % 2 ? " h" : "");
-      c.innerHTML = "<b>" + rank + "</b><small>" + k.querySelector("small").textContent + "</small>";
-      c.setAttribute("aria-label", "Remove " + (NAMES[rank] || rank));
-      flip(function () { if (empty) empty.remove(); hand.appendChild(c); }, function () {
-        var kr = k.getBoundingClientRect(), cr = c.getBoundingClientRect();
-        c.animate([{ translate: (kr.left + kr.width / 2 - cr.left - cr.width / 2) + "px " + (kr.top + kr.height / 2 - cr.top - cr.height / 2) + "px", scale: .5, opacity: .2 }, { translate: "0 0", scale: 1, opacity: 1 }], { duration: 460, easing: EASE });
+    // c: { rank, val, name, red, club, suit, doubt }. from: the element the card flies out of.
+    pad.add = function (c, from) {
+      if (cards().length >= MAX) { retrigger(hand, "shake"); return null; }
+      var el = document.createElement("button"), empty = hand.querySelector(".none");
+      el.className = "hc" + (c.red ? " h" : c.club ? " c" : "") + (c.doubt ? " doubt" : ""); el._c = c;
+      el.innerHTML = "<b>" + c.rank + "</b>" + (c.suit ? '<svg class="su" aria-hidden="true"><use href="#s-' + c.suit + '"/></svg>' : "") + "<small>" + c.val + "</small>";
+      el.setAttribute("aria-label", "Remove " + c.name + (c.doubt ? ", unsure" : ""));
+      flip(function () { if (empty) empty.remove(); hand.appendChild(el); }, from && function () {
+        var kr = from.getBoundingClientRect(), cr = el.getBoundingClientRect();
+        el.animate([{ translate: (kr.left + kr.width / 2 - cr.left - cr.width / 2) + "px " + (kr.top + kr.height / 2 - cr.top - cr.height / 2) + "px", scale: .5, opacity: .2 }, { translate: "0 0", scale: 1, opacity: 1 }], { duration: 460, easing: EASE });
       });
       setTotal();
+      return el;
+    };
+    pad.clear = function () { hand.innerHTML = '<span class="none">No cards yet</span>'; fan(); setTotal(true); };
+    keys.addEventListener("click", function (e) {
+      var k = e.target.closest(".ck"); if (!k) return;
+      var rank = k.querySelector("b").textContent;
+      pad.add({ rank: rank, val: +k.querySelector("small").textContent, name: NAMES[rank] || rank, red: k.classList.contains("jk") || cards().length % 2 === 1 }, k);
     });
     hand.addEventListener("click", function (e) {
       var c = e.target.closest(".hc"); if (!c) return;
@@ -2077,6 +2800,174 @@ input { caret-color: var(--teal); }
       c.animate([{ translate: "0 0", opacity: 1 }, { translate: "0 -30px", opacity: 0 }], { duration: 200, easing: "ease-in", fill: "forwards" }).onfinish = done;
     });
     fan();
+    return pad;
+  }
+  var cardPads = new Map(); $$(".ckeys").forEach(function (k) { cardPads.set(k, cardPad(k)); });
+
+  // Photo scan: one photo is read, then it shrinks into a receipt and deals each card into the hand.
+  // The reader can't report progress, so the sweep only says it's working; nothing pretends to count.
+  (function () {
+    var live = document.getElementById("scLive"); if (!live || !deckCard) return;
+    var VAL = { A: 15, J: 10, Q: 10, K: 10 }, SUIT = { S: "spade", H: "heart", D: "diamond", C: "club" }, PLURAL = { S: "spades", H: "hearts", D: "diamonds", C: "clubs" },
+      RANK = { A: "Ace", J: "Jack", Q: "Queen", K: "King" }, CAM = '<img src="../art/icons/camera.webp" alt="">', NONE = "No cards found. Try again with the cards spread out in good light.";
+    // Each stand-in photo: how the cards lie on the table. A card back can't be read; a card marked 1 is one the reader had to guess.
+    var PHOTOS = {
+      cy: { lay: "fan", cards: [["A", "S"], ["K", "S"], ["Q", "H"], ["7", "H", 1], ["9", "D"], ["4", "C"], ["back"]] },
+      ana: { lay: "row", cards: [["8", "C"], ["8", "D"], ["3", "S"]] },
+      dee: { lay: "row", cards: [["J", "D"], ["5", "S"], ["5", "H"], ["2", "C"]] },
+      ben: { lay: "heap", dim: true, cards: [["back"], ["back"], ["back"], ["back"]] }
+    };
+    function spot(kind, i, n) {
+      if (kind === "fan") { var m = (n - 1) / 2; return [12 + i * 9.2, 21 + Math.abs(i - m) * 2.6, (i - m) * 7]; }
+      if (kind === "heap") return [[14, 16, -14], [34, 34, 9], [52, 12, -4], [66, 36, 17]][i];
+      var w = 19, gap = (100 - n * w) / (n + 1); return [gap + i * (w + gap), 18 + (i % 2) * 6, [-6, 3, 8, -3][i % 4]];
+    }
+    function shoot(shot, key) {
+      var P = PHOTOS[key]; shot.innerHTML = ""; shot.classList.toggle("dim", !!P.dim);
+      P.cards.forEach(function (c, i) {
+        var el = c[0] === "back" ? deckBack() : deckCard(c[0], SUIT[c[1]]), at = spot(P.lay, i, P.cards.length);
+        ["tabindex", "role", "aria-label"].forEach(function (a) { el.removeAttribute(a); });
+        if (c[2]) el.classList.add("blur");
+        el.style.cssText = "--x:" + at[0] + "%;--y:" + at[1] + "%;--r:" + (at[2] + (c[2] ? 9 : 0)) + "deg";
+        shot.appendChild(el);
+      });
+    }
+    // What the card reader returns for a photo: the cards it read, and how many it saw but couldn't read.
+    function reading(key) {
+      var cards = [], unclear = 0;
+      PHOTOS[key].cards.forEach(function (c) {
+        if (c[0] === "back") { unclear++; return; }
+        cards.push({ rank: c[0], suit: SUIT[c[1]], val: VAL[c[0]] || +c[0], red: c[1] === "H" || c[1] === "D", club: c[1] === "C", doubt: !!c[2], name: (RANK[c[0]] || c[0]) + " of " + PLURAL[c[1]] });
+      });
+      return { cards: cards, unclear: unclear };
+    }
+    // One photo pane: the viewfinder with Take photo and Choose photo. Taking a photo flashes; choosing one slides it in.
+    function photoPane(pane, o) {
+      var view = pane.querySelector(".sc-view"), shot = view.querySelector(".sc-shot"), title = pane.querySelector(".sc-title"), msg = pane.querySelector(".sc-msg"),
+        take = pane.querySelector(".sc-take"), pick = pane.querySelector(".sc-pick"), busy = false, run = 0, api = {};
+      var ready = function () { return "Photograph " + o.name() + "'s hand"; };
+      function idle() { busy = false; view.classList.remove("busy", "lock"); title.textContent = ready(); take.disabled = pick.disabled = false; setLabel(take, CAM + "Take photo"); }
+      api.reset = function () { run++; idle(); view.classList.remove("bad", "shot"); shot.hidden = true; shot.innerHTML = ""; msg.textContent = ""; msg.classList.remove("ok"); };
+      api.fail = function (key) { shoot(shot, key); shot.hidden = false; view.classList.add("shot", "bad"); };
+      function go(flash) {
+        if (busy) return; busy = true;
+        var key = o.key(), t = ++run;
+        msg.textContent = ""; msg.classList.remove("ok"); view.classList.remove("bad");
+        shoot(shot, key); shot.hidden = false; view.classList.add("shot", "lock", "busy");
+        if (flash) { anim(view.querySelector(".sc-bulb"), [{ opacity: .9 }, { opacity: 0 }], { duration: 480, easing: "ease-out" }); anim(shot, [{ scale: 1.08 }, { scale: 1 }], { duration: 560 }); }
+        else anim(shot, [{ translate: "0 100%" }, { translate: "0 0" }], { duration: 480 });
+        title.textContent = "Reading " + o.name() + "'s cards…";
+        take.disabled = pick.disabled = true; setLabel(take, CAM + "Reading…");
+        setTimeout(function () {
+          if (t !== run) return;
+          var r = reading(key), rect = view.getBoundingClientRect();
+          idle();
+          if (!r.cards.length) { view.classList.add("bad"); retrigger(view, "shake"); msg.textContent = NONE; return; }
+          o.onRead(r, shot, rect, msg);
+        }, calm ? 400 : 1700);
+      }
+      take.addEventListener("click", function () { go(true); });
+      pick.addEventListener("click", function () { go(false); });
+      return api;
+    }
+
+    // The score pad. The tab you pick sticks from player to player; a scan only shows the cards it read.
+    var strip = live.querySelector(".who-strip"), whos = $$(".who", strip), seg = live.querySelector(".sc-mode"), panes = {},
+      plaque = live.querySelector(".plaque"), num = plaque.querySelector("b"), note = plaque.querySelector("small"),
+      receipt = live.querySelector(".sc-receipt"), stub = receipt.querySelector(".sc-stub"), said = receipt.querySelector("p"),
+      save = live.querySelector(".sc-save"), pad = cardPads.get(live.querySelector(".ckeys")),
+      cur = strip.querySelector('[aria-selected="true"]'), chosen = "photo", mode = "photo", entry = "", deal = 0, auto = false, finished = false,
+      scores = { dee: 0, ben: 12 }, stored = {};
+    $$(".sc-pane", live).forEach(function (p) { panes[p.dataset.pane] = p; });
+    var idOf = function (w) { return w.dataset.id; }, nameOf = function (w) { return w.children[1].textContent; };
+    var cam = photoPane(panes.photo, { name: function () { return nameOf(cur); }, key: function () { return idOf(cur); }, onRead: dealIn });
+    function show(m, still) {
+      mode = m; Object.keys(panes).forEach(function (k) { panes[k].hidden = k !== m; });
+      var b = seg.querySelector('[data-m="' + m + '"]');
+      if (b.getAttribute("aria-pressed") !== "true") { auto = true; b.click(); auto = false; }
+      if (!still) anim(panes[m], [{ opacity: 0, translate: "0 8px" }, { opacity: 1, translate: "0 0" }], { duration: 300 });
+    }
+    function value() { return mode === "cards" ? (pad.count() ? pad.total() : null) : mode === "num" && entry !== "" ? +entry : null; }
+    function left() { return whos.filter(function (w) { return w !== cur && scores[idOf(w)] == null; }).length; }
+    function refresh() {
+      var v = value(), had = scores[idOf(cur)];
+      plaque.classList.toggle("out", v == null && had === 0);
+      if (v == null) { num.textContent = had == null ? "0" : had === 0 ? "Out" : had; note.textContent = had === 0 ? "went out this round" : mode === "cards" ? "Tap each card left in the hand" : "points left in hand"; }
+      else if (mode === "num") { num.textContent = v; note.textContent = "points left in hand"; }
+      save.disabled = finished || (v == null && had == null);
+      setLabel(save, finished ? "Round 3 saved" : v != null ? (left() ? "Save · next player" : "Save round 3") : had != null ? (left() ? "Next player" : "Done") : "Enter points");
+    }
+    pad.onchange = function () { if (!pad.count()) receipt.hidden = true; refresh(); };
+    function reset() { deal++; entry = ""; receipt.hidden = true; stub.innerHTML = ""; said.innerHTML = ""; pad.clear(); cam.reset(); }
+    function open(w) {
+      cur = w; finished = false; whos.forEach(function (x) { x.setAttribute("aria-selected", x === w); });
+      reset();
+      var hand = stored[idOf(w)];
+      if (hand) { show("cards", true); hand.forEach(function (c) { pad.add(c); }); } else show(chosen, true);
+      refresh();
+    }
+    // The read: the photo shrinks into the receipt, then each card flies out of it into the hand.
+    function dealIn(r, shot, rect) {
+      var t = ++deal, copy = shot.cloneNode(true);
+      show("cards", true);
+      copy.removeAttribute("role"); copy.removeAttribute("aria-label"); stub.innerHTML = ""; stub.appendChild(copy);
+      said.innerHTML = ""; receipt.hidden = false;
+      var s = stub.getBoundingClientRect(), k = rect.width / s.width;
+      anim(stub, [{ transform: "translate(" + (rect.left - s.left) + "px, " + (rect.top - s.top) + "px) scale(" + k + ")" }, { transform: "none" }], { duration: 460 });
+      var gap = calm ? 0 : 130, wait = calm ? 0 : 400;
+      r.cards.forEach(function (c, i) {
+        setTimeout(function () {
+          if (t !== deal) return;
+          var el = pad.add(c, stub);
+          if (el && c.doubt) setTimeout(function () { retrigger(el, "wig"); }, calm ? 0 : 520);
+        }, wait + i * gap);
+      });
+      setTimeout(function () {
+        if (t !== deal) return;
+        var n = r.cards.length, d = r.cards.filter(function (c) { return c.doubt; }).length, more = [];
+        if (d) more.push(d === 1 ? "Check the outlined card." : "Check the " + d + " outlined cards.");
+        if (r.unclear) more.push(r.unclear + (r.unclear === 1 ? " card couldn't be read, so add it below." : " cards couldn't be read, so add them below."));
+        said.innerHTML = "<b>Read " + n + (n === 1 ? " card" : " cards") + "</b><small>" + (more.join(" ") || "Tap a card to take it out.") + "</small>";
+        anim(said, [{ opacity: 0, translate: "8px 0" }, { opacity: 1, translate: "0 0" }], { duration: 360 });
+      }, wait + r.cards.length * gap + (calm ? 0 : 160));
+    }
+    seg.addEventListener("click", function (e) { var b = e.target.closest("button[data-m]"); if (!b || auto) return; chosen = b.dataset.m; reset(); show(chosen); refresh(); });
+    strip.addEventListener("click", function (e) { var w = e.target.closest(".who"); if (w && w !== cur) open(w); });
+    live.querySelector(".numpad").addEventListener("click", function (e) {
+      var k = e.target.closest(".nk"); if (!k) return;
+      if (k.classList.contains("fn")) entry = entry.slice(0, -1);
+      else { if (entry === "0") entry = ""; if (entry.length >= 3) { retrigger(plaque, "shake"); return; } entry += k.textContent; }
+      refresh(); retrigger(num, "nudge");
+    });
+    save.addEventListener("click", function () {
+      var v = value(), me = idOf(cur), next = null, i = whos.indexOf(cur);
+      if (v != null) {
+        scores[me] = v; stored[me] = mode === "cards" ? pad.list() : null;
+        var em = cur.querySelector("em"); cur.classList.add("done"); em.textContent = v === 0 ? "Out" : v; retrigger(em, "landed");
+      }
+      for (var j = 1; j < whos.length && !next; j++) { var w = whos[(i + j) % whos.length]; if (scores[idOf(w)] == null) next = w; }
+      if (next) { open(next); retrigger(next.querySelector(".av"), "pop"); } else { finished = true; refresh(); }
+    });
+    open(cur);
+
+    // When the reader finds nothing: the photo stays, the corners turn red, and either button tries again.
+    var bad = document.getElementById("scBad");
+    if (bad) photoPane(bad, { name: function () { return "Ben"; }, key: function () { return "ben"; }, onRead: function () {} }).fail("ben");
+
+    // Before a key: the same form as Settings. Turning the scanner on opens the viewfinder in its place.
+    var keyBox = document.getElementById("scKey");
+    if (keyBox) {
+      var form = keyBox.querySelector(".sc-key"), input = form.querySelector("input"), on = form.querySelector(".kb"), ready = keyBox.querySelector(".sc-ready"), intro = keyBox.querySelector(".sc-intro");
+      var keyCam = photoPane(ready, { name: function () { return "Dee"; }, key: function () { return "dee"; }, onRead: function (r, shot, rect, msg) { msg.classList.add("ok"); msg.textContent = "Read " + r.cards.length + " cards."; } });
+      input.addEventListener("input", function () { on.disabled = !input.value.trim(); });
+      form.addEventListener("submit", function (e) {
+        e.preventDefault(); var v = input.value.trim(); if (!v) return;
+        input.value = ""; on.disabled = true; intro.hidden = form.hidden = true; ready.hidden = false; keyCam.reset();
+        ready.querySelector(".sc-on").textContent = "Scanner is on, with the key ending " + v.slice(-4) + ".";
+        anim(ready, [{ opacity: 0, translate: "0 14px", scale: .97 }, { opacity: 1, translate: "0 0", scale: 1 }], { duration: 520, easing: SPRING });
+        glint(ready.querySelector(".sc-take"));
+      });
+    }
   })();
 
   // Roll for dealer: the highlight runs round the players who are in, slows, and lands.
