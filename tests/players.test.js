@@ -39,64 +39,70 @@ test("sync: an older table document still brings its new rounds in", () => {
 });
 
 // ── Avatars ───────────────────────────────────────────────────────
-test("avatars: a starting character is chosen from the name, the same every time", () => {
+test("avatars: the deck offers 17 faces, and new players are dealt one of the 13 people", () => {
+  assert.strictEqual(M.AV_CARDS.length, 17);
+  assert.deepStrictEqual(M.AV_CARDS.slice(0, 4).map(c => c.label), ["King of hearts", "King of diamonds", "King of spades", "King of clubs"]);
+  assert.strictEqual(M.AV_CARDS[16].label, "The Joker");
+  assert.strictEqual(M.AV_FACES.length, 13);
+  assert.ok(M.AV_FACES.every(k => !k.endsWith("-a")), "aces can be picked but aren't dealt");
+});
+
+test("avatars: a starting face is chosen from the name, the same every time", () => {
   const a = M.avSeed("Ana"), b = M.avSeed("Ana");
   assert.deepStrictEqual(a, b);
-  assert.deepStrictEqual([a.type, a.v], ["face", 4]);
-  assert.ok(M.FIG.looks.includes(a.who) && a.who.startsWith("Person"), "starting characters use the Person forms: " + a.who);
-  assert.ok(M.FIG.tones.slice(0, 5).includes(a.tone), a.tone);
-  assert.notDeepStrictEqual(M.avSeed("Ana"), M.avSeed("Benjamin"));
+  assert.strictEqual(a.type, "card");
+  assert.ok(M.AV_FACES.includes(a.card), a.card);
 });
 
-test("avatars: costumes and moods come in the character's own form", () => {
-  assert.strictEqual(M.figGender("Woman curly hair"), "Woman");
-  assert.strictEqual(M.figGender("Old man"), "Man");
-  assert.strictEqual(M.figGender("Princess"), "Woman");
-  assert.strictEqual(M.figGender("Prince"), "Man");
-  assert.strictEqual(M.figGender("Child"), "Person");
-  assert.deepStrictEqual(["Woman", "Man", "Person"].map(g => M.figRole(g, "cook")), ["Woman cook", "Man cook", "Cook"]);
-  assert.deepStrictEqual(["Woman", "Man", "Person"].map(g => M.figRole(g, "mage")), ["Woman mage", "Man mage", "Person mage"]);
-  assert.deepStrictEqual(["Woman", "Man", "Person"].map(g => M.figRole(g, "royal")), ["Princess", "Prince", "Person with crown"]);
-  assert.deepStrictEqual(["Woman", "Man", "Person"].map(g => M.figRole(g, "claus")), ["Mrs claus", "Santa claus", "Mx claus"]);
-  assert.strictEqual(M.figMood("Person", "shrugging"), "Person shrugging");
+test("avatars: a starting face skips faces others at the table hold", () => {
+  const held = M.AV_FACES.filter(k => k !== "club-j");
+  assert.deepStrictEqual(M.avSeed("Anyone", held), { type: "card", card: "club-j" });
+  assert.ok(M.AV_FACES.includes(M.avSeed("Anyone", M.AV_FACES).card), "a full table still gets a face");
 });
 
-test("avatars: picture addresses follow the pinned Fluent Emoji layout", () => {
-  assert.strictEqual(M.figSrc("Woman curly hair", "Medium-Dark"),
-    "https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Woman%20curly%20hair/Medium-Dark/3D/woman_curly_hair_3d_medium-dark.png");
-  assert.match(M.figSrc("Ninja", "nonsense"), /\/Ninja\/Default\/3D\/ninja_3d_default\.png$/);
+test("avatars: old 3D characters and missing pictures are dealt a face; real choices are kept", () => {
+  const old = { type: "face", v: 4, who: "Boy", tone: "Medium" };
+  assert.strictEqual(M.avOf(old, "Cy").type, "card");
+  assert.strictEqual(M.avOf(undefined, "Cy").type, "card");
+  assert.strictEqual(M.avOf({ type: "card", card: "nonsense" }, "Cy").card !== "nonsense", true);
+  const kept = [{ type: "photo", src: "data:x" }, { type: "initials" }, { type: "card", card: "spade-a" }];
+  kept.forEach(av => assert.deepStrictEqual(M.avOf(av, "Cy"), av));
+  assert.strictEqual(M.avOf({ type: "photo" }, "Cy").type, "card");
 });
 
-test("avatars: flat characters from before move to their nearest 3D look", () => {
-  const first = { type: "face", skin: "#F7D7BA", hair: "curly", hairColor: "#DDB052", face: "cool", extra: "none", top: "#FFFFFF" };
-  assert.deepStrictEqual(M.toFig(first), { type: "face", v: 4, who: "Woman blonde hair", tone: "Light" });
-  const flat = { type: "face", v: 3, top: "shortFlat", hairColor: "#2C1B18", skin: "#614335", beard: "beardMedium" };
-  assert.deepStrictEqual(M.toFig(flat), { type: "face", v: 4, who: "Man beard", tone: "Dark" });
-  assert.strictEqual(M.toFig({ type: "face", v: 3, top: "hijab", skin: "#D08B5B", beard: "none" }).who, "Woman with headscarf");
-  const now = { type: "face", v: 4, who: "Boy", tone: "Medium" };
-  assert.deepStrictEqual(M.toFig(now), now);
+test("avatars: a table's players are dealt different faces, in seat order, without saving", () => {
+  const names = ["Ana", "Ben", "Cy", "Dee", "Eli", "Fay", "Gus", "Hal"];
+  const players = names.map((n, i) => ({ id: "p" + i, name: n, color: "red", ...(i === 2 ? { avatar: { type: "card", card: M.avSeed("Ana").card } } : {}) }));
+  const raw = { groups: { g: { id: "g", players } }, games: {} };
+  const out = M.dealFaces(raw);
+  const cards = out.groups.g.players.map(p => p.avatar.card);
+  assert.strictEqual(new Set(cards).size, 8, "no repeats: " + cards.join(", "));
+  assert.strictEqual(cards[2], M.avSeed("Ana").card, "a face already picked stays put");
+  assert.strictEqual(raw.groups.g.players[0].avatar, undefined, "the stored state is untouched");
+  const done = { groups: { g: { id: "g", players: [{ id: "a", name: "A", avatar: { type: "initials" } }] } } };
+  assert.deepStrictEqual(M.dealFaces(done), done, "nothing to deal leaves the table as it is");
 });
 
-test("avatars: a photo reading becomes a character only when it names a real look", () => {
-  const base = { type: "face", v: 4, who: "Person", tone: "Dark" };
-  assert.deepStrictEqual(M.figFromPhoto({ found: true, look: "Man red hair", tone: "Light" }, base), { type: "face", v: 4, who: "Man red hair", tone: "Light" });
-  assert.strictEqual(M.figFromPhoto({ found: false, look: "Man", tone: "Light" }, base), null);
-  assert.strictEqual(M.figFromPhoto({ found: true, look: "Dragon", tone: "Light" }, base), null);
-  assert.strictEqual(M.figFromPhoto({ found: true, look: "Girl", tone: "Default" }, base).tone, "Dark");
-  assert.deepStrictEqual(M.AVATAR_SCHEMA.properties.look.enum, M.FIG.looks);
-});
-
-test("avatars: share image sources for photos, characters and initials", () => {
+test("avatars: share image sources for photos, cards and initials", () => {
   assert.strictEqual(M.avatarSrc({ type: "photo", src: "data:image/jpeg;base64,xx" }), "data:image/jpeg;base64,xx");
-  assert.match(M.avatarSrc(M.avSeed("Cy")), /^https:\/\/cdn\.jsdelivr\.net\/gh\/microsoft\/fluentui-emoji@[0-9a-f]{40}\/assets\//);
+  assert.strictEqual(M.avatarSrc({ type: "card", card: "heart-k" }), "art/avatars/heart-k.webp");
+  assert.strictEqual(M.avatarSrc({ type: "card", card: "spade-a" }), "art/suits/spade.webp");
+  assert.strictEqual(M.avatarSrc({ type: "card", card: "joker" }), "art/avatars/joker.webp");
+  assert.strictEqual(M.avatarSrc({ type: "initials" }), null);
   assert.strictEqual(M.avatarSrc(null), null);
 });
 
-test("avatars: old games remember drawn characters but not photos", () => {
+test("avatars: the real card for a face", () => {
+  assert.deepStrictEqual(M.faceProps("diamond-q"), { rank: "Q", suit: "diamond" });
+  assert.deepStrictEqual(M.faceProps("club-a"), { rank: "A", suit: "club" });
+  assert.deepStrictEqual(M.faceProps("joker"), { joker: true });
+});
+
+test("avatars: old games remember card faces but not photos", () => {
   const group = { players: [{ id: "a", name: "Ana", color: "red", avatar: { type: "photo", src: "data:x" } }, { id: "b", name: "Ben", color: "blue", avatar: M.avSeed("Ben") }] };
   const names = M.namesOf(group, ["a", "b"]);
   assert.strictEqual(names.a.avatar, undefined);
-  assert.strictEqual(names.b.avatar.type, "face");
+  assert.strictEqual(names.b.avatar.type, "card");
 });
 
 // ── Joining and leaving mid-game ──────────────────────────────────

@@ -2,28 +2,28 @@
 version: 1
 slug: "index-html"
 primary_target: "index.html"
-related_targets: []
+related_targets: ["docs/ui-kit.html"]
 ---
 
 # Surface: May I? app (index.html)
 
-Scope: the whole app: groups, group page, live game, scoreboard, recap, plus the rules, hand-counter, avatar and settings sheets. Mode: Operate.
-Audience: family and friends of mixed ages at a card night. One phone keeps score, others follow live, and a tablet or laptop can serve as the table's scoreboard.
-Task: keep a 7-round May I? game moving, with rules in the moment, live standings and a shareable recap. Groups remember players and history.
-Constraints: single-file PWA, offline-first, readable in sunlight, no deep or offset outer shadows on buttons (the user asked for this), one control per action.
+Scope: the whole app: tables, table page, live game, score pad, between rounds, results, Learn, Stats, profile, cabinet, Settings, dressing room, TV scoreboard, plus the kit (`docs/ui-kit.html`) that specifies them. Mode: Operate, with game-like delight at the moments that matter.
+Audience: family and friends of mixed ages at a card night; one phone keeps score while its owner holds cards, others glance from across the table; a tablet or TV can be the table's scoreboard. 2 to 8 players.
+Task: keep a 7-round May I? game moving, with rules in the moment, standings readable from across the table and a shareable recap. Tables remember players and history.
+Constraints: single-file PWA, offline-first, readable in sunlight, no outer/offset button shadows, one control per action, every accessibility option a Settings toggle, nothing off-limits in this rework (2026-11-16).
 
 ## Direction contract
 
-THESIS: game night, not a casino. The app should feel like the box of a well-loved family card game: bright colour fields, chunky rounded shapes, cheerful characters. It refuses the green-felt, gold-hairline, serif "card room" look that card apps default to.
+THESIS: the score is a board you read from across the table. Every player is their court card riding a gilt peg lane toward a chequered finish, fewest points furthest along. It refuses the app-default stack of caps labels over glass list rows.
 
-OWN-WORLD: "Game Night". Four toy-box colours (royal blue, sunny yellow, candy red, leaf green) plus a grape purple. Colour fields are dotted like a game board, and chunky surfaces are lit inside their shape with a soft top light and a thick lower lip (no outer drop). Primary buttons are sunny yellow candy with navy ink. Big Smile characters by Ashley Seo, gold, silver and bronze crowns for 1st, 2nd and 3rd, and fat white-rimmed playing cards. Baloo 2 for display, system SF for UI, ui-rounded for numbers. Looks: Game night (blue), Lime, Lagoon, Cherry, plus Daylight for sunlight, with dark mode as deep navy.
+OWN-WORLD: Lagoon, unchanged: teal water, gilt rims, teal enamel, cream paper, the illustrated deck. New: the pegboard, a deep teal well in a 3px gilt rim holding one lane per player (sunken rail, seven round holes, chequered finish), court cards as pegs, totals at the lane end. Art scale ladder: hero (whole card 100-180px), peg (card 46-64px), token (40px medallion).
 
-STORY: Home lists tables and the game in progress. A table shows its podium of crowns, standings and history. In a game, tap the contract for rules, tap "May I?" for buys, and score the round in one sheet. A giant card deals each round in. The recap crowns the winner.
+STORY: the board is the spine. Home shows the game in progress as a live mini board; a table shows its season board by wins; in a game the board is the scoreboard; scoring moves pegs; between rounds the pegs slide, then the next contract flips; the finale runs the winner's card over the finish line onto the podium.
 
-FIRST VIEWPORT (game, phone): a dotted blue band with round n of 7, the contract in Baloo 2, chunky mini cards, pips and the dealer; then the seats card with characters and crowns; then one yellow candy button in the dock.
+FIRST VIEWPORT (game, phone 390x844): nav (back + table name, •••); compact paper contract card (mini suit card, "Round 4 of 7 · Ben deals 12", contract name); the pegboard filling the middle, one lane per player with court-card peg, name, gap, buy pips, total; one Score round button in the dock.
 
-FORM: pinned by the user, the 1st of 1. seed: none (pinned): "family friendly art style similar to UNO, monopoly and similar family games. The colours should be youthful, fun, not a serious casino cards app", with Pinterest references to casual-game UI (royal blue dotted field, glossy badges, 1-2-3 crowns), chunky yellow, blue and orange cards on lime, and a teal card loading screen.
+FORM: the pegboard, 6th of 7 on the ordered list (dealt lead). seed: 1b840731828ac8c5
 
-Signature interaction: between rounds the next contract is dealt in as one big chunky card that flips face up, with Undo and Let's play.
+Signature interaction: when a round is saved, every peg slides along its lane to its new place with a soft click per hole, the leader's crown hops to the new leader, then the next contract deals in and flips.
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance

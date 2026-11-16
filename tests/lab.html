@@ -101,19 +101,22 @@ function ctx(frame) {
 // Each scenario returns { ok, warn?, note } or throws. `skip` means not applicable at this size.
 const SCENARIOS = [
   { name: "Opens straight into the live game", run: async c => {
-    await until(() => c.$(".band") && c.$$(".seat").length, 5000, "the game screen");
+    await until(() => c.$(".tnav") && c.$$(".seat").length, 5000, "the game screen");
     const seats = c.$$(".seat").length, tiles = c.$$(".rstrip button, .rstrip > *").length, dock = c.$$(".dock button").filter(c.visible).length;
     const bad = [seats !== 4 && seats + " seats", tiles < 7 && tiles + " round tiles", dock !== 1 && dock + " dock buttons"].filter(Boolean);
     return bad.length ? { ok: false, note: bad.join(", ") } : { ok: true, note: "4 seats, 7 rounds, one next step" };
   } },
   { name: "Top three wear medals", run: async c => {
-    const medals = c.$$(".seat .medal").map(m => m.textContent).sort().join(",");
+    const medals = c.$$(".seat .seat-medal").map(m => m.dataset.place).sort().join(",");
     return medals === "1,2,3" ? { ok: true, note: "1st, 2nd and 3rd at a glance" } : { ok: false, note: "Medals: " + (medals || "none") };
   } },
   { name: "Fits the screen with nothing clipped", run: async c => {
     const over = c.d.documentElement.scrollWidth - c.w.innerWidth;
     // The seat avatar is a button whose crown and dealer badges hang outside it on purpose.
-    const clipped = c.$$("button:not(.seat-av), .seat b, .contract h2, .large-title").filter(el => c.visible(el) && el.scrollWidth > el.clientWidth + 2 && c.w.getComputedStyle(el).textOverflow !== "ellipsis");
+    // Buttons wear a gem stud at each end that overhangs the rim on purpose, so the studs are hidden while measuring.
+    const noGems = c.d.createElement("style"); noGems.textContent = ".btn::before,.btn::after{display:none!important}"; c.d.head.appendChild(noGems);
+    const clipped = c.$$("button:not(.seat-av), .seat b, .contract .c-name, .large-title").filter(el => c.visible(el) && el.scrollWidth > el.clientWidth + 2 && c.w.getComputedStyle(el).textOverflow !== "ellipsis");
+    noGems.remove();
     if (over > 1) return { ok: false, note: "Scrolls sideways by " + over + "px" };
     if (clipped.length) return { ok: false, note: "Clipped: " + clipped.slice(0, 3).map(e => (e.textContent || e.className).trim().slice(0, 24)).join(", ") };
     return { ok: true, note: "No sideways scroll" };
@@ -157,7 +160,7 @@ const SCENARIOS = [
   } },
   { name: "TV scoreboard with the race track", size: s => s.w >= 900, run: async c => {
     const b = c.button(/scoreboard/i);
-    if (!b) return { ok: false, note: "No scoreboard button (screen: " + [c.$(".intro") && "intro", c.$(".sheet") && "sheet", c.$(".band") && "game", c.$(".tablepage") && "table"].filter(Boolean).join(", ") + ", " + c.w.innerWidth + "px)" };
+    if (!b) return { ok: false, note: "No scoreboard button (screen: " + [c.$(".intro") && "intro", c.$(".sheet") && "sheet", c.$(".tnav") && "game", c.$(".tablepage") && "table"].filter(Boolean).join(", ") + ", " + c.w.innerWidth + "px)" };
     await c.tap(b);
     await until(() => c.$(".scoreboard"), 2000, "the scoreboard");
     const race = !!c.$(".scoreboard .race");
@@ -168,9 +171,9 @@ const SCENARIOS = [
   } },
   { name: "Table page: champion, standings, records", run: async c => {
     if (c.$(".scoreboard")) c.w.dispatchEvent(new c.w.KeyboardEvent("keydown", { key: "Escape" }));
-    await c.tap(c.$(".band button"));
+    await c.tap(c.$(".tnav button"));
     await until(() => c.$(".tablepage"), 2000, "the table page");
-    const champ = !!c.$(".hero-champ, .hero-podium"), rows = c.$$(".tablepage .list .row, .tablepage .list > button").length, records = c.d.body.textContent.includes("Records");
+    const champ = !!c.$(".ptop .fin-podium, .ptop .ptop-avs"), rows = c.$$(".tablepage .list .row, .tablepage .list > button").length, records = c.d.body.textContent.includes("Records");
     const bad = [!champ && "no champion hero", rows < 4 && "standings short", !records && "no records"].filter(Boolean);
     return bad.length ? { ok: false, note: bad.join(", ") } : { ok: true, note: "Champion, standings and records" };
   } },
@@ -187,34 +190,31 @@ const SCENARIOS = [
     const past = c.$$(".tablepage button").find(b => /won/.test(b.textContent));
     if (!past) return { ok: false, note: "No past game listed" };
     await c.tap(past);
-    await until(() => c.$(".finale"), 2000, "the recap");
-    const ok = !!c.$(".podium");
+    await until(() => c.$(".fin"), 2000, "the recap");
+    const ok = !!c.$(".fin-podium .fpod-plinth");
     await c.tap(c.button(/back|Family/i));
     await until(() => c.$(".tablepage"), 2000, "the table page").catch(() => {});
     return ok ? { ok: true, note: "Finale and podium" } : { ok: false, note: "No podium" };
   } },
-  { name: "Avatar maker saves a character", run: async c => {
+  { name: "Avatar maker saves a card face", run: async c => {
     await c.tap(c.button(/Edit players/));
-    await until(() => c.$(".sheet .peg-btn"), 2000, "the players sheet");
-    await c.tap(c.$$(".sheet .peg-btn")[2]);
+    await until(() => c.$(".sheet .pe-av"), 2000, "the players sheet");
+    await c.tap(c.$$(".sheet .pe-av")[2]);
     await until(() => c.$$(".sheet").length === 2, 2000, "the avatar maker");
     const top = () => c.$$(".sheet").pop();
-    await c.tap(c.button(/Character/, top()));
-    await c.tap([...top().querySelectorAll('[role="tab"]')].find(b => b.textContent.trim() === "Costumes"));
-    await c.tap(top().querySelector('[aria-label="Astronaut"]'));
-    await c.tap([...top().querySelectorAll('[role="tab"]')].find(b => b.textContent.trim() === "Skin tone"));
-    await c.tap(top().querySelector('[aria-label="Medium dark"]'));
+    await c.tap(c.button(/^\s*Cards$/, top()));
+    await c.tap(top().querySelector('[aria-label="Queen of spades"]'));
     await c.tap([...top().querySelectorAll("button")].find(b => b.textContent.trim() === "Save"));
     await until(() => c.$$(".sheet").length === 1, 2000, "the avatar maker to close");
     await c.tap([...c.$(".sheet").querySelectorAll("button")].find(b => b.textContent.trim().startsWith("Save")));
     await until(() => !c.$(".sheet"), 2000, "the players sheet to close").catch(() => {});
-    const saved = c.store().groups.g1.players[2].avatar, shown = c.$$(".tablepage .peg.face").length;
-    return saved && saved.v === 4 && /astronaut/i.test(saved.who) && saved.tone === "Medium-Dark" && shown ? { ok: true, note: "Cy's 3D astronaut saved and shown" } : { ok: false, note: "Saved " + JSON.stringify(saved) + ", shown " + shown };
+    const saved = c.store().groups.g1.players[2].avatar, shown = c.$$('.tablepage .peg.card img[src$="spade-q.webp"]').length;
+    return saved && saved.type === "card" && saved.card === "spade-q" && shown ? { ok: true, note: "Cy's Queen of spades saved and shown" } : { ok: false, note: "Saved " + JSON.stringify(saved) + ", shown " + shown };
   } },
   { name: "Home shows the hero and Playing now", run: async c => {
     await c.tap(c.button(/Tables/));
     await until(() => c.$(".home"), 2000, "Home");
-    const hero = !!c.$(".home .hero"), now = !!c.$(".now-card"), over = c.d.documentElement.scrollWidth - c.w.innerWidth;
+    const hero = !!c.$(".home .brand .dcard"), now = !!c.$(".home .now"), over = c.d.documentElement.scrollWidth - c.w.innerWidth;
     const bad = [!hero && "no hero", !now && "no Playing now card", over > 1 && "scrolls sideways"].filter(Boolean);
     return bad.length ? { ok: false, note: bad.join(", ") } : { ok: true, note: "Hero, Playing now and tables" };
   } },

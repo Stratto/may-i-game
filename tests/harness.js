@@ -9,8 +9,8 @@ const EXPORTS = [
   "ROUNDS", "DEFAULT_RULES", "GUIDE", "QUICK_START", "TURN_STEPS", "MAYI_STEPS", "FAQ", "GLOSSARY", "RULE_WHY",
   "ruleHint", "rankPart", "cardValue", "buyLimitOf", "rulesLine", "contractLine",
   "roundDone", "totalsOf", "rankOf", "dealerIdx", "plOf", "namesOf",
-  "gameAwards", "chaseNotes", "caughtStats", "playerProfile", "groupRecords", "rankMoves",
-  "mergeGame", "applyDoc", "FIG", "avSeed", "toFig", "figSrc", "figRole", "figMood", "figGender", "figFromPhoto", "AVATAR_SCHEMA", "avatarSrc", "addToGame", "dropFromGame",
+  "gameAwards", "tableMoments", "AWARDS", "LIFE", "lifeAchievements", "chaseNotes", "caughtStats", "playerProfile", "groupRecords", "rankMoves",
+  "mergeGame", "applyDoc", "AV_CARDS", "AV_FACES", "avSeed", "avOf", "avKept", "heldFaces", "dealFaces", "cardOfAv", "cardAvSrc", "faceProps", "avatarSrc", "addToGame", "dropFromGame",
 ];
 
 // Anything the app pokes at load time (document, matchMedia, style setters)

@@ -1,7 +1,4 @@
-const CACHE = 'mayi-v41';
-// 3D characters come from a pinned CDN commit, so once fetched they never change: keep them for offline play.
-const FIGS = 'mayi-figs-1';
-const isFig = url => url.startsWith('https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@');
+const CACHE = 'mayi-v55';
 const FILES = ['./', './index.html', './manifest.json', './icon.svg', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
@@ -12,7 +9,7 @@ self.addEventListener('install', e => {
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE && k !== FIGS).map(k => caches.delete(k)))
+      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
     )
   );
   self.clients.claim();
@@ -20,10 +17,6 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   const req = e.request;
-  if (req.method === 'GET' && isFig(req.url)) {
-    e.respondWith(caches.open(FIGS).then(c => c.match(req).then(hit => hit || fetch(req).then(res => { if (res.ok) c.put(req, res.clone()); return res; }))));
-    return;
-  }
   if (req.method !== 'GET' || new URL(req.url).origin !== self.location.origin) return;
   // Pages: network first so updates arrive; fall back to cache when offline.
   if (req.mode === 'navigate') {
@@ -34,6 +27,11 @@ self.addEventListener('fetch', e => {
         return res;
       }).catch(() => caches.match('./index.html'))
     );
+    return;
+  }
+  // Art (icons, the suit pattern, card faces) is kept once fetched, so the tab bar and the ground work offline.
+  if (new URL(req.url).pathname.includes('/art/')) {
+    e.respondWith(caches.open(CACHE).then(c => c.match(req).then(hit => hit || fetch(req).then(res => { if (res.ok) c.put(req, res.clone()); return res; }))));
     return;
   }
   e.respondWith(caches.match(req).then(cached => cached || fetch(req)));
