@@ -2202,7 +2202,31 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
 .kit-grp a:hover { color: var(--on-bg); background: rgba(255, 233, 166, .08); }
 .kit-grp a.kit-ch { min-height: 38px; font: 800 1.02rem/1.1 var(--display); color: var(--on-bg); }
 .kit-grp a[aria-current="true"] { color: var(--ink); background: linear-gradient(180deg, var(--paper-hi), var(--paper-lo)); box-shadow: inset 0 -2px 0 #D9BE86; }
-@media (max-width: 1099px) { .kit-side { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 18px 16px; } .kit-home { grid-column: 1 / -1; } }
+/* Phones and tablets: the menu is a sheet that rises from a floating button showing where you are. */
+.kit-mbtn, .kit-scrim { display: none; }
+@media (max-width: 1099px) {
+  .kit-side { position: fixed; z-index: 80; left: 0; right: 0; bottom: 0; max-height: min(82vh, 760px); overflow-y: auto; overscroll-behavior: contain;
+    grid-template-columns: minmax(0, 1fr); gap: 18px; padding: 10px max(20px, env(safe-area-inset-right, 0px)) calc(24px + env(safe-area-inset-bottom, 0px)) max(20px, env(safe-area-inset-left, 0px));
+    border-radius: 26px 26px 0 0; border-top: 2px solid rgba(255, 231, 163, .55);
+    background: linear-gradient(180deg, #0F5A64, var(--teal-deep)); box-shadow: 0 -24px 60px -20px rgba(0, 0, 0, .6);
+    transform: translateY(104%); visibility: hidden; transition: transform .36s var(--spring), visibility 0s linear .36s; }
+  .kit-side::before { content: ""; justify-self: center; width: 44px; height: 5px; border-radius: 9px; background: rgba(255, 231, 163, .45); }
+  .kit-side.open { transform: none; visibility: visible; transition: transform .42s var(--spring), visibility 0s; }
+  .kit-side .kit-grp a { min-height: 46px; font-size: 1.02rem; }
+  .kit-side .kit-grp a.kit-ch { min-height: 48px; font-size: 1.12rem; }
+  .kit-scrim { display: block; position: fixed; inset: 0; z-index: 79; background: rgba(3, 30, 35, .55); opacity: 0; pointer-events: none; transition: opacity .3s ease; }
+  .kit-scrim.on { opacity: 1; pointer-events: auto; }
+  .kit-mbtn { display: inline-flex; align-items: center; gap: 10px; position: fixed; z-index: 70; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); translate: -50% 0;
+    max-width: calc(100vw - 32px); min-height: 50px; padding: 0 22px 0 14px; border-radius: 99px; border: 2px solid var(--paper-line); cursor: pointer;
+    background: linear-gradient(180deg, var(--paper-hi), var(--paper-lo)); box-shadow: inset 0 -4px 0 #D9BE86, 0 0 24px -6px rgba(0, 0, 0, .55);
+    font: 800 1rem/1.1 var(--display); color: var(--ink); transition: scale .2s var(--spring), opacity .2s ease; }
+  .kit-mbtn:active { scale: .96; }
+  .kit-mbtn svg { flex: none; width: 22px; height: 22px; }
+  .kit-mbtn span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .kit-mbtn[aria-expanded="true"] { opacity: 0; pointer-events: none; }
+  html.kit-menu-open { overflow: hidden; }
+}
+@media (max-width: 1099px) and (prefers-reduced-motion: reduce) { .kit-side, .kit-side.open, .kit-scrim { transition: none; } }
 
 /* Hero: what this is, and the three chapters as the map */
 .kit-body > .hero { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); align-items: center; justify-items: stretch; gap: 48px; text-align: left; padding-top: 8px; min-height: 520px; }
@@ -5186,11 +5210,46 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
   (function () {
     var links = [].slice.call(document.querySelectorAll(".kit-side a[href^='#']")), map = {};
     links.forEach(function (a) { var t = document.getElementById(a.getAttribute("href").slice(1)); if (t) map[t.id] = a; });
-    if (!("IntersectionObserver" in window)) return;
-    var io = new IntersectionObserver(function (es) {
-      es.forEach(function (e) { if (!e.isIntersecting) return; links.forEach(function (a) { a.removeAttribute("aria-current"); }); var a = map[e.target.id]; if (a) a.setAttribute("aria-current", "true"); });
-    }, { rootMargin: "0px 0px -70% 0px" });
-    Object.keys(map).forEach(function (id) { io.observe(document.getElementById(id)); });
+    // The section in view is the last heading above a line 30% down the screen, worked out from the scroll position,
+    // so long jumps and fast flicks still land on the right name.
+    var ids = Object.keys(map), cur = null, ticking = false;
+    var pick = function () { ticking = false; var line = innerHeight * .3, best = null;
+      ids.forEach(function (id) { var el = document.getElementById(id); if (el && el.getBoundingClientRect().top <= line && id !== "top") best = id; });
+      if (best === cur) return; cur = best; links.forEach(function (a) { a.removeAttribute("aria-current"); }); if (best) map[best].setAttribute("aria-current", "true"); };
+    addEventListener("scroll", function () { if (!ticking) { ticking = true; requestAnimationFrame(pick); } }, { passive: true });
+    addEventListener("resize", pick); pick();
+  })();
+
+  /* Phones and tablets: the menu opens as a sheet from a floating button that names the section in view. */
+  (function () {
+    var side = document.querySelector(".kit-side"); if (!side) return;
+    side.id = side.id || "kit-side";
+    var btn = document.createElement("button"), scrim = document.createElement("div"), mq = matchMedia("(max-width: 1099px)");
+    btn.className = "kit-mbtn"; btn.type = "button"; btn.setAttribute("aria-controls", side.id); btn.setAttribute("aria-expanded", "false");
+    btn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg><span>Sections</span>';
+    scrim.className = "kit-scrim"; scrim.setAttribute("aria-hidden", "true");
+    side.parentNode.insertBefore(scrim, side); document.body.appendChild(btn);
+    var label = btn.querySelector("span");
+    var name = function () { var a = side.querySelector("a[aria-current='true']"); label.textContent = a ? a.textContent : "Sections"; btn.setAttribute("aria-label", "Sections" + (a ? ", now showing " + a.textContent : "")); };
+    new MutationObserver(name).observe(side, { subtree: true, attributes: true, attributeFilter: ["aria-current"] }); name();
+    var setInert = function (on) { [].forEach.call(document.querySelectorAll("main > .kit-body, .ground"), function (el) { if (on) el.setAttribute("inert", ""); else el.removeAttribute("inert"); }); };
+    var open = function () { side.classList.add("open"); scrim.classList.add("on"); btn.setAttribute("aria-expanded", "true"); document.documentElement.classList.add("kit-menu-open"); setInert(true);
+      side.setAttribute("role", "dialog"); side.setAttribute("aria-modal", "true");
+      var cur = side.querySelector("a[aria-current='true']") || side.querySelector("a"); setTimeout(function () { cur.focus({ preventScroll: true }); cur.scrollIntoView({ block: "nearest" }); }, 60); };
+    var close = function (back) { if (!side.classList.contains("open")) return; side.classList.remove("open"); scrim.classList.remove("on"); btn.setAttribute("aria-expanded", "false");
+      document.documentElement.classList.remove("kit-menu-open"); setInert(false); side.removeAttribute("role"); side.removeAttribute("aria-modal"); if (back) btn.focus({ preventScroll: true }); };
+    btn.addEventListener("click", open); scrim.addEventListener("click", function () { close(true); });
+    side.addEventListener("click", function (e) { if (mq.matches && e.target.closest("a")) close(false); });
+    addEventListener("keydown", function (e) {
+      if (!side.classList.contains("open")) return;
+      if (e.key === "Escape") { e.preventDefault(); close(true); return; }
+      if (e.key === "Tab") { var f = side.querySelectorAll("a"), first = f[0], last = f[f.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); } else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); } }
+    });
+    // Swipe the sheet down to close it.
+    var y0 = null; side.addEventListener("touchstart", function (e) { y0 = side.scrollTop <= 0 ? e.touches[0].clientY : null; }, { passive: true });
+    side.addEventListener("touchmove", function (e) { if (y0 != null && e.touches[0].clientY - y0 > 70) { y0 = null; close(false); } }, { passive: true });
+    mq.addEventListener("change", function () { if (!mq.matches) close(false); });
   })();
 
   bind(document);

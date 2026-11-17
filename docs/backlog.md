@@ -91,6 +91,29 @@ Still open from the re-test:
 | R-09 | question | A rematch leaves out the player who sat out | **Owner decision.** That's arguably right, since they left, but they could be offered back in with a single tap. |
 | R-10 | polish | At 320 the table page header buttons are 41px wide | Later. |
 
+## Found on a real iPhone (after release)
+
+The owner found two problems on an iPhone that the headless checks missed. The checks ran in a desktop browser at phone size, which never auto-zooms and wasn't checking the cursor.
+
+| ID | Severity | What | Fix |
+|---|---|---|---|
+| P-01 | major | Tapping a name field zoomed the screen in, and players had to zoom back out | Safari zooms into fields under 16px. The app follows the phone's text size, so fields can be smaller than that. On iPhone and iPad the viewport now sets `maximum-scale=1`, which stops the auto-zoom; pinch zoom still works. |
+| P-02 | major | No visible cursor in the first-run name field (teal on teal) | The cursor is deep teal on paper fields and pale gold on the teal first-run screen. |
+
+Added to QA:
+- `regress.py` now checks the iPhone viewport in WebKit with iPhone emulation, and the first-run cursor colour.
+- `caret.py` checks every reachable field's cursor against its background.
+
+| P-03 | major | The UI kit page (docs/ui-kit.html) opened on phones with a 680px wall of 22 links, mostly 34px tall, and no way back to the menu after scrolling | Below 1100px the menu is a bottom sheet opened from a floating button that names the section in view. Links are 46px; the sheet closes with Escape, a swipe down or a tap outside, and focus returns to the button. The section in view is worked out from the scroll position, so jumps and flicks get the right name. Desktop keeps the sticky side menu. |
+
+`kitnav.py` checks the kit menu in Chromium and WebKit at 320, 390, 768 and 1280. It tests opening, focus, link sizes, jumping, closing, the section name and sideways scroll.
+
+**Gap:** this Mac has no Xcode, so real iOS Safari isn't tested. Before each release, try these on a real iPhone (or install Xcode for the Simulator):
+- focus each text field;
+- add the app to the Home Screen;
+- type with the keyboard open over a sheet;
+- turn the phone sideways.
+
 ## Open: before launch
 
 | ID | Severity | What | Assessment |

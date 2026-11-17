@@ -3,6 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>
+// iOS Safari zooms into any text field under 16px, and the app follows the phone's text size, so fields can be smaller.
+// maximum-scale stops that auto-zoom; iOS still lets people pinch to zoom. Other browsers keep the plain viewport.
+if (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1))
+  document.querySelector('meta[name=viewport]').setAttribute("content", "width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover");
+</script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -2729,6 +2735,10 @@ html.calm *, html.calm *::before, html.calm *::after { animation-duration: .01ms
 .kit .gm-ask-b {flex-wrap: wrap; gap: 12px 22px;} .kit .gm-ask-b .kb {flex: 1 1 120px; white-space: normal;}
 .kit .kseg button {min-height: 44px;} .kit .kb.sm {min-height: 44px;} .kit .lc-own .link {min-height: 44px; display: inline-flex; align-items: center;}
 .kit .ph-nav .ib, .kit .kpage-head .ib {flex: none;}
+
+/* p12: a cursor that shows. Pale gold on the teal water, deep teal on paper. */
+.kit input, .kit textarea {caret-color: var(--teal-deep, #083E46);}
+.kit .lc-name input.nm, .kit .lc-name input {caret-color: #FFE7A3;}
 </style>
 </head>
 <body>
