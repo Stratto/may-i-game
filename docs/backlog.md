@@ -114,6 +114,21 @@ Added to QA:
 - type with the keyboard open over a sheet;
 - turn the phone sideways.
 
+## Found on the live site: tablet and desktop (2026-11-16)
+
+| ID | Finding | Status |
+|---|---|---|
+| D-01 | Screens stretched to the full window height on tablet and desktop. The first-run and round content split into a top group and a lonely bottom button, with big empty gaps. | Fixed: content groups and centres vertically; the bottom button stays docked. |
+| D-02 | The bottom button sat in a clipped dark box on wide screens, and "New game" on Home stretched into a giant oval. | Fixed: the box is gone; buttons cap at 440px; a soft fade sits behind the dock so content scrolls under it cleanly. |
+| D-03 | On the wide round screen, the goal and "This round" didn't centre. | Fixed. |
+| D-04 | Results had a boxed dark header band with lines above and below it on desktop. | Fixed: the header sits on the background. |
+| D-05 | The two rotating background lights were too faint and slow to notice on any screen. | Fixed: brighter, larger, and about twice as fast (52s and 74s per turn), in the app and the UI kit. Still subtle. |
+| D-06 | QA gap: checks ran at desktop size but only for errors, never as a visual pass. | big.py now takes contact sheets at 1440, 1024, 768 and 390. tour.py takes a width and height. Both run before any commit. |
+
+## Journey walkthrough and rework (2026-11-16 to 17)
+
+Eight journeys were walked step by step on a phone and judged against the table context. The 25 findings and the phased plan are in `rework-plan.md`. Phases 1 to 5 are done (start and first game, the round loop, the finish, coming back, a tablet on the table). All 9 major findings are fixed; what is still open is listed under "Still open after this pass" in that file. Phase 6 (several phones) waits on the owner's decision about profiles.
+
 ## Open: before launch
 
 | ID | Severity | What | Assessment |

@@ -38,14 +38,22 @@ img { display: block; }
 /* ── The table: deep water, two slow lights orbiting under a suit pattern ── */
 .ground { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none;
   background: radial-gradient(140% 100% at 50% 0%, var(--g4) 0%, #0E6573 55%, var(--g5) 100%); }
-.ground .orbit { position: absolute; left: 50%; top: 34%; width: 0; height: 0; animation: orbit 96s linear infinite; }
-.ground .orbit.b { top: 72%; animation-duration: 140s; animation-direction: reverse; }
-.ground .light { position: absolute; width: 120vmax; height: 120vmax; left: -60vmax; top: -60vmax; transform: translateX(28vmax);
-  background: radial-gradient(closest-side, rgba(126, 238, 204, .2), rgba(126, 238, 204, .08) 50%, rgba(126, 238, 204, 0) 100%); }
-.ground .orbit.b .light { transform: translateX(-24vmax); background: radial-gradient(closest-side, rgba(255, 228, 160, .12), rgba(255, 228, 160, .05) 50%, rgba(255, 228, 160, 0) 100%); }
+.ground .orbit { position: absolute; left: 50%; top: 34%; width: 0; height: 0; animation: orbit 52s linear infinite; }
+.ground .orbit.b { top: 72%; animation-duration: 74s; animation-direction: reverse; }
+.ground .light { position: absolute; width: 84vmax; height: 84vmax; left: -42vmax; top: -42vmax; transform: translateX(30vmax);
+  background: radial-gradient(closest-side, rgba(126, 238, 204, .34), rgba(126, 238, 204, .13) 50%, rgba(126, 238, 204, 0) 100%); }
+.ground .orbit.b .light { transform: translateX(-28vmax); background: radial-gradient(closest-side, rgba(255, 228, 160, .24), rgba(255, 228, 160, .09) 50%, rgba(255, 228, 160, 0) 100%); }
 .ground .suits-tile { position: absolute; inset: 0; background: rgba(214, 255, 246, .11);
   -webkit-mask: var(--suit-tile) 0 0 / 252px 95px repeat; mask: var(--suit-tile) 0 0 / 252px 95px repeat; }
 @keyframes orbit { to { transform: rotate(360deg); } }
+/* The lights, as one blurred layer: two soft pools of the look's own colours (its light, and gold) drifting slowly round the table. */
+.ground .orbit { display: none; }
+.ground::before { content: ""; position: absolute; inset: -20%; z-index: 0;
+  background: radial-gradient(circle at 30% 40%, rgba(126, 238, 204, .5), transparent 35%), radial-gradient(circle at 70% 60%, rgba(255, 228, 160, .36), transparent 35%);
+  filter: blur(60px); animation: drift 30s linear infinite; will-change: transform; }
+.ground .suits-tile { z-index: 1; }
+@keyframes drift { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .ground::before { animation: none; } }
 .hero { position: relative; }
 .hero::before { content: ""; position: absolute; z-index: -1; left: 50%; top: 48%; width: min(820px, 180vw); aspect-ratio: 1; transform: translate(-50%, -50%);
   background: radial-gradient(closest-side, rgba(108, 233, 191, .62) 0%, rgba(61, 189, 177, .28) 46%, rgba(61, 189, 177, 0) 100%); }
@@ -98,34 +106,34 @@ main > *, .stack > *, .cols > * { min-width: 0; }
 /* ── Buttons: enamel inside a gold rim, gem studs, a soft inner lip ─── */
 .row { display: flex; flex-wrap: wrap; gap: 18px 30px; align-items: center; }
 .state { display: grid; justify-items: center; gap: 8px; font: 600 .8rem/1 var(--label); letter-spacing: .1em; text-transform: uppercase; color: var(--on-bg2); }
-.kb { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 54px; min-width: 168px; padding: 0 28px 4px; border-radius: 999px; border: 2.5px solid transparent; cursor: pointer;
+.kb { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 54px; min-width: 168px; padding: 0 28px 3px; border-radius: 999px; border: 2.5px solid transparent; cursor: pointer;
   font: 700 1.22rem/1 var(--display); font-variation-settings: "SOFT" 50; letter-spacing: .005em; color: var(--on-bg);
   background: linear-gradient(180deg, var(--teal-face) 0%, var(--teal) 56%, var(--teal-lo) 100%) padding-box, var(--rim) border-box;
-  box-shadow: inset 0 -5px 0 var(--teal-deep), inset 0 2px 0 rgba(255, 255, 255, .3);
+  box-shadow: inset 0 -3px 0 var(--teal-deep), inset 0 1.5px 0 rgba(255, 255, 255, .3);
   white-space: nowrap; transition: transform .12s ease, box-shadow .12s ease, filter .2s ease; -webkit-tap-highlight-color: transparent; }
 .kb::before, .kb::after { content: ""; position: absolute; top: 50%; width: 13px; height: 13px; margin-top: -7px; transform: rotate(45deg); border-radius: 2px;
   background: linear-gradient(135deg, #D8FDFF 0%, #7FD8E0 45%, #2B8E9C 100%); border: 2px solid var(--gold); }
 .kb::before { left: -8px; } .kb::after { right: -8px; }
 .kb svg { width: 18px; height: 18px; flex: none; }
 .kb .chev { margin-right: -6px; }
-.kb:active, .kb.pressed { transform: translateY(2px); padding-bottom: 1px; box-shadow: inset 0 -2px 0 var(--teal-deep), inset 0 3px 7px rgba(0, 0, 0, .3); filter: brightness(.84); }
+.kb:active, .kb.pressed { transform: translateY(2px); padding-bottom: 1px; box-shadow: inset 0 -1.5px 0 var(--teal-deep), inset 0 3px 7px rgba(0, 0, 0, .3); filter: brightness(.84); }
 .kb:focus-visible { outline-offset: 5px; }
 .kb.cream { color: var(--ink); background: linear-gradient(180deg, var(--paper-hi) 0%, var(--paper) 58%, var(--paper-lo) 100%) padding-box, var(--rim) border-box;
-  box-shadow: inset 0 -5px 0 #D9BE86, inset 0 2px 0 #fff; }
-.kb.cream:active, .kb.cream.pressed { box-shadow: inset 0 -2px 0 #D9BE86, inset 0 3px 6px rgba(110, 74, 16, .18); }
+  box-shadow: inset 0 -3px 0 #D9BE86, inset 0 1.5px 0 #fff; }
+.kb.cream:active, .kb.cream.pressed { box-shadow: inset 0 -1.5px 0 #D9BE86, inset 0 3px 6px rgba(110, 74, 16, .18); }
 .kb.sapphire { background: linear-gradient(180deg, var(--sap-hi) 0%, var(--sap) 56%, var(--sap-lo) 100%) padding-box, var(--rim) border-box;
-  box-shadow: inset 0 -5px 0 #0E2C52, inset 0 2px 0 rgba(255, 255, 255, .3); }
+  box-shadow: inset 0 -3px 0 #0E2C52, inset 0 1.5px 0 rgba(255, 255, 255, .3); }
 .kb.sapphire::before, .kb.sapphire::after { background: linear-gradient(135deg, #E6F0FF 0%, #8DB6EE 45%, #2C5FA8 100%); }
 .kb.ruby { background: linear-gradient(180deg, var(--ruby-hi) 0%, var(--ruby) 56%, var(--ruby-lo) 100%) padding-box, var(--rim) border-box;
-  box-shadow: inset 0 -5px 0 #520C1B, inset 0 2px 0 rgba(255, 255, 255, .26); }
+  box-shadow: inset 0 -3px 0 #520C1B, inset 0 1.5px 0 rgba(255, 255, 255, .26); }
 .kb.ruby::before, .kb.ruby::after { background: linear-gradient(135deg, #FFE3E6 0%, #F08A98 45%, #A8263B 100%); }
 .kb:disabled { cursor: default; color: rgba(255, 247, 226, .62); filter: saturate(.35); background: linear-gradient(180deg, #3E7378, #2F5D63) padding-box, var(--rim-soft) border-box; box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .18); }
 .kb:disabled::before, .kb:disabled::after { border-color: #B49A68; filter: saturate(.3); }
 .kb.wide { width: 100%; min-width: 0; }
-.kb.sm { min-height: 42px; min-width: 0; padding: 0 20px 3px; font-size: 1.02rem; box-shadow: inset 0 -4px 0 var(--teal-deep), inset 0 2px 0 rgba(255, 255, 255, .26); }
+.kb.sm { min-height: 42px; min-width: 0; padding: 0 20px 2px; font-size: 1.02rem; box-shadow: inset 0 -2.5px 0 var(--teal-deep), inset 0 1.5px 0 rgba(255, 255, 255, .26); }
 .kb.sm::before, .kb.sm::after { width: 10px; height: 10px; margin-top: -5px; border-width: 1.5px; }
 .kb.sm::before { left: -6px; } .kb.sm::after { right: -6px; }
-.kb.sm.cream { box-shadow: inset 0 -4px 0 #D9BE86, inset 0 2px 0 #fff; }
+.kb.sm.cream { box-shadow: inset 0 -2.5px 0 #D9BE86, inset 0 1.5px 0 #fff; }
 /* Round icon buttons: back, settings, share, close */
 .ib { position: relative; display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; border: 2.5px solid transparent; cursor: pointer; padding: 0; color: var(--on-bg);
   background: linear-gradient(180deg, var(--teal-hi), var(--teal-lo)) padding-box, var(--rim) border-box; box-shadow: inset 0 -3px 0 var(--teal-deep), inset 0 1.5px 0 rgba(255, 255, 255, .25); }
@@ -1122,6 +1130,11 @@ input { caret-color: var(--teal); }
 .tabbar .pip { position: absolute; bottom: 10px; left: 0; width: 8px; height: 8px; margin-left: -4px; rotate: 45deg; border-radius: 1.5px; background: var(--gold); translate: var(--px, 0) 0; }
 .tabbar.ready .pip { transition: translate .48s var(--spring); }
 .tabbar.glides .tab::after { display: none; }
+/* The active tab: the label is nudged by its own letter-spacing so it sits dead centre, and the diamond gets room beneath it */
+.tab { padding-bottom: 14px; text-indent: .12em; }
+.tab[aria-current="page"]::after { left: 50%; margin-left: -4px; bottom: 1px; }
+.tabbar .pip { bottom: 11px; }
+
 
 /* May I? pips light one by one. */
 .pips i { transition: background .2s ease; }
@@ -1149,7 +1162,9 @@ input { caret-color: var(--teal); }
 .tapped .none { font: 600 .92rem/1.3 var(--font); color: var(--ink2); }
 
 /* Roll for dealer: the highlight runs round the table and lands. */
-.qp.rolling svg { animation: dieroll .45s linear infinite; }
+/* A rolling die tumbles and shows a new face each time, so the number can be read as it changes */
+.qp.rolling svg { animation: dietumble .26s ease-in-out infinite; }
+@keyframes dietumble { 0%, 100% { rotate: -16deg; scale: 1; } 50% { rotate: 16deg; scale: 1.18; } }
 .deal-chip { transition: background .12s ease, color .12s ease, border-color .12s ease, transform .38s var(--spring); }
 .deal-chip.flick { color: var(--ink); border-color: var(--gold); background: rgba(255, 237, 176, .8); }
 .deal-chip.won { animation: wonpop .55s var(--spring); }
@@ -1241,7 +1256,7 @@ input { caret-color: var(--teal); }
 .ct2 .lb-melds { justify-content: flex-start; gap: 12px; margin-top: 8px; } .ct2 .lb-melds .pc { width: 24px; height: 34px; } .ct2 .lb-melds .meld .pc + .pc { margin-left: -3px; }
 #lr-play .ph-body { gap: 10px; }
 
-.ldr .dl, .lr-t .dl, .lr-deal .dl, .ng-f .dl { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--paper-hi); color: var(--ink); font: 800 .72rem/1 var(--display); border: 1.5px solid var(--gold); }
+.ldr .dl, .lr-t .dl, .lr-deal .dl, .ng-f .dl, .dk-tk .dl { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--paper-hi); color: var(--ink); font: 800 .72rem/1 var(--display); border: 1.5px solid var(--gold); }
 .jp { display: inline-flex; gap: 4px; }
 .jp i { width: 10px; height: 10px; rotate: 45deg; border-radius: 2px; border: 1.5px solid #9CC8FF; }
 .jp i.on { background: linear-gradient(135deg, #CFE6FF, #3E7BE0); border-color: #CFE6FF; }
@@ -1300,7 +1315,7 @@ input { caret-color: var(--teal); }
 .lr-mayh img { width: 34px; height: 34px; object-fit: contain; flex: none; }
 .lr-mayh h4 { margin: 0; font: 800 1.3rem/1.1 var(--display); color: var(--on-bg); }
 .lr-mayp { margin: 0 auto 10px; max-width: 26ch; text-wrap: balance; text-align: center; font-size: .86rem; line-height: 1.3; color: var(--on-bg2); }
-.lr-t .fst { position: absolute; left: -6px; bottom: -2px; display: inline-grid; place-items: center; height: 20px; padding: 0 5px; border-radius: 10px; background: linear-gradient(#FFE9AC, #E2B357); color: #073C44; font: 800 .66rem/1 var(--num); border: 1.5px solid #FFF3D0; }
+.lr-t .fst { position: absolute; left: -6px; bottom: -2px; display: inline-grid; place-items: center; height: 20px; padding: 0 5px; border-radius: 10px; background: linear-gradient(#FFE9AC, #E2B357); color: #073C44; font: 800 .7rem/1 var(--num); border: 1.5px solid #FFF3D0; }
 .lr-role { margin-top: 1px; font: 700 .72rem/1 var(--num); letter-spacing: .02em; color: #FFE7A3; }
 .lr-buys { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px 8px; }
 .lr-b { display: grid; justify-items: center; align-content: start; gap: 5px; min-height: 112px; padding: 6px 2px 8px; border: 0; border-radius: 16px; background: none; cursor: pointer; color: var(--on-bg); -webkit-tap-highlight-color: transparent; }
@@ -1387,7 +1402,7 @@ input { caret-color: var(--teal); }
 .lr-sheet .lr-rm svg { width: 18px; height: 18px; }
 .lr-sheet .body { padding-left: 12px; padding-right: 12px; }
 .lr-sheet .sub { margin: 6px 4px 0; }
-.la-who { display: flex; align-items: flex-end; gap: 14px; } .la-who .tok { width: 60px; flex: none; } .la-who .kfield { flex: 1; min-width: 0; }
+.la-who { display: flex; align-items: flex-end; gap: 14px; } .la-who .tok { width: 60px; height: 60px; aspect-ratio: 1; flex: none; } .la-who .kfield { flex: 1; min-width: 0; }
 .lr-add .kfield label { color: #7A5A1E; } .lr-add .kfield small { color: #5E4A2A; line-height: 1.4; }
 .la-score input { max-width: 140px; font-family: var(--num); font-variant-numeric: tabular-nums; }
 .lr-sheet .pe-add { min-height: 56px; padding: 4px 6px 4px 0; gap: 8px; }
@@ -1620,6 +1635,146 @@ input { caret-color: var(--teal); }
 .lc-tname { font-size: .86rem; color: var(--on-bg2); text-align: center; }
 .lc-tname b { color: var(--on-bg); font-family: var(--display); }
 @keyframes lc-blink { to { opacity: 0; } }
+/* Rework, 2026-11-17: the score sheet, the impossible-score check, the dealer line and a player's own card (ported from the app) */
+.ls-warn { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: -2px 0 6px; padding: 8px 12px; border-radius: 12px; background: rgba(5, 42, 50, .78); border: 1.5px solid rgba(255, 196, 120, .75); color: #FFEBCF; font-size: .92rem; line-height: 1.3; animation: k-pop .28s var(--spring) both; }
+.ls-warn .link { flex: none; min-height: 44px; color: #FFE7A3; white-space: nowrap; }
+.ls-row.over .ls-in { border-color: #F2A65A; box-shadow: 0 0 0 3px rgba(242, 166, 90, .35); }
+.lb-dealline { display: flex; align-items: center; justify-content: center; gap: 8px; margin: -2px 0 2px; color: var(--on-bg); font-size: 1rem; text-align: center; }
+.lb-dealline b { color: var(--on-bg); font-family: var(--display); }
+.lb-dealline .dl { flex: none; display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--paper-hi); color: var(--ink); font: 800 .76rem/1 var(--display); border: 1.5px solid var(--gold); }
+.ss-wrap { padding: 4px 6px 6px; }
+.ss { width: 100%; border-collapse: collapse; table-layout: fixed; color: var(--ink); font: 700 1rem/1 var(--num); font-variant-numeric: tabular-nums; }
+.ss th, .ss td { padding: 0; text-align: center; font-weight: 700; }
+.ss .ss-rh { width: 46px; }
+.ss thead th { padding: 10px 1px 8px; vertical-align: bottom; }
+.ss thead .tok { display: block; width: 30px; height: 30px; margin: 0 auto 5px; border-width: 2px; }
+.ss .ss-nm { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 1px; font: 700 .74rem/1.15 var(--display); color: var(--ink); }
+.ss tbody td, .ss tbody th { height: 42px; border-top: 1px solid rgba(196, 148, 62, .32); }
+.ss .ss-rn { position: relative; display: inline-grid; place-items: center; width: 28px; height: 28px; padding: 0; border-radius: 50%; border: 1.5px solid rgba(168, 111, 27, .5); background: none; color: #6E4A10; font: 800 .86rem/1 var(--display); }
+.ss button.ss-rn { cursor: pointer; border-color: var(--gold); background: linear-gradient(180deg, #FFF3C8, #F2D27C); transition: scale .12s ease, filter .15s ease; }
+.ss button.ss-rn::after { content: ""; position: absolute; inset: -8px; }
+.ss button.ss-rn:hover { filter: brightness(1.06); }
+.ss button.ss-rn:active { scale: .92; }
+.ss button.ss-rn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.ss td.out b { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(180deg, #FFE9AC, #E2B357); border: 1.5px solid #FFF3D0; color: #073C44; font-weight: 800; }
+.ss td.none { color: rgba(15, 50, 71, .45); }
+.ss[data-n="6"] .ss-nm, .ss[data-n="7"] .ss-nm, .ss[data-n="8"] .ss-nm { font-size: .7rem; letter-spacing: -.01em; }
+.ss tfoot th, .ss tfoot td { height: 50px; border-top: 2px solid var(--gold); }
+.ss tfoot th { font: 700 .7rem/1 var(--label); letter-spacing: .08em; text-transform: uppercase; color: #7A5A1E; }
+.ss tfoot td b { font: 800 1.14rem/1 var(--num); }
+.ss tfoot td.win b { display: inline-grid; place-items: center; min-width: 34px; height: 32px; padding: 0 6px; border-radius: 99px; background: linear-gradient(180deg, var(--teal-face), var(--teal-lo)); color: #FFF6DC; }
+.ss[data-n="7"] tfoot td b, .ss[data-n="8"] tfoot td b { font-size: 1rem; }
+.ss[data-n="7"] .ss-rh, .ss[data-n="8"] .ss-rh { width: 40px; }
+.ss[data-n="8"] tfoot td.win b { min-width: 0; padding: 0 4px; }
+.ss-note { margin: 6px 6px 2px; font-size: .88rem; line-height: 1.3; color: var(--ink2); text-align: left; }
+/* A player's colour is deepened with ink, so even amber and orange read on the card's paper */
+.dcard.mono .face { color: var(--suit); color: color-mix(in srgb, var(--suit) 55%, #0F3247); }
+.dcard.mono .mid .ml { position: relative; font: 800 40cqw/1 var(--display); color: inherit; letter-spacing: -.02em; }
+.dcard.mono .mid .ph { width: 52cqw; height: 52cqw; border-radius: 50%; object-fit: cover; }
+.ss .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+/* p27: the sheet header. The handle, a title in the display face on the same left edge as the sheet's content, and a quiet close button that doesn't compete with it. */
+.ksheet .grab { width: 38px; height: 4px; margin: 10px auto 0; background: rgba(110, 74, 16, .26); }
+.ksheet .head { align-items: center; gap: 12px; padding: 12px 12px 8px 20px; }
+.ksheet .head h2, .ksheet .head h3 { font: 800 1.6rem/1.08 var(--display); letter-spacing: -.01em; text-wrap: balance; }
+.ksheet .head > .ib.cream, .ksheet .ks-x { position: relative; width: 40px; height: 40px; border: 1.5px solid rgba(168, 111, 27, .4); background: rgba(255, 255, 255, .5); box-shadow: none; color: #6E4A10; }
+.ksheet .ks-x { position: absolute; background: rgba(255, 251, 240, .94); }
+.ksheet .head > .ib.cream::after, .ksheet .ks-x::after { content: ""; position: absolute; inset: -4px; border-radius: 50%; }
+.ksheet .head > .ib.cream svg, .ksheet .ks-x svg { width: 16px; height: 16px; }
+.ksheet .head > .ib.cream:hover, .ksheet .ks-x:hover { background: rgba(255, 255, 255, .85); border-color: var(--gold); }
+.ksheet .body { padding-left: 20px; padding-right: 20px; }
+.lr-sheet .body { padding-left: 20px; padding-right: 16px; }
+.lr-sheet .sub { margin: 6px 0 0; }
+/* The drag handle hangs in the sheet's left gutter, close to the face it moves */
+.lr-grip { width: 20px; margin-left: -14px; margin-right: -3px; }
+.lr-grip svg { width: 16px; height: 16px; }
+.ksheet .grab { position: absolute; top: 8px; left: 50%; margin: 0; transform: translateX(-50%); }
+.ksheet .head { padding-top: 22px; }
+.ng-h, .lr-dealrow { margin-left: 0; }
+.gm-where { margin-left: 0; margin-right: 0; }
+.lr-sheet .pe-add .pe-plus { margin-left: 11px; }
+/* Rework pieces used by the frames below (ported from the app) */
+.lr-mayslot { display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; min-height: 48px; }
+.lr-mayslot .lr-mayp { margin-bottom: 10px; }
+.lr-toast.in { position: static; translate: none; left: auto; right: auto; bottom: auto; justify-self: center; width: auto; max-width: 100%; min-height: 44px; margin: 0 0 2px; padding: 3px 12px 3px 8px; gap: 8px; font-size: .92rem; box-shadow: 0 8px 16px -10px rgba(0, 0, 0, .5); animation: k-pop .3s var(--spring) both; }
+.lr-buys[data-n="2"], .lr-buys[data-n="4"] { grid-template-columns: repeat(2, minmax(0, 128px)); justify-content: center; }
+.lr-buys[data-n="5"] { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.lr-buys[data-n="5"] .lr-b { grid-column: span 2; }
+.lr-buys[data-n="5"] .lr-b:nth-child(4) { grid-column: 2 / span 2; }
+.lr-buys.dense[data-n="7"] { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+.lr-buys.dense[data-n="7"] .lr-b { grid-column: span 2; }
+.lr-buys.dense[data-n="7"] .lr-b:nth-child(5) { grid-column: 2 / span 2; }
+.lr-toast.in img { width: 28px; height: 28px; }
+.lr-toast.in { min-width: 0; }
+.lr-toast.in span { flex: 0 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lr-toast.in em { flex: none; display: inline-flex; align-items: center; gap: 4px; margin: 0 0 0 6px; padding-left: 10px; border-left: 1.5px solid rgba(255, 231, 163, .35); }
+.lr-toast.in .lr-undo { width: 16px; height: 16px; }
+.ng-dtag { display: flex; width: 100%; justify-content: flex-start; gap: 8px; margin: 2px 0 0; padding: 0 4px; color: var(--ink); font: 500 1rem/1.2 var(--font); letter-spacing: 0; animation: none; }
+.ng-dtag b { font-family: var(--display); font-weight: 800; }
+.ng-dtag small { margin-left: auto; color: #7A4F0E; font: 700 .9rem/1 var(--display); text-decoration: underline; text-decoration-color: rgba(122, 79, 14, .4); text-underline-offset: 3px; }
+.ng-dtag:hover small { text-decoration-color: currentColor; }
+.ng-dtag:focus-visible { outline-color: var(--gold); }
+.lc-hact { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.lc-hact .lc-h { margin: 0; }
+.lc-hact .qp { flex: none; min-height: 44px; padding: 0 14px 0 10px; }
+.lc-hact .qp svg { width: 16px; height: 16px; }
+.lr-crown { position: absolute; left: 50%; top: -13px; width: 28px; translate: -50% 0; rotate: -8deg; filter: drop-shadow(0 3px 3px rgba(0, 0, 0, .4)); pointer-events: none; animation: k-crownin .5s var(--spring) both; }
+.kname { max-width: none; }
+.kname-row { display: flex; align-items: center; gap: 10px; }
+.kname-row input { flex: 1; min-width: 0; }
+.kname-die { flex: none; width: 52px; height: 52px; }
+.kname-die span { display: grid; place-items: center; }
+.kname-die svg { width: 24px; height: 24px; }
+.kname-die .roll { animation: k-nameroll .45s var(--spring); }
+.ib-guide img { width: 26px; height: 26px; object-fit: contain; filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .3)); transition: rotate .3s var(--spring), scale .3s var(--spring); }
+.ib-guide:hover img { rotate: -8deg; scale: 1.08; }
+.ls-vals { display: flex; flex-wrap: wrap; gap: 6px 8px; margin: 10px 0 0; }
+.ls-vals span { display: inline-flex; align-items: baseline; gap: 6px; padding: 5px 10px; border-radius: 99px; background: rgba(4, 44, 52, .45); border: 1px solid rgba(255, 233, 166, .22); color: var(--on-bg); font: 600 .88rem/1.1 var(--font); white-space: nowrap; }
+.ls-vals b { font: 800 .98rem/1 var(--num); color: #FFE7A3; }
+.kdie { display: block; }
+.lc-grip { width: 28px; height: 44px; margin: 0 -6px 0 -8px; color: rgba(255, 231, 163, .75); touch-action: none; }
+.lc-grip:hover { color: #FFE7A3; background: rgba(255, 231, 163, .12); }
+.lc-grip:focus-visible { outline: 3px solid #FFE7A3; outline-offset: 1px; }
+.lc-name.lifting { position: relative; z-index: 2; border-radius: 14px; border-bottom-color: transparent; background: rgba(3, 38, 46, .72); box-shadow: 0 10px 18px -10px rgba(0, 0, 0, .6); transition: none; }
+.lr-b > b { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@keyframes k-crownin { from { opacity: 0; translate: -50% -18px; } }
+.lr-buys .lr-toast.in, .lr-mayslot .lr-toast { position: static; translate: none; }
+.ksheet .ng-dtag { color: #0F3247; }
+.ksheet .ng-dtag small { color: #7A4F0E; }
+.rw-fig { margin: 0; display: grid; gap: 10px; }
+.rw-fig img { display: block; width: 100%; height: auto; border-radius: 16px; border: 1.5px solid rgba(255, 233, 166, .28); }
+.rw-fig figcaption { color: var(--on-bg2); font-size: .95rem; text-wrap: pretty; }
+.rw-fig figcaption b { color: var(--on-bg); font-family: var(--display); }
+.rw-set { display: grid; gap: 34px; }
+.rw-rules { margin: 0; padding-left: 20px; display: grid; gap: 8px; color: var(--on-bg2); max-width: 78ch; }
+.rw-rules b { color: var(--on-bg); }
+.rw-rules li::marker { color: var(--gold); }
+.rw-demo { display: grid; gap: 22px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); align-items: start; }
+.rw-demo > div { display: grid; gap: 10px; min-width: 0; }
+.rw-demo .ss-wrap { padding: 4px 6px 6px; }
+.rw-pad { padding: 14px; border-radius: 18px; background: linear-gradient(180deg, #0E6B78, #0B5866); }
+
+/* First run, 2026-11-17: names only. The dealer wears a D tag that passes round; Learn is a banner. */
+.lc-first > *, .lc-who > * { min-width: 0; }
+.lc-whoh { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 10px; min-height: 44px; }
+.lc-whoh .qp { flex: none; min-height: 40px; padding: 0 12px; font-size: .9rem; }
+.lc-face { position: relative; flex: none; display: grid; place-items: center; width: 48px; height: 48px; }
+.lc-face .pe-badge { width: 20px; height: 20px; right: -4px; bottom: -2px; border-width: 1.5px; }
+.lc-face .pe-badge svg { width: 11px; height: 11px; }
+.lc-dtag { flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 4px 0 8px; border: 0; background: none; cursor: pointer; color: #FFE7A3; font: 700 .86rem/1 var(--label); letter-spacing: .02em; white-space: nowrap; }
+.lc-dtag .dl { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--paper-hi); color: var(--ink); font: 800 .8rem/1 var(--display); border: 1.5px solid var(--gold); }
+.lc-facehint { margin: 8px 0 0; color: var(--on-bg2); font-size: .9rem; text-align: left; }
+.lc-first .lc-plus { width: 40px; height: 40px; border-radius: 50%; }
+.lc-first .lc-name.lc-empty { border-bottom-style: solid; border-bottom-color: transparent; }
+.lc-newto { position: relative; display: flex; align-items: center; gap: 12px; width: 100%; margin-top: 22px; padding: 12px 14px 12px 10px; border-radius: 20px; border: 3px solid transparent; cursor: pointer; text-align: left; color: var(--ink); font: inherit;
+  background: radial-gradient(120% 90% at 30% 0%, var(--paper-hi), var(--paper) 60%, var(--paper-lo)) padding-box, var(--rim-soft) border-box; box-shadow: 0 12px 22px -14px rgba(0, 0, 0, .55); }
+.lc-newto-art { position: relative; flex: none; width: 88px; height: 56px; }
+.lc-newto-art .hand { position: absolute; left: 0; bottom: -4px; width: 88px; height: auto; rotate: -5deg; filter: drop-shadow(0 6px 6px rgba(0, 0, 0, .28)); }
+.lc-newto-art .q { position: absolute; right: -8px; bottom: -8px; width: 40px; height: auto; filter: drop-shadow(0 3px 4px rgba(0, 0, 0, .3)); }
+.lc-newto-t { flex: 1; min-width: 0; display: grid; gap: 3px; padding-left: 4px; }
+.lc-newto-t b { font: 800 1.2rem/1.1 var(--display); }
+.lc-newto-t small { color: var(--ink2); font-size: .95rem; line-height: 1.25; }
+.lc-newto .chev { flex: none; width: 20px; height: 20px; color: var(--gold-deep); }
+
 @media (prefers-reduced-motion: reduce) { .lc-name.typing .nm::after { animation: none; } }
 
 /* Table page */
@@ -2069,6 +2224,201 @@ input { caret-color: var(--teal); }
 .bs-aw img { width: 72px; height: 72px; object-fit: contain; filter: drop-shadow(0 6px 8px rgba(0, 0, 0, .35)); }
 .bs-aw figcaption { font: 700 .88rem/1.2 var(--display); }
 
+/* ── The desktop app: layout only, every piece is the kit's ── */
+.dk { grid-template-columns: 280px minmax(0, 1fr); }
+.dk-rail { grid-template-rows: auto 1fr auto; }
+.dk-railmid { display: grid; align-content: start; gap: 22px; }
+.dk-rail .bs-nav a { transition: background .15s ease; }
+.dk-rail .bs-nav a:not([aria-current]):hover { background: rgba(255, 231, 163, .1); }
+.dk-tn { display: grid; gap: 3px; }
+.dk-live { font: 700 .72rem/1 var(--label); letter-spacing: .14em; text-transform: uppercase; color: #FFE7A3; }
+.dk-rail a[aria-current] .dk-live { color: #7A4F0E; }
+.dk-add .lc-plus { width: 30px; height: 30px; }
+.dk .bs-main { position: relative; display: flex; flex-direction: column; padding: 0; gap: 0; min-height: 0; }
+.dk-bar { height: 84px; padding: 0 48px; flex: none; }
+.dk-h { margin: 0; font: 800 2rem/1 var(--display); }
+.dk-body { flex: 1; min-height: 0; padding: 8px 48px 120px; }
+/* Home */
+.dk-homegrid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); grid-template-rows: 1fr auto; gap: 40px 56px; padding-top: 0; padding-bottom: 56px; }
+.dk-homel { display: grid; align-content: center; gap: 24px; }
+.dk-homel .lc-now2 { max-width: none; }
+.dk-homel .kt { max-width: none; }
+.dk-homer { display: grid; justify-items: center; align-content: center; gap: 22px; }
+.dk-homer .lc-hero { width: 420px; scale: 1.45; margin: 40px 0 70px; }
+.dk-newgame { min-width: 300px; }
+.dk-tables { grid-column: 1 / -1; }
+.dk-tables .lc-h { margin: 0 0 16px; }
+.dk-tables .lc-blocks { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
+/* The round */
+.dk-rgrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.12fr) minmax(0, .82fr); gap: 44px; padding-top: 0; align-content: center; }
+.dk-rgrid .bs-may { margin: 0; align-self: start; }
+.dk-rgrid .bs-sc { align-self: start; }
+/* Score */
+.dk-score .bs-sgrid { padding: 4px 48px 120px; }
+/* Between rounds */
+.dk-between .lb-glow { position: absolute; inset: 0; pointer-events: none; }
+.dk-bgrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 56px; padding-top: 0; }
+.dk-bgrid .lb-between { display: grid; align-content: start; gap: 18px; }
+.dk-next { min-width: 0; }
+.dk-next .guides { margin: 0; padding: 30px 0 30px; }
+.dk-next .gcard { width: 236px; }
+/* Results */
+.dk-rsgrid { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.dk-fin { border-radius: 0; height: 100%; align-content: start; padding: 26px 40px 0; }
+.dk-fin .rays { top: 340px; }
+.dk-fin .lb-wincard { width: 240px; margin-top: 40px; }
+.dk-rsr { display: flex; flex-direction: column; min-width: 0; padding-bottom: 36px; }
+.dk-rsr .dk-bar { padding: 0 40px; }
+.dk-rest.ldr.lb-rest { padding: 8px 40px 0; }
+.dk-two { display: flex; justify-content: center; gap: 22px; margin-top: auto; padding: 0 40px; }
+.dk-two .kb { flex: 1; max-width: 260px; }
+/* Learn */
+.dk-tabs { width: 460px; }
+.dk-lgrid { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 48px; padding-bottom: 40px; }
+.dk-rlist { align-self: start; }
+.dk-rlist .prow { min-height: 62px; }
+.dk-rlist .prow.dk-cur { background: rgba(255, 231, 163, .1); box-shadow: inset 3px 0 0 #FFE7A3; }
+.dk-rn { display: grid; place-items: center; width: 38px; height: 38px; flex: none; border-radius: 50%; font: 800 1.05rem/1 var(--display); color: #FFF7E2; background: linear-gradient(180deg, var(--teal-face, #177880), var(--teal-deep, #083E46)); box-shadow: inset 0 0 0 2px rgba(255, 231, 163, .55); }
+.dk-rn.done { color: #073C44; background: linear-gradient(180deg, #FFE9AC, #E2B357); }
+.dk-guide { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 40px; align-items: start; padding: 0; }
+.dk-guide .rg-hero { padding-top: 12px; }
+.dk-guide .rg-calls { padding-top: 12px; }
+/* Stats */
+.dk-sgrid { display: grid; grid-template-columns: 400px minmax(0, 1fr); gap: 56px; padding-bottom: 40px; }
+.dk-sl { display: grid; align-content: start; gap: 28px; }
+.dk-hall .cab-grid { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+/* Settings */
+.dk-setgrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 26px 64px; align-content: start; padding-bottom: 40px; }
+.dk-setgrid > div { display: grid; align-content: start; gap: 12px; }
+.dk-setgrid .kt { max-width: none; }
+.dk-setgrid > .dk-lookrow { grid-column: 1 / -1; gap: 4px; }
+.dk-looks { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.dk-looks .look { aspect-ratio: 4 / 3; }
+.dk-looks .look img { top: 10%; width: 34%; }
+/* New game sheet */
+.dk-dim { position: absolute; inset: 0; z-index: 4; background: rgba(2, 24, 29, .62); }
+.bf-screen.dk .ksheet.dk-sheet { position: absolute; z-index: 5; left: 50%; right: auto; top: 50%; bottom: auto; translate: -50% -50%; width: 640px; max-width: none; margin: 0; border-radius: 26px; }
+/* Breakpoints table */
+.dk-bp { width: 100%; border-collapse: collapse; margin: 6px 0 18px; font-size: .92rem; }
+.dk-bp th, .dk-bp td { text-align: left; padding: 8px 10px 8px 0; vertical-align: top; }
+.dk-bp th { font: 700 .74rem/1 var(--label); letter-spacing: .14em; text-transform: uppercase; color: var(--on-bg2); }
+.dk-bp td:first-child { white-space: nowrap; font: 700 .95rem/1.3 var(--num); color: #FFE7A3; }
+
+/* ── Desktop v2: the score sheet, toolbar, side panel and dashboards ── */
+.dk-tb { display: flex; align-items: center; gap: 16px; height: 96px; padding: 0 40px; flex: none; }
+.dk-tt h3 { margin: 0; font: 800 1.75rem/1.05 var(--display); }
+.dk-tt p { margin: 5px 0 0; color: var(--on-bg2); font-size: .98rem; }
+.dk-tb .sp { flex: 1; }
+.dk-tb .kb.sm { margin: 0 6px; }
+.dk-gbody { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 28px; padding: 0 40px 32px; }
+.dk-sheetcol { display: grid; grid-template-rows: auto 1fr; gap: 14px; min-height: 0; min-width: 0; }
+.dk-sheetw { padding: 6px 10px; align-self: start; }
+.dk-sheet-t { font-size: 1.3rem; --ink: #0F3247; --ink2: #3D5361; color: #0F3247; }
+.dk-sheet-t th { padding: 14px 6px 10px; vertical-align: bottom; }
+.dk-ph { display: grid; justify-items: center; gap: 6px; }
+.dk-ph b { font: 800 1.02rem/1 var(--display); letter-spacing: 0; text-transform: none; color: var(--ink); }
+.dk-tk { position: relative; }
+.dk-tk .tok { display: block; width: 46px; height: 46px; }
+.dk-tk .dl { position: absolute; right: -8px; bottom: -4px; }
+.dk-first { position: absolute; left: -12px; bottom: -4px; padding: 3px 5px; border-radius: 99px; font: 800 .72rem/1 var(--num); color: #4A3206; background: linear-gradient(180deg, #FFE9A8, #E9B44C); border: 1.5px solid #FFF3D0; }
+.dk-crown { position: absolute; left: 50%; top: -15px; width: 28px; translate: -50% 0; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .3)); }
+.dk-ph .jp i { border-color: #6F8FB8; width: 9px; height: 9px; } .dk-ph .jp i.on { border-color: #3E7BE0; }
+.dk-sheet-t td { padding: 9px 6px; height: 50px; }
+.dk-sheet-t td.l { padding-left: 10px; }
+.dk-rl { display: flex; align-items: center; gap: 12px; }
+.dk-rl .dk-rn { width: 32px; height: 32px; font-size: .95rem; }
+.dk-rl b { display: block; font: 800 1rem/1.1 var(--display); color: var(--ink); white-space: nowrap; }
+.dk-rl small { display: block; margin-top: 2px; font: 600 .78rem/1 var(--font); color: var(--ink2); }
+.dk-sheet-t .chip.out { font-size: .9rem; height: 28px; }
+.dk-sheet-t tr.todo td:not(.l) { color: rgba(122, 90, 30, .45); }
+.dk-sheet-t tr.todo .dk-rl { opacity: .6; }
+.dk-tt { min-width: 0; } .dk-tt p { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dk-sheet-t tr.cur td { background: rgba(255, 228, 160, .42); }
+.dk-sheet-t tr.cur td.l { box-shadow: inset 4px 0 0 #C4943E; }
+.dk-in { display: inline-grid; place-items: center; position: relative; min-width: 64px; height: 38px; padding: 0 8px; border-radius: 10px; background: #FFFDF6; box-shadow: inset 0 0 0 1.5px rgba(196, 148, 62, .55), inset 0 2px 3px rgba(120, 80, 20, .12); }
+.dk-in.foc { box-shadow: inset 0 0 0 2.5px #0E6B78, 0 0 0 4px rgba(14, 107, 120, .2); }
+.dk-in.empty::after { content: "–"; color: rgba(122, 90, 30, .4); }
+.dk-caret { position: absolute; right: 12px; top: 9px; width: 2px; height: 20px; background: #083E46; animation: dkblink 1s steps(1) infinite; }
+@keyframes dkblink { 50% { opacity: 0; } }
+.dk-sheet-t tfoot td { border-top: 2px solid rgba(196, 148, 62, .55); }
+.dk-sheet-t tr.tot td { font: 800 1.7rem/1 var(--num); color: var(--ink); }
+.dk-sheet-t tr.tot td.l, .dk-sheet-t tr.plc td.l { font: 700 .74rem/1 var(--label); letter-spacing: .14em; text-transform: uppercase; color: #7A5A1E; }
+.dk-sheet-t tr.plc td { border-top: 0; height: 34px; padding-top: 0; font: 800 .95rem/1 var(--display); color: #7A5A1E; }
+.dk-sheet-t tr.plc em { margin-left: 5px; font: 800 .8rem/1 var(--num); font-style: normal; }
+.dk-sheet-t em.up { color: #0E6A55; } .dk-sheet-t em.dn { color: #A8263B; }
+.dk-sheet-t .win { background: rgba(233, 180, 76, .2); }
+.dk-sheet-t th.win { background: linear-gradient(180deg, rgba(233, 180, 76, .45), rgba(233, 180, 76, .2)); }
+.dk-sheet-t tr.tot td.win { color: #6B4410; }
+.dk-insp { display: flex; flex-direction: column; gap: 22px; min-height: 0; padding: 22px; border-radius: 22px; background: var(--panel); border: 1px solid var(--hair); }
+.dk-ih { margin: 0; font: 800 1.15rem/1.15 var(--display); color: var(--on-bg); }
+.dk-goal { width: 100%; padding: 16px 14px; gap: 10px; }
+.dk-goal .lr-meld > span { width: 40px; } .dk-goal .lr-meld > span + span { margin-left: -24px; } .dk-goal .lr-melds { gap: 8px; }
+.dk-goal .lr-rule { font-size: .95rem; }
+.dk-buys { display: grid; gap: 8px; }
+.dk-buys .lr-mayh h4 { font-size: 1.25rem; } .dk-buys .lr-mayh img { width: 30px; height: 30px; }
+.dk-buys .fine, .dk-save .fine { margin: 0; color: var(--on-bg2); }
+.dk-buys .lr-buys.dense { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 6px; }
+.dk-save { margin-top: auto; display: grid; gap: 12px; justify-items: stretch; text-align: center; }
+.dk-save .kb { width: 100%; }
+.dk-keys { font-size: .84rem; line-height: 1.4; } .dk-keys b { color: #FFE7A3; }
+.dk-news { max-width: none; }
+.dk-oneg { margin: 0; padding: 22px 0 6px; overflow: visible; justify-content: center; }
+.dk-oneg .gcard ~ .gcard { display: none; }
+.dk-oneg .gcard { width: 280px; }
+.dk-who { margin: 0; text-align: center; font: 800 1.05rem/1.2 var(--display); color: #FFE7A3; }
+.dk-fin2 { border-radius: 22px; justify-items: center; align-items: center; padding: 26px 22px; gap: 8px; }
+.dk-fin2 .lb-wincard { width: 150px; margin-top: 18px; }
+.dk-fin2 .ribbon { font-size: 1.7rem; }
+.dk-aw { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 12px; width: 100%; text-align: left; }
+.dk-aw li { display: flex; align-items: center; gap: 12px; }
+.dk-aw img { width: 44px; height: 44px; object-fit: contain; flex: none; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, .35)); }
+.dk-aw b { display: block; font: 800 1rem/1.1 var(--display); color: #FFE7A3; }
+.dk-aw span { font-size: .88rem; color: var(--on-bg2); line-height: 1.3; }
+/* Dashboards */
+.dk-card { padding: 20px 22px; border-radius: 22px; background: var(--panel); border: 1px solid var(--hair); min-width: 0; display: grid; align-content: start; gap: 14px; }
+.dk-dgrid { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); grid-template-rows: auto 1fr; gap: 24px 28px; padding: 0 40px 32px; }
+.dk-nowd { max-width: none; align-self: center; }
+.dk-hero2 { display: grid; place-items: center; }
+.dk-hero2 .lc-hero { width: 420px; height: 236px; margin: 0; }
+.dk-tcols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
+.dk-tn2 { display: block; margin-bottom: 10px; font: 800 1.02rem/1.1 var(--display); color: #FFE7A3; }
+.dk-tcols .ldr.dense li { grid-template-columns: 34px 34px minmax(0, 1fr) auto; column-gap: 8px; }
+.dk-tcols .ldr.dense .ldr-face { width: 34px; height: 34px; } .dk-tcols .ldr.dense .ldr-pts { font-size: 1.3rem; } .dk-tcols .ldr.dense .ldr-pos { font-size: 1.05rem; }
+.dk-list { color: var(--on-bg); }
+.dk-list th { color: var(--on-bg2); }
+.dk-list td { border-top-color: rgba(255, 233, 166, .13); height: 50px; font-size: 1.05rem; }
+.dk-list td.l { font: 700 .98rem/1.2 var(--display); }
+.dk-list tbody tr:hover td { background: rgba(255, 231, 163, .08); }
+.dk-list tr.sel td { background: rgba(255, 231, 163, .14); }
+.dk-list tr.sel td:first-child { box-shadow: inset 3px 0 0 #FFE7A3; }
+.dk-wn { display: inline-flex; align-items: center; gap: 10px; }
+.dk-wn .tok { width: 30px; height: 30px; border-width: 2px; }
+.dk-hlc { font: 400 .92rem/1.3 var(--font) !important; color: var(--on-bg2); }
+.dk-tgrid { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 28px; padding: 0 40px 32px; align-items: start; }
+.dk-tb .dk-tabs { width: 420px; }
+.dk-peek .ldr.dense li { grid-template-columns: 36px 34px minmax(0, 1fr) auto; }
+.dk-peek .ldr.dense .ldr-face { width: 34px; height: 34px; } .dk-peek .ldr-hl { font-size: .8rem; }
+.dk-fgrid { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); grid-template-rows: auto 1fr; gap: 24px 28px; padding: 0 40px 32px; }
+.dk-kpis { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; }
+.dk-kpis figure { margin: 0; display: grid; grid-template-columns: 64px 1fr; grid-template-rows: auto auto; column-gap: 14px; align-items: end; }
+.dk-kpis img { grid-row: 1 / 3; width: 64px; height: 64px; object-fit: contain; filter: drop-shadow(0 6px 8px rgba(0, 0, 0, .35)); align-self: center; }
+.dk-kpis b { font: 800 2.6rem/1 var(--num); color: #FFE7A3; } .dk-kpis b small { font-size: 1.2rem; color: var(--on-bg2); }
+.dk-kpis figcaption { font: 600 .92rem/1.25 var(--font); color: var(--on-bg2); }
+.dk-h2h { color: var(--on-bg); }
+.dk-h2h th { color: var(--on-bg2); font-size: .7rem; }
+.dk-h2h th .tok { display: block; margin: 0 auto 6px; width: 34px; height: 34px; border-width: 2px; }
+.dk-h2h td { border-top-color: rgba(255, 233, 166, .13); height: 54px; font: 800 1.25rem/1 var(--num); }
+.dk-h2h td.up { color: #FFE7A3; background: rgba(255, 231, 163, .1); } .dk-h2h td.dn { color: var(--on-bg2); } .dk-h2h td.me { color: rgba(255, 233, 166, .3); }
+.dk-h2h td.l { font: 700 .98rem/1 var(--display); }
+.dk-hallc .dk-hall .cab-grid { --row: 114px; grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.dk-hallc .cab-spot { padding-block: 0; }
+.dk-hallc .cab-spot .med { width: 80px; height: 80px; flex: none; }
+.dk-hallc { gap: 8px; }
+.dk-hallc { overflow: hidden; }
+.dk-mini { display: inline-block; width: 30px; position: static !important; rotate: -6deg; filter: drop-shadow(0 3px 4px rgba(0, 0, 0, .35)); }
+.dk-addt { justify-self: start; }
+.dk-card .fine { margin: 0; color: var(--on-bg2); font-size: .85rem; }
+
 /* ── The big night: phones ── */
 .bn-hd { display: grid; gap: 6px; }
 .bn-hd h3 { margin: 0; font: 800 1.75rem/1.08 var(--display); text-wrap: balance; }
@@ -2181,7 +2531,7 @@ input { caret-color: var(--teal); }
 .pcd-card .half + .half { rotate: 180deg; border-top: 1.5px solid #C9A04C; }
 .pcd-card .half svg { position: absolute; left: 50%; bottom: 0; width: 78%; translate: -50% 0; }
 .pcd-card .half .cr { position: absolute; left: 50%; top: 0; width: 30%; translate: -50% 0; rotate: -6deg; filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .3)); }
-.pcd-card .tag { position: absolute; left: 50%; top: 74%; translate: -50% -50%; z-index: 3; padding: 4px 8px; border-radius: 6px; background: rgba(255, 251, 240, .92); font: 700 .66rem/1.1 var(--label); letter-spacing: .08em; text-transform: uppercase; color: #8B5A12; white-space: nowrap; }
+.pcd-card .tag { position: absolute; left: 50%; top: 74%; translate: -50% -50%; z-index: 3; padding: 4px 8px; border-radius: 6px; background: rgba(255, 251, 240, .92); font: 700 .7rem/1.1 var(--label); letter-spacing: .08em; text-transform: uppercase; color: #8B5A12; white-space: nowrap; }
 .pcd-steps { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; font-size: .88rem; color: var(--ink2); line-height: 1.3; }
 .pcd-steps li { display: flex; gap: 8px; } .pcd-steps b { color: var(--ink); font-family: var(--display); }
 .pcd-steps svg { width: 16px; height: 16px; flex: none; margin-top: 1px; color: #0E6B78; }
@@ -2290,6 +2640,12 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
   <symbol id="bolt" viewBox="0 0 24 24"><path d="M13 2.5 5 13.5h6l-1 8 8-11h-6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
   <symbol id="down" viewBox="0 0 24 24"><path d="M12 4v15M6 13l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="die" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="9" r="1.4" fill="currentColor"/><circle cx="15" cy="15" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/></symbol>
+  <symbol id="die1" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/></symbol>
+  <symbol id="die2" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="9" r="1.4" fill="currentColor"/><circle cx="15" cy="15" r="1.4" fill="currentColor"/></symbol>
+  <symbol id="die3" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="9" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/><circle cx="15" cy="15" r="1.4" fill="currentColor"/></symbol>
+  <symbol id="die4" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="9" r="1.4" fill="currentColor"/><circle cx="15" cy="9" r="1.4" fill="currentColor"/><circle cx="9" cy="15" r="1.4" fill="currentColor"/><circle cx="15" cy="15" r="1.4" fill="currentColor"/></symbol>
+  <symbol id="die5" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="9" r="1.4" fill="currentColor"/><circle cx="15" cy="9" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/><circle cx="9" cy="15" r="1.4" fill="currentColor"/><circle cx="15" cy="15" r="1.4" fill="currentColor"/></symbol>
+  <symbol id="die6" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="8.6" r="1.25" fill="currentColor"/><circle cx="15" cy="8.6" r="1.25" fill="currentColor"/><circle cx="9" cy="12" r="1.25" fill="currentColor"/><circle cx="15" cy="12" r="1.25" fill="currentColor"/><circle cx="9" cy="15.4" r="1.25" fill="currentColor"/><circle cx="15" cy="15.4" r="1.25" fill="currentColor"/></symbol>
   <symbol id="again" viewBox="0 0 20 20"><path d="M15.5 8.5A6 6 0 1 0 16 12M16 4v4.5h-4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/></symbol>
   <!-- Playing cards: a 63 × 88 face (poker size), double gold rule, flourishes on the two free corners. -->
@@ -2334,7 +2690,7 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
     <a class="kit-home" href="#top"><img src="../art/logo-emblem.webp" alt="">The May I? kit</a>
     <div class="kit-grp"><a class="kit-ch" href="#ch-foundations">Foundations</a><a href="#logo">Logo</a><a href="#foundations">Icons, colour and type</a><a href="#deck">The deck</a><a href="#looks">Looks</a></div>
     <div class="kit-grp"><a class="kit-ch" href="#ch-components">Components</a><a href="#controls">Controls</a><a href="#pickers">Pickers</a><a href="#components">Cards and pieces</a><a href="#moments">Moments of fun</a><a href="#system">Sheets and modals</a></div>
-    <div class="kit-grp"><a class="kit-ch" href="#ch-screens">Screens</a><a href="#layout">The round</a><a href="#layout-flow-h">The game, start to finish</a><a href="#layout-home-h">Tables and settings</a><a href="#cabinet">Awards cabinet</a><a href="#stats">Stats and profile</a><a href="#dressing">Dressing room</a><a href="#scan">Photo scan</a><a href="#layout-big-h">Tablets, desktops and TV</a><a href="#layout-night-h">A big night</a></div>
+    <div class="kit-grp"><a class="kit-ch" href="#ch-screens">Screens</a><a href="#layout-rework-h">The rework, 17 Nov</a><a href="#layout">The round</a><a href="#layout-flow-h">The game, start to finish</a><a href="#layout-home-h">Tables and settings</a><a href="#cabinet">Awards cabinet</a><a href="#stats">Stats and profile</a><a href="#dressing">Dressing room</a><a href="#scan">Photo scan</a><a href="#layout-big-h">Tablets, desktops and TV</a><a href="#layout-desk-h">The desktop app</a><a href="#layout-night-h">A big night</a></div>
   </nav>
   <div class="kit-body">
   <header class="hero" id="top">
@@ -2773,6 +3129,53 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
 
 <!-- LAY-START -->
   <!-- ═══ Layouts: overview and the round screen ═══ -->
+
+  <section class="stack" id="layout-rework">
+    <h2 class="rule" id="layout-rework-h">The rework, 17 November</h2>
+    <p class="lay-lede">The app was remade against one brief: it replaces pencil and paper, so every moment has to be faster than writing eight names on a sheet and ruling a grid. Phone first, a tablet on the table a very close second. These are the screens as built. Where an older frame further down disagrees with this section, this section is right.</p>
+    <ol class="rw-rules">
+      <li><b>Ask nothing up front that can be defaulted or asked later.</b> A new table is dealt a May I? name (The Cheeky Jokers, Three of a Kind). Results offers to keep it, roll another or type the table's own, after the first game.</li>
+      <li><b>Nothing pops up when the hand is dealt.</b> The round guide opens when tapped, or every round for tables that switch it on.</li>
+      <li><b>One main action a screen.</b> Home resumes the game that is going, or starts one. Never both.</li>
+      <li><b>Nothing covers a face, and nothing rests under the main button.</b> A buy is confirmed in place of the hint line.</li>
+      <li><b>The app notices what paper can't.</b> A score no hand could hold is asked about once, never blocked.</li>
+      <li><b>The score sheet is always one tap away,</b> mid-game and after. On a tablet the running totals sit under every face.</li>
+      <li><b>Everything that looks tappable works.</b> Every plus, face, dealer tag and empty seat is a real button of at least 44px.</li>
+      <li><b>Game screens stay focused; the guide is always in the same corner.</b> There are no Learn, Play and Stats tabs during a game. The Learn book sits in the top bar of the round, the score pad and between rounds, and Back returns to exactly where the table was. The score pad shows what each card is worth.</li>
+    </ol>
+    <div class="rw-set">
+      <figure class="rw-fig"><img src="ui-kit/rework/start.jpg" alt="The start screen empty, with four names, round 1, and the table's name on Results with its die" loading="lazy" width="1542" height="820"><figcaption><b>The start and the first game.</b> Names and nothing else. Learn is a banner. The D tag passes the deal, Roll for dealer picks for the table, every face opens the dress-up sheet. Dealing goes straight to round 1, at a table already dealt a name. On Results the name can be kept, rolled again with the die, or typed.</figcaption></figure>
+      <figure class="rw-fig"><img src="ui-kit/rework/round.jpg" alt="The round with the leader crowned, a buy message, the score pad with card values, the impossible-score check and between rounds" loading="lazy" width="1930" height="820"><figcaption><b>The round loop.</b> The leader wears the crown, and the guide's book sits in the top bar of every game screen. A buy is confirmed above the faces with Undo. Faces sit in balanced rows for two to eight players. The score pad shows what each card is worth, and a score over what the hand could hold gets one question. Between rounds names the dealer and the cards to deal.</figcaption></figure>
+      <figure class="rw-fig"><img src="ui-kit/rework/finish.jpg" alt="A winner's own card, the results, scores by round, and the score sheet in the game menu" loading="lazy" width="1542" height="820"><figcaption><b>The finish.</b> Every winner gets a real card, with their initial or photo when they have no court card. Award lines are never cut off. Scores by round sits under Share and Rematch, and the same sheet opens mid-game from the menu, where a round's number fixes that round.</figcaption></figure>
+      <figure class="rw-fig"><img src="ui-kit/rework/home.jpg" alt="Home with a game going, Home idle, Learn, and a new table" loading="lazy" width="1542" height="820"><figcaption><b>Coming back.</b> Home has one main action. The crest steps back while a game is going so the tables stay in view. New table is a chip beside the heading. Learn carries only the lesson. A new table seats players first; its name can wait.</figcaption></figure>
+      <figure class="rw-fig"><img src="ui-kit/rework/tablet-round.jpg" alt="The tablet table view for four and eight players, portrait and landscape" loading="lazy" width="2173" height="760"><figcaption><b>A tablet on the table.</b> One screen the whole table can read: the goal in big cards, bigger faces, a running total under every name and the crown on the leader. Up to four players sit in a row; five to eight become a two-column list so everyone fits. Landscape puts the goal on the left.</figcaption></figure>
+      <figure class="rw-fig"><img src="ui-kit/rework/tablet-finish.jpg" alt="Tablet score pad, standings in two columns, and the finish with the winner beside the standings" loading="lazy" width="2616" height="760"><figcaption><b>Tablet scoring and the finish.</b> Score rows a thumb can't miss. In landscape the standings split into two columns, and the winner's card stays on the left while the table and the score sheet scroll on the right.</figcaption></figure>
+    </div>
+    <h3 class="sub">New pieces</h3>
+    <div class="rw-demo">
+      <div>
+        <div class="sgrid-wrap ss-wrap"><table class="ss" data-n="4"><caption class="vh">Scores by round</caption>
+          <thead><tr><th class="ss-rh" scope="col"><span class="vh">Round</span></th><th scope="col"><span class="tok" data-tok="dee"></span><span class="ss-nm">Rachel</span></th><th scope="col"><span class="tok" data-tok="ben"></span><span class="ss-nm">Dino</span></th><th scope="col"><span class="tok" data-tok="cy"></span><span class="ss-nm">Ada</span></th><th scope="col"><span class="tok" data-tok="ana"></span><span class="ss-nm">Chelsea</span></th></tr></thead>
+          <tbody>
+            <tr><th scope="row" class="ss-rh"><button type="button" class="ss-rn" aria-label="Fix round 1, Two Sets">1</button></th><td>35</td><td class="out"><b>0</b></td><td>12</td><td>22</td></tr>
+            <tr><th scope="row" class="ss-rh"><button type="button" class="ss-rn" aria-label="Fix round 2, Set and Run">2</button></th><td class="out"><b>0</b></td><td>18</td><td>40</td><td>5</td></tr>
+            <tr><th scope="row" class="ss-rh"><span class="ss-rn">3</span></th><td>12</td><td>3</td><td class="out"><b>0</b></td><td class="none">–</td></tr>
+          </tbody>
+          <tfoot><tr><th scope="row" class="ss-rh">Total</th><td><b>47</b></td><td class="win"><b>21</b></td><td><b>52</b></td><td><b>27</b></td></tr></tfoot>
+        </table></div>
+        <p class="ph-cap"><b>Score sheet</b> <code>.ss</code>. Players across, rounds down, totals at the foot. Whoever went out wears a gold 0; the lowest total wears the teal pill. A gold round number is a button that fixes that round; a plain one is the round being played. A dash means the player sat out.</p>
+      </div>
+      <div>
+        <div class="rw-pad"><p class="ls-warn" role="alert"><span>335 is more than a 10-card hand can hold.</span><button type="button" class="link">Keep 335</button></p>
+          <p class="lb-dealline"><span class="dl" aria-hidden="true">D</span><span><b>Dino</b> deals 10 each · <b>Ada</b> goes first</span></p></div>
+        <p class="ph-cap"><b>Impossible-score check</b> <code>.ls-warn</code> sits under the row it is about; Save waits until the score is fixed or kept. <b>Dealer line</b> <code>.lb-dealline</code> sits under the standings between rounds.</p>
+      </div>
+      <div>
+        <div style="width: 150px; margin: 0 auto"><div class="dcard mono" style="--suit: #1E8E5A" role="img" aria-label="Chelsea's own card"><div class="face"><svg class="frame"><use href="#cardframe"/></svg><span class="ix tl"><b>C</b></span><span class="mid"><svg class="ring"><use href="#acering"/></svg><b class="ml">C</b></span><span class="ix br"><b>C</b></span></div></div></div>
+        <p class="ph-cap"><b>A player's own card</b> <code>.dcard.mono</code>. For winners who use initials or a photo: their letter in the corners and in the ace's ring, in their colour.</p>
+      </div>
+    </div>
+  </section>
   <section class="stack" id="layout-system">
     <h2 class="rule" id="layout">The round</h2>
     <p class="lay-lede">Headers are part of the background: a page or round title, its round name and its art sit straight on the teal, never in a floating box or card. Three layout sections, in the order a night is played: the round screen, here; then the game start to finish (score the round, between rounds, results and the TV); then home and the table. Every screen is built from the components above and carries one piece of art at hero size. Who's leading is always the same Leaderboard, between rounds, on the TV, at the end of the night and on the table page.</p>
@@ -2802,7 +3205,7 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
     <div class="lay-grid two">
       <div>
         <div class="ph" id="lr-play" aria-label="The round screen">
-          <div class="ph-nav"><button class="ib" aria-label="Back to Friday night"><svg><use href="#chevl"/></svg></button><span class="lbl">Friday night</span><span class="sp"></span><button class="ib" aria-label="Game menu: players, rules and settings"><svg><use href="#gear"/></svg></button></div>
+          <div class="ph-nav"><button class="ib" aria-label="Back to Friday night"><svg><use href="#chevl"/></svg></button><span class="lbl">Friday night</span><span class="sp"></span><button class="ib ib-guide" aria-label="Round guide: rules and tips"><img src="../art/icons/rules.webp" alt=""></button><button class="ib" aria-label="Game menu: players, rules and settings"><svg><use href="#gear"/></svg></button></div>
           <div class="ph-body lr-body">
             <div class="lr-head"><span class="lr-pips" aria-hidden="true"><i class="done"></i><i class="done"></i><i class="done"></i><i class="now"></i><i></i><i></i><i></i></span><span class="lr-rn">Round 4 of 7</span><h3>Three Sets</h3></div>
             <button class="lr-goal" aria-label="Three Sets: three of a kind, three times. Open the round guide">
@@ -2816,9 +3219,9 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
             </button>
             <div class="lr-may">
               <div class="lr-mayh"><img src="../art/icons/mayi.webp" alt=""><h4>May I?</h4></div>
-              <p class="lr-mayp">Tap a face when someone wins a buy. Three each.</p>
-              <div class="lr-buys" id="lrBuys" data-limit="3">
-                <button class="lr-b" data-k="dee" data-buys="1"></button>
+              <div class="lr-mayslot"><p class="lr-mayp">Tap a face when someone wins a buy. Three each.</p></div>
+              <div class="lr-buys" id="lrBuys" data-limit="3" data-n="6">
+                <button class="lr-b" data-k="dee" data-buys="1" data-lead></button>
                 <button class="lr-b" data-k="ben" data-buys="0" data-deal></button>
                 <button class="lr-b" data-k="cy" data-buys="0" data-first></button>
                 <button class="lr-b" data-k="ana" data-buys="2"></button>
@@ -2902,8 +3305,8 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
               <div class="gm-list">
                 <button class="gm-row"><img src="../art/icons/friends.webp" alt=""><span class="gm-t"><b>Players</b><small>Seats, sitting out, adding someone</small></span><svg class="gm-chev" aria-hidden="true"><use href="#chevl"/></svg></button>
                 <button class="gm-row"><img src="../art/icons/rules.webp" alt=""><span class="gm-t"><b>Round guide</b><small>Three Sets, tips and the house rules</small></span><svg class="gm-chev" aria-hidden="true"><use href="#chevl"/></svg></button>
-                <button class="gm-row"><img src="../art/icons/scores.webp" alt=""><span class="gm-t"><b>Fix an earlier round</b><small>Change a score from rounds 1 to 3</small></span><svg class="gm-chev" aria-hidden="true"><use href="#chevl"/></svg></button>
-                <button class="gm-row"><img src="../art/icons/settings.webp" alt=""><span class="gm-t"><b>Look, sounds and scanner</b><small>The app's settings</small></span><svg class="gm-chev" aria-hidden="true"><use href="#chevl"/></svg></button>
+                <button class="gm-row"><img src="../art/icons/scores.webp" alt=""><span class="gm-t"><b>Scores so far</b><small>Every round on one sheet, and fixing a score</small></span><svg class="gm-chev" aria-hidden="true"><use href="#chevl"/></svg></button>
+                <button class="gm-row"><img src="../art/icons/settings.webp" alt=""><span class="gm-t"><b>Settings</b><small>Text size, sounds and the card scanner</small></span><svg class="gm-chev" aria-hidden="true"><use href="#chevl"/></svg></button>
               </div>
               <div class="gm-list gm-end">
                 <button class="gm-row"><img src="../art/icons/curtaincall.webp" alt=""><span class="gm-t"><b>Finish now and count</b><small>Ends after round 3. Lowest total wins.</small></span><svg class="gm-chev" aria-hidden="true"><use href="#chevl"/></svg></button>
@@ -2994,9 +3397,9 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
       <!-- 1 · Score the round -->
       <div>
         <div class="ph" id="lb-score-ph" aria-label="Score the round">
-          <div class="ph-nav"><button class="ib" aria-label="Back to the round"><svg><use href="#chevl"/></svg></button><span class="lbl">Round 4</span><span class="sp"></span><button class="ib" aria-label="Close the score pad"><svg><use href="#xmark"/></svg></button></div>
+          <div class="ph-nav"><button class="ib" aria-label="Back to the round"><svg><use href="#chevl"/></svg></button><span class="lbl">Round 4</span><span class="sp"></span><button class="ib ib-guide" aria-label="Round guide: rules and tips"><img src="../art/icons/rules.webp" alt=""></button></div>
           <div class="ph-body ls-body" id="lsPad">
-            <div class="lb-step"><h3>Score round 4</h3><p class="ls-lead">Type what's left in each hand, or tap the cards to count it.</p></div>
+            <div class="lb-step"><h3>Score round 4</h3><p class="ls-lead">Type what's left in each hand, or tap the cards to count it.</p><p class="ls-vals" aria-label="What each card is worth"><span>2 to 9<b>face value</b></span><span>10, J, Q, K<b>10 each</b></span><span>Ace<b>15</b></span><span>Joker<b>15</b></span></p></div>
             <div class="ls-rows picked">
               <div class="ls-row" data-k="dee" data-t="40"><span class="tok" data-tok="dee"></span><span class="ls-nm"><b>Rachel</b><small class="ls-tot">40 → 45</small></span><button class="ls-out" aria-pressed="false" aria-label="Rachel went out">Out</button><input class="ls-in" inputmode="numeric" pattern="[0-9]*" maxlength="3" value="5" placeholder="–" aria-label="Rachel's points this round"><button class="ls-cards" aria-label="Count Rachel's hand with cards"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="10" height="14" rx="2" transform="rotate(-10 8.5 12)" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="10" y="4" width="10" height="14" rx="2" transform="rotate(8 15 11)" fill="currentColor" fill-opacity=".25" stroke="currentColor" stroke-width="1.8"/></svg></button></div>
               <div class="ls-row" data-k="ben" data-t="55"><span class="tok" data-tok="ben"></span><span class="ls-nm"><b>Dino</b><small class="ls-tot">55 → 80</small></span><button class="ls-out" aria-pressed="false" aria-label="Dino went out">Out</button><input class="ls-in" inputmode="numeric" pattern="[0-9]*" maxlength="3" value="25" placeholder="–" aria-label="Dino's points this round"><button class="ls-cards" aria-label="Count Dino's hand with cards"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="10" height="14" rx="2" transform="rotate(-10 8.5 12)" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="10" y="4" width="10" height="14" rx="2" transform="rotate(8 15 11)" fill="currentColor" fill-opacity=".25" stroke="currentColor" stroke-width="1.8"/></svg></button></div>
@@ -3097,10 +3500,10 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
           <div class="ph-body lb-between">
             <h3 class="won lb-won"><img src="../art/icons/out.webp" alt="">Ada went out first</h3>
             <ol class="ldr" id="lbBoard" aria-label="Standings after round 4" data-deal="cy" data-deal-in data-rows="dee|45||crown|Still leading, 5 in hand; ben|80|W2|rollercoaster|Caught with 25; cy|72|U1|comeback|Up to 3rd; ana|71|U1|mayi|Two buys, up to 2nd; eve|111|W1|heavy|Biggest hand, 30; fin|95|U1|upfrombottom|Off the bottom"></ol>
+            <p class="lb-dealline"><span class="dl" aria-hidden="true">D</span><span><b>Ada</b> deals 12 each · <b>Chelsea</b> goes first</span></p>
             <div class="lb-nextr">
               <h3>Next round</h3>
               <div class="guides lb-guides" data-guides-from="5" tabindex="0" role="region" aria-label="Round guide: round 5 next, then 6 and 7. Scroll sideways for the rounds after."></div>
-              <p>Ada deals · Chelsea starts</p>
             </div>
           </div>
           <div class="ph-dock lb-dock"><button class="link">Undo round 4</button><button class="kb">Let's play</button></div>
@@ -3162,6 +3565,10 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
               <p><b>The night in one card.</b> Rachel's card, every place and every highlight, ready for the group chat.</p>
             </div>
             <div class="lb-two"><button class="kb cream"><svg><use href="#share"/></svg>Share</button><button class="kb"><svg><use href="#again"/></svg>Rematch</button></div>
+            <section class="lb-sheet" aria-label="Scores by round" style="display:grid;gap:10px;margin-top:26px"><h3 style="margin:0;font:800 1.25rem/1.1 var(--display);color:var(--on-bg)">Scores by round</h3><div class="sgrid-wrap ss-wrap" style="padding:4px 6px 6px"><table class="ss" data-n="4"><caption class="vh">Scores by round</caption>
+<thead><tr><th class="ss-rh" scope="col"><span class="vh">Round</span></th><th scope="col"><span class="tok" data-tok="dee"></span><span class="ss-nm">Rachel</span></th><th scope="col"><span class="tok" data-tok="ben"></span><span class="ss-nm">Dino</span></th><th scope="col"><span class="tok" data-tok="cy"></span><span class="ss-nm">Ada</span></th><th scope="col"><span class="tok" data-tok="ana"></span><span class="ss-nm">Chelsea</span></th></tr></thead>
+<tbody><tr><th scope="row" class="ss-rh"><span class="ss-rn">1</span></th><td>35</td><td class="out"><b>0</b></td><td>12</td><td>22</td></tr><tr><th scope="row" class="ss-rh"><span class="ss-rn">2</span></th><td class="out"><b>0</b></td><td>18</td><td>40</td><td>5</td></tr><tr><th scope="row" class="ss-rh"><span class="ss-rn">3</span></th><td>12</td><td>3</td><td class="out"><b>0</b></td><td>77</td></tr></tbody>
+<tfoot><tr><th scope="row" class="ss-rh">Total</th><td><b>47</b></td><td class="win"><b>21</b></td><td><b>52</b></td><td><b>104</b></td></tr></tfoot></table></div></section>
           </div>
         </div>
         <div class="demo-bar"><button class="replay" data-replay="lbFinale"><svg><use href="#again"/></svg>Replay the finale</button></div>
@@ -3257,20 +3664,18 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
               <span class="live">Playing now</span>
               <span class="name">Grandma's Christmas Hayley rematch</span>
               <span class="meta">Round 4 of 7 · <b>Three Sets</b></span>
-              <span class="foot"><span class="avs"><span class="av sm" data-p="dee"></span><span class="av sm" data-p="ben"></span><span class="av sm" data-p="cy"></span><span class="av sm" data-p="ana"></span></span><span class="grow"></span><span class="kb sm">Resume</span></span>
+              <span class="foot"><span class="avs"><span class="av sm" data-p="dee"></span><span class="av sm" data-p="ben"></span><span class="av sm" data-p="cy"></span><span class="av sm" data-p="ana"></span></span><span class="grow"></span><span class="leads"><img src="../art/crown.webp" alt="">Rachel leads</span><svg class="chev lc-nowchev" aria-hidden="true" style="width:18px;height:18px;color:#FFE7A3"><use href="#chev"/></svg></span>
             </button>
-            <div class="kt lc-last"><img src="../art/icons/trophy.webp" alt=""><div><b>Rachel won Monday by 6</b><span>Her 12th win at Monday table</span></div></div>
-            <h3 class="lc-h">Your tables</h3>
+            <div class="lc-hact"><h3 class="lc-h">Tables</h3><button class="qp"><svg><use href="#plus"/></svg>New table</button></div>
             <div class="blocks lc-blocks">
               <button class="blk teal" aria-label="Monday table: Rachel holds it with 12 wins"><span><b>Monday table</b><small>Rachel holds it · 12 wins</small></span><span class="avs"><span class="av sm" data-p="dee"></span><span class="av sm" data-p="ben"></span><span class="av sm" data-p="cy"></span></span><span class="lc-champ-c" data-c="heart-q" aria-hidden="true"></span><img class="lc-crown" src="../art/crown.webp" alt=""></button>
               <button class="blk sap" aria-label="Family: Dino holds it, 31 games"><span><b>Family</b><small>Dino holds it · 31 games</small></span><span class="avs"><span class="av sm" data-p="ben"></span><span class="av sm" data-p="ana"></span><span class="av sm" data-p="dee"></span></span><span class="lc-champ-c" data-c="spade-k" aria-hidden="true"></span><img class="lc-crown" src="../art/crown.webp" alt=""></button>
               <button class="blk ruby" aria-label="Lake house: Ada holds it, 4 games"><span><b>Lake house</b><small>Ada holds it · 4 games</small></span><span class="avs"><span class="av sm" data-p="cy"></span><span class="av sm" data-p="ana"></span></span><span class="lc-champ-c" data-c="club-j" aria-hidden="true"></span><img class="lc-crown" src="../art/crown.webp" alt=""></button>
-              <button class="blk add"><span class="plus"><svg><use href="#plus"/></svg></span><b>New table</b></button>
             </div>
             <button class="link lc-join">Join a table with a code</button>
           </div>
           <div class="ph-dock lc-dock-home">
-            <button class="kb cream">New game</button>
+            <button class="kb">Resume the game</button>
             <div class="tabbar" role="navigation" aria-label="Main">
               <button class="tab"><img src="../art/icons/rules.webp" alt="">Learn</button>
               <button class="tab" aria-current="page"><img src="../art/icons/play.webp" alt="">Play</button>
@@ -3282,22 +3687,21 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
       </div>
       <div>
         <div class="ph" aria-label="First run">
-          <div class="ph-nav"><button class="ib" aria-label="Back"><svg><use href="#chevl"/></svg></button><span class="sp"></span></div>
-          <div class="ph-body lc-first">
+          <div class="ph-body lc-first started">
             <h3>Pull up a chair.</h3>
-            <p>Seven rounds, each with its own goal. Lowest score wins.</p>
             <div class="lc-who">
-              <h4>Who's playing?</h4>
-              <div class="lc-name"><span class="tok" data-tok="dee"></span><span class="nm">Rachel</span></div>
-              <div class="lc-name"><span class="tok" data-tok="ben"></span><span class="nm">Dino</span></div>
-              <div class="lc-name typing"><span class="tok lc-face-in" data-tok="cy"></span><span class="nm">Ada</span></div>
+              <div class="lc-whoh"><h4>Who's playing?</h4><button class="qp"><svg><use href="#die"/></svg>Roll for dealer</button></div>
+              <div class="lc-name"><span class="lc-face"><span class="tok" data-tok="dee"></span><span class="pe-badge" aria-hidden="true"><svg><use href="#hanger"/></svg></span></span><span class="nm">Rachel</span><button class="lc-dtag" aria-label="Rachel deals first. Pass the deal to Dino"><span class="dl" aria-hidden="true">D</span>Deals first</button></div>
+              <div class="lc-name"><span class="lc-face"><span class="tok" data-tok="ben"></span><span class="pe-badge" aria-hidden="true"><svg><use href="#hanger"/></svg></span></span><span class="nm">Dino</span></div>
+              <div class="lc-name typing"><span class="lc-face"><span class="tok lc-face-in" data-tok="cy"></span><span class="pe-badge" aria-hidden="true"><svg><use href="#hanger"/></svg></span></span><span class="nm">Ada</span></div>
               <div class="lc-name lc-empty"><span class="lc-plus"><svg><use href="#plus"/></svg></span><span class="nm">Add a name</span></div>
+              <p class="lc-facehint">Tap a face to change it, or the D to pass the deal.</p>
             </div>
-            <p class="lc-tname">Playing at <b>Monday table</b><button class="lc-edit" aria-label="Rename the table"><svg><use href="#edit"/></svg></button></p>
+            <button class="lc-newto"><span class="lc-newto-art" aria-hidden="true"><img class="hand" src="../art/hero-hand.webp" alt=""><img class="q" src="../art/icons/mayi.webp" alt=""></span><span class="lc-newto-t"><b>New to May I?</b><small>Learn it in a minute</small></span><svg class="chev"><use href="#chev"/></svg></button>
           </div>
           <div class="ph-dock"><button class="kb">Deal the first hand</button></div>
         </div>
-        <p class="ph-cap"><b>First run.</b> One line of table talk, then names first. The round's goal is shown on the round screen that follows, so this screen doesn't repeat it. A face appears the moment a name is typed; the table is called Monday table until someone renames it.</p>
+        <p class="ph-cap"><b>First run.</b> Names and nothing else, so the first hand is dealt faster than ruling a score sheet. The first name typed deals; the D tag passes the deal one seat a tap, and Roll for dealer picks for the table. Every face opens the dress-up sheet. The table names itself after the day and asks for a real name on Results, after the first game. Learn is a banner with the cards and the question mark, never a text link. Nothing pops up when the hand is dealt: the round guide opens only when tapped, unless the table switches on Guide every round.</p>
       </div>
     </div>
 
@@ -3316,7 +3720,8 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
               <p class="lr-dealrow"><span>At <b>Monday table</b></span><button class="link ink">Change table</button></p>
               <div class="ng-h"><h3 class="sub">Who's playing</h3><button class="qp"><svg><use href="#die"/></svg>Roll for dealer</button></div>
               <div class="ng-faces"><button class="ng-f" aria-pressed="true" aria-label="Rachel, deals first, playing"><span class="ng-t"><span class="tok" data-tok="dee"></span><span class="dl" aria-hidden="true">D</span><span class="ng-ok" aria-hidden="true"><svg><use href="#tick"/></svg></span></span><b>Rachel</b></button><button class="ng-f" aria-pressed="true" aria-label="Dino, playing"><span class="ng-t"><span class="tok" data-tok="ben"></span><span class="ng-ok" aria-hidden="true"><svg><use href="#tick"/></svg></span></span><b>Dino</b></button><button class="ng-f" aria-pressed="false" aria-label="Ada, not playing"><span class="ng-t"><span class="tok" data-tok="cy"></span><span class="ng-ok" aria-hidden="true"><svg><use href="#tick"/></svg></span></span><b>Ada</b></button><button class="ng-f" aria-pressed="true" aria-label="Chelsea, playing"><span class="ng-t"><span class="tok" data-tok="ana"></span><span class="ng-ok" aria-hidden="true"><svg><use href="#tick"/></svg></span></span><b>Chelsea</b></button><button class="ng-f" aria-pressed="true" aria-label="Hayley, playing"><span class="ng-t"><span class="tok" data-tok="eve"></span><span class="ng-ok" aria-hidden="true"><svg><use href="#tick"/></svg></span></span><b>Hayley</b></button><button class="ng-f" aria-pressed="false" aria-label="Junior, not playing"><span class="ng-t"><span class="tok" data-tok="fin"></span><span class="ng-ok" aria-hidden="true"><svg><use href="#tick"/></svg></span></span><b>Junior</b></button><button class="ng-f" aria-pressed="false" aria-label="Tony, not playing"><span class="ng-t"><span class="tok" data-tok="gus"></span><span class="ng-ok" aria-hidden="true"><svg><use href="#tick"/></svg></span></span><b>Tony</b></button><button class="ng-f ng-add"><span class="ng-t"><span class="ng-plus"><svg><use href="#plus"/></svg></span></span><b>Add</b></button></div>
-              <p class="fine">Tap a face to deal them in or out. Rachel deals first; press and hold a face to pick another dealer.</p>
+              <button type="button" class="lc-dtag ng-dtag" aria-label="Rachel deals first. Pass the deal to Dino"><span class="dl" aria-hidden="true">D</span><span><b>Rachel</b> deals first</span><small>Pass the deal</small></button>
+              <p class="fine">Tap a face to deal them in or out.</p>
               <button class="prow ng-rules"><img src="../art/icons/rules.webp" alt=""><span class="grow"><b>House rules</b><small>Aces 15 · Jokers wild · 3 buys a round</small></span><svg class="chev"><use href="#chev"/></svg></button>
             </div>
             <div class="foot"><button class="kb">Deal round 1</button></div>
@@ -3394,11 +3799,11 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
         <div class="ph" id="lc-newtable" aria-label="New table">
           <div class="ph-nav"><button class="ib" aria-label="Back to home"><svg><use href="#chevl"/></svg></button><span class="lbl">Home</span></div>
           <div class="ph-body nt-body">
-            <div class="nt-head"><h3>A new table</h3><p>Name it, then seat everyone who plays here.</p></div>
-            <div class="kfield nt-name"><label for="ntName">Table name</label><input id="ntName" value="Thursday crew" maxlength="30" placeholder="Like Family or Thursday crew"></div>
+            <div class="nt-head"><h3>A new table</h3><p>Seat everyone who plays here. The name can wait.</p></div>
             <div class="nt-table" role="group" aria-label="Seats, 3 of 8 taken"><button class="nt-seat" style="left:50.0%;top:15.0%" aria-label="Rachel: change card, photo or colour"><span class="tok" data-tok="dee"></span><b>Rachel</b></button><button class="nt-seat" style="left:76.2%;top:25.3%" aria-label="Dino: change card, photo or colour"><span class="tok" data-tok="ben"></span><b>Dino</b></button><button class="nt-seat" style="left:87.0%;top:50.0%" aria-label="Chelsea: change card, photo or colour"><span class="tok" data-tok="ana"></span><b>Chelsea</b></button><span class="nt-seat empty" style="left:76.2%;top:74.7%" aria-hidden="true"><i><svg><use href="#plus"/></svg></i></span><span class="nt-seat empty" style="left:50.0%;top:85.0%" aria-hidden="true"><i><svg><use href="#plus"/></svg></i></span><span class="nt-seat empty" style="left:23.8%;top:74.7%" aria-hidden="true"><i><svg><use href="#plus"/></svg></i></span><span class="nt-seat empty" style="left:13.0%;top:50.0%" aria-hidden="true"><i><svg><use href="#plus"/></svg></i></span><span class="nt-seat empty" style="left:23.8%;top:25.3%" aria-hidden="true"><i><svg><use href="#plus"/></svg></i></span><span class="nt-mid"><b>3</b> of 8 seats</span></div>
             <form class="nt-add" onsubmit="return false"><span class="pe-plus" aria-hidden="true"><svg><use href="#plus"/></svg></span><input value="Kai" maxlength="20" aria-label="New player's name" placeholder="Add a player"><button class="qp" type="submit">Seat</button></form>
             <p class="nt-hint">Tap a face to pick their card, add a photo or change their colour.</p>
+            <div class="kfield kname"><label for="ntName">Table name, now or later</label><div class="kname-row"><input id="ntName" value="The Cheeky Jokers" maxlength="30" placeholder="Type one, or roll the die"><button type="button" class="ib cream kname-die" aria-label="Deal a name for the table"><svg><use href="#die5"/></svg></button></div></div>
           </div>
           <div class="ph-dock"><button class="kb">Create table</button></div>
         </div>
@@ -3580,8 +3985,8 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
                 <p class="lc-say">Everyone else adds up their hand: 2 to 9 at face value, 10 J Q K at 10, Ace and Joker at 15.</p></article>
             </div>
             <div class="lc-dots" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-            <p class="lc-stepof" id="lc-stepof" aria-live="polite">Step 1 of 7</p>
-            <div class="call"><span class="ci"><svg><use href="#flag"/></svg></span><span><b>House rules</b><p>Ace and Joker count 15 unless your table changes them.</p></span></div>
+            <p class="lc-stepof" id="lc-stepof" aria-live="polite" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Step 1 of 7</p>
+
           </div>
           <div class="ph-dock lc-dock2"><button class="kb">Start a game</button><button class="link">See the 7 rounds</button></div>
         </div>
@@ -3829,51 +4234,15 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
   <!-- ═══ Layout: bigger screens ═══ -->
   <section class="stack" id="layout-big">
     <h2 class="rule" id="layout-big-h">Tablets, desktops and the TV</h2>
-    <p class="lay-lede">The same screens with room to breathe. Nothing new to learn: the phone's one column becomes two, side by side, so the thing you're looking at and the thing you tap sit together. The one teal button stays at the bottom, in thumb reach on a tablet held in both hands.</p>
-    <div class="bf-wrap"><div class="bf" data-fit="1180" data-max="1" style="--w:1180;--h:820" aria-label="Tablet, during round 4"><div class="bf-screen bs-round">
-<div class="bf-bar"><button class="ib" aria-label="Back to Friday night"><svg><use href="#chevl"/></svg></button><span class="lbl">Friday night</span><span class="sp"></span><button class="qp"><svg><use href="#plus"/></svg>Add a player</button><button class="ib" aria-label="Game menu: players, rules and settings"><svg><use href="#gear"/></svg></button></div>
-<div class="bs-rgrid">
-  <div class="bs-rleft">
-    <div class="lr-head"><span class="lr-pips" aria-hidden="true"><i class="done"></i><i class="done"></i><i class="done"></i><i class="now"></i><i></i><i></i><i></i></span><span class="lr-rn">Round 4 of 7</span><h3>Three Sets</h3></div>
-    <button class="lr-goal" aria-label="Three Sets: three of a kind, three times. Open the round guide"><span class="lr-melds" aria-hidden="true"><span class="lr-meld"><span data-c="heart-7"></span><span data-c="spade-7"></span><span data-c="diamond-7"></span></span><span class="lr-meld"><span data-c="club-q"></span><span data-c="heart-q"></span><span data-c="spade-q"></span></span><span class="lr-meld"><span data-c="diamond-4"></span><span data-c="club-4"></span><span data-c="joker"></span></span></span><span class="lr-rule">Three of a kind, three times. A joker can fill any set.</span><span class="lr-more">Round guide<svg aria-hidden="true"><use href="#chevl"/></svg></span></button>
-    <div class="bs-sc"><h4>After round 3</h4><ol class="ldr dense" data-rows="dee|35||crown|Leading by 9; ana|44; cy|52; ben|58; fin|61; eve|80"></ol></div>
-  </div>
-  <div class="lr-may bs-may">
-    <div class="lr-mayh"><img src="../art/icons/mayi.webp" alt=""><h4>May I?</h4></div>
-    <p class="lr-mayp">Tap a face when someone wins a buy. Three each.</p>
-    <div class="lr-buys" data-limit="3"><button class="lr-b" data-k="dee" data-buys="1"></button><button class="lr-b" data-k="ben" data-buys="0" data-deal></button><button class="lr-b" data-k="cy" data-buys="0" data-first></button><button class="lr-b" data-k="ana" data-buys="2"></button><button class="lr-b" data-k="eve" data-buys="3"></button><button class="lr-b" data-k="fin" data-buys="1"></button></div>
-  </div>
-</div>
-<div class="bf-dock"><button class="kb">Someone went out</button></div></div></div></div>
-    <p class="bf-cap"><b>Tablet · the round.</b> The round's goal and the scores so far on the left, the May I? table on the right with bigger faces. On a tablet passed around the table, everyone can read the scores without asking. Add a player sits in the top bar because there's room.</p>
-    <div class="bf-wrap"><div class="bf" data-fit="1180" data-max="1" style="--w:1180;--h:820" aria-label="Tablet, scoring round 4"><div class="bf-screen bs-score">
-<div class="bf-bar"><button class="ib" aria-label="Back to the round"><svg><use href="#chevl"/></svg></button><span class="lbl">Friday night</span><span class="sp"></span><span class="meta">Round 4 of 7 · Three Sets</span></div>
-<div class="bs-sgrid">
-  <div><div class="bs-shd"><h3>Score round 4</h3><p>Ada went out first. Add up what's left in each hand.</p></div><ul class="bs-rows"><li class=""><span class="tok" data-tok="cy"></span><b data-nm="cy"></b><span class="outp">Out!</span></li><li class=""><span class="tok" data-tok="dee"></span><b data-nm="dee"></b><span class="v">20</span></li><li class=""><span class="tok" data-tok="ben"></span><b data-nm="ben"></b><span class="v">45</span></li><li class="on"><span class="tok" data-tok="ana"></span><b data-nm="ana"></b><span class="v">35</span></li><li class=""><span class="tok" data-tok="eve"></span><b data-nm="eve"></b><span class="v wait">Next</span></li><li class=""><span class="tok" data-tok="fin"></span><b data-nm="fin"></b><span class="v wait">Next</span></li></ul></div>
-  <div class="bs-pad">
-    <div class="bs-padh"><h4>Chelsea's hand</h4><b>35</b></div>
-    <div class="bs-hand"><span data-c="spade-k" style="--r:-8deg"></span><span data-c="heart-a" style="--r:-3deg"></span><span data-c="diamond-5" style="--r:2deg"></span><span data-c="club-5" style="--r:7deg"></span></div>
-    <div class="ckeys-t"><button class="ck"><b>A</b><small>15</small></button><button class="ck"><b>2</b><small>2</small></button><button class="ck"><b>3</b><small>3</small></button><button class="ck"><b>4</b><small>4</small></button><button class="ck"><b>5</b><small>5</small></button><button class="ck"><b>6</b><small>6</small></button><button class="ck"><b>7</b><small>7</small></button><button class="ck"><b>8</b><small>8</small></button><button class="ck"><b>9</b><small>9</small></button><button class="ck"><b>10</b><small>10</small></button><button class="ck"><b>J</b><small>10</small></button><button class="ck"><b>Q</b><small>10</small></button><button class="ck"><b>K</b><small>10</small></button><button class="ck jk"><b>★</b><small>15</small></button></div>
-    <div class="bs-padf"><button class="link">Type a number instead</button><button class="kb cream sm">Next: Hayley</button></div>
-  </div>
-</div>
-<div class="bf-dock"><button class="kb">Save round 4</button></div></div></div></div>
-    <p class="bf-cap"><b>Tablet · score the round.</b> The pad never covers the list. Each hand is counted on the right while the list on the left fills in, and Next moves down the table. The cards tapped show as a real hand, so a wrong card is easy to spot.</p>
-    <div class="bf-wrap"><div class="bf desk" data-fit="1440" data-max="1" style="--w:1440;--h:900" aria-label="Desktop, the table page"><div class="bf-screen bs-desk">
-<nav class="bs-rail" aria-label="May I?">
-  <img class="logo" src="../art/logo-wordmark-v2.webp" alt="May I?">
-  <div class="bs-nav"><h4>Tables</h4>
-    <a href="#" aria-current="page">Friday night<span class="avs2"><span class="tok" data-tok="dee"></span><span class="tok" data-tok="ben"></span><span class="tok" data-tok="cy"></span></span></a>
-    <a href="#">The cousins<span class="avs2"><span class="tok" data-tok="cy"></span><span class="tok" data-tok="ana"></span></span></a>
-    <a href="#">Holiday cabin<span class="avs2"><span class="tok" data-tok="ana"></span><span class="tok" data-tok="dee"></span></span></a>
-    <a href="#"><img src="../art/icons/socialbutterfly.webp" alt="">A big night</a>
-  </div>
-  <div class="bs-nav"><a href="#"><img src="../art/icons/scores.webp" alt="">Stats</a><a href="#"><img src="../art/icons/trophy.webp" alt="">Cabinets</a><a href="#"><img src="../art/icons/settings.webp" alt="">Settings</a></div>
-</nav>
+    <p class="lay-lede">A tablet set on the table is the scoreboard everyone reads. The round shows the goal in big cards and a running total under every face; the other screens keep the phone's layout in a wider column with larger type. The one main button stays at the bottom, in thumb reach.</p>
+    <figure class="rw-fig"><img src="ui-kit/rework/tablet-round.jpg" alt="The tablet table view for four and eight players, portrait and landscape" loading="lazy" width="2173" height="760"><figcaption><b>Tablet · the round, as built.</b> One screen the whole table can read: the goal in big cards, bigger faces, a running total under every name and the crown on the leader. Up to four players sit in a row; five to eight become a two-column list so everyone fits. Landscape puts the goal on the left. The guide's book stays in the top bar.</figcaption></figure>
+    <figure class="rw-fig"><img src="ui-kit/rework/tablet-finish.jpg" alt="Tablet score pad, standings in two columns, and the finish with the winner beside the standings" loading="lazy" width="2616" height="760"><figcaption><b>Tablet · scoring and the finish, as built.</b> Score rows a thumb can't miss, with what each card is worth above them. In landscape the standings split into two columns, and the winner's card stays on the left while the table and the score sheet scroll on the right.</figcaption></figure>
+    <div class="bf-wrap"><div class="bf desk" data-fit="1440" data-max="1" style="--w:1440;--h:900" aria-label="Desktop, the table page"><div class="bf-screen bs-desk dk-old">
+<nav class="bs-rail dk-rail" aria-label="May I?"><img class="logo" src="../art/logo-wordmark-v2.webp" alt="May I?"><div class="dk-railmid"><div class="bs-nav"><a href="#" aria-current="page"><img src="../art/icons/play.webp" alt="">Play</a><a href="#"><img src="../art/icons/rules.webp" alt="">Learn</a><a href="#"><img src="../art/icons/trophy.webp" alt="">Stats</a></div><div class="bs-nav"><h4>Tables</h4><a href="#" aria-current="page"><span class="dk-tn">Friday night<span class="dk-live">Playing now</span></span><span class="avs2"><span class="tok" data-tok="dee"></span><span class="tok" data-tok="ben"></span><span class="tok" data-tok="cy"></span></span></a><a href="#"><span class="dk-tn">The cousins</span><span class="avs2"><span class="tok" data-tok="cy"></span><span class="tok" data-tok="ana"></span></span></a><a href="#"><span class="dk-tn">Holiday cabin</span><span class="avs2"><span class="tok" data-tok="ana"></span><span class="tok" data-tok="dee"></span></span></a><a href="#" class="dk-add"><span class="lc-plus"><svg><use href="#plus"/></svg></span>New table</a></div></div><div class="bs-nav"><a href="#"><img src="../art/icons/settings.webp" alt="">Settings</a></div></nav>
 <div class="bs-main">
   <div class="bs-hero"><span class="fan2" aria-hidden="true"><span data-c="heart-q" style="--r:-10deg"></span><span data-c="spade-k" style="--r:0deg"></span><span data-c="club-j" style="--r:10deg"></span></span>
     <div><h2>Friday night</h2><p>Rachel, Dino, Ada, Chelsea, Hayley and Junior · 31 games since March</p></div>
-    <div class="acts"><button class="kb cream"><svg><use href="#link"/></svg>Invite</button><button class="kb">Start a game</button></div></div>
+    <div class="acts"><button class="kb">Start a game</button></div></div>
   <div class="bs-cols">
     <div><h3>Most wins</h3><ol class="ldr" data-hi data-unit="wins" data-rows="dee|11||crown|Hat trick last week; ben|7||comeback|Two wins in a row; cy|5||mayi|Buys the most; ana|4||steady|Steadiest hand; eve|3||heavy|Biggest single round; fin|1||goodsport|First win in October"></ol></div>
     <div><h3>Recent games</h3><ul class="bs-games"><li><time>Fri 14 Nov</time><span class="tok" data-tok="dee"></span><b>Rachel won<small>Hat trick in rounds 5, 6 and 7</small></b><em>212</em></li><li><time>Fri 7 Nov</time><span class="tok" data-tok="ben"></span><b>Dino won<small>Up from 4th in the last round</small></b><em>240</em></li><li><time>Fri 31 Oct</time><span class="tok" data-tok="dee"></span><b>Rachel won<small>Never more than 40 in a round</small></b><em>198</em></li><li><time>Fri 24 Oct</time><span class="tok" data-tok="cy"></span><b>Ada won<small>Six buys, the most that night</small></b><em>231</em></li><li><time>Fri 17 Oct</time><span class="tok" data-tok="ana"></span><b>Chelsea won<small>Won by 2 points</small></b><em>226</em></li></ul>
@@ -3881,6 +4250,209 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
   </div>
 </div></div></div></div>
     <p class="bf-cap"><b>Desktop · the table page.</b> Tables live in a rail on the left. The table's hero, its most-wins leaderboard and its recent games share one screen. A list fits here because scanning many games is the job.</p>
+  </section>
+
+  <!-- ═══ Layout: the desktop app ═══ -->
+  <section class="stack" id="layout-desk">
+    <h2 class="rule" id="layout-desk-h">The desktop app</h2>
+    <p class="lay-lede">Two jobs on a big screen. At the table, a laptop keeps score where everyone can see it, so the game becomes the score sheet families already keep on paper, typed into from the keyboard. Afterwards, the same screen is for looking back, so Home, the table and Stats become dashboards to scan and sort. The materials match the phone; the layout follows the job.</p>
+    <div class="bf-wrap"><div class="bf desk" data-fit="1440" data-max="1" style="--w:1440;--h:900" aria-label="Desktop, the score sheet during round 4"><div class="bf-screen bs-desk dk dk-game"><nav class="bs-rail dk-rail" aria-label="May I?"><img class="logo" src="../art/logo-wordmark-v2.webp" alt="May I?"><div class="dk-railmid"><div class="bs-nav"><a href="#" aria-current="page"><img src="../art/icons/play.webp" alt="">Play</a><a href="#"><img src="../art/icons/rules.webp" alt="">Learn</a><a href="#"><img src="../art/icons/trophy.webp" alt="">Stats</a></div><div class="bs-nav"><h4>Tables</h4><a href="#" aria-current="page"><span class="dk-tn">Friday night<span class="dk-live">Playing now</span></span><span class="avs2"><span class="tok" data-tok="dee"></span><span class="tok" data-tok="ben"></span><span class="tok" data-tok="cy"></span></span></a><a href="#"><span class="dk-tn">The cousins</span><span class="avs2"><span class="tok" data-tok="cy"></span><span class="tok" data-tok="ana"></span></span></a><a href="#"><span class="dk-tn">Holiday cabin</span><span class="avs2"><span class="tok" data-tok="ana"></span><span class="tok" data-tok="dee"></span></span></a><a href="#" class="dk-add"><span class="lc-plus"><svg><use href="#plus"/></svg></span>New table</a></div></div><div class="bs-nav"><a href="#"><img src="../art/icons/settings.webp" alt="">Settings</a></div></nav>
+<div class="bs-main">
+  <div class="dk-tb"><button class="ib" aria-label="Back to Friday night"><svg><use href="#chevl"/></svg></button><div class="dk-tt"><h3>Friday night</h3><p>Round 4 of 7 · Three Sets · Dino dealt 12, Ada starts</p></div><span class="sp"></span><button class="qp"><svg><use href="#plus"/></svg>Add a player</button><button class="ib" aria-label="Game menu"><svg><use href="#gear"/></svg></button></div>
+  <div class="dk-gbody">
+    <div class="sgrid-wrap dk-sheetw"><table class="sgrid dk-sheet-t"><thead><tr><th class="l">Round</th><th><span class="dk-ph"><span class="dk-tk"><span class="tok" data-tok="dee"></span><img class="dk-crown" src="../art/crown.webp" alt="Leading"></span><b>Rachel</b></span></th><th><span class="dk-ph"><span class="dk-tk"><span class="tok" data-tok="ben"></span><span class="dl" aria-hidden="true">D</span></span><b>Dino</b></span></th><th><span class="dk-ph"><span class="dk-tk"><span class="tok" data-tok="cy"></span><span class="dk-first">1st</span></span><b>Ada</b></span></th><th><span class="dk-ph"><span class="dk-tk"><span class="tok" data-tok="ana"></span></span><b>Chelsea</b></span></th><th><span class="dk-ph"><span class="dk-tk"><span class="tok" data-tok="eve"></span></span><b>Hayley</b></span></th><th><span class="dk-ph"><span class="dk-tk"><span class="tok" data-tok="fin"></span></span><b>Junior</b></span></th></tr></thead><tbody><tr class=""><td class="l"><span class="dk-rl"><span class="dk-rn done">1</span><span><b>Two Sets</b><small>10 cards</small></span></span></td><td><span class="chip out"><img src="../art/icons/out.webp" alt="">Out</span></td><td>18</td><td>25</td><td>12</td><td>35</td><td>30</td></tr><tr class=""><td class="l"><span class="dk-rl"><span class="dk-rn done">2</span><span><b>Set &amp; Run</b><small>10 cards</small></span></span></td><td>15</td><td>40</td><td>22</td><td><span class="chip out"><img src="../art/icons/out.webp" alt="">Out</span></td><td>30</td><td>6</td></tr><tr class=""><td class="l"><span class="dk-rl"><span class="dk-rn done">3</span><span><b>Two Runs</b><small>10 cards</small></span></span></td><td>20</td><td><span class="chip out"><img src="../art/icons/out.webp" alt="">Out</span></td><td>5</td><td>32</td><td>15</td><td>25</td></tr><tr class="cur"><td class="l"><span class="dk-rl"><span class="dk-rn">4</span><span><b>Three Sets</b><small>12 cards</small></span></span></td><td><span class="dk-in">20</span></td><td><span class="dk-in">45</span></td><td><span class="dk-in"><span class="chip out"><img src="../art/icons/out.webp" alt="">Out</span></span></td><td><span class="dk-in foc">35<i class=dk-caret></i></span></td><td><span class="dk-in empty"></span></td><td><span class="dk-in empty"></span></td></tr><tr class="todo"><td class="l"><span class="dk-rl"><span class="dk-rn">5</span><span><b>Two Sets &amp; a Run</b><small>12 cards</small></span></span></td><td>·</td><td>·</td><td>·</td><td>·</td><td>·</td><td>·</td></tr><tr class="todo"><td class="l"><span class="dk-rl"><span class="dk-rn">6</span><span><b>Set &amp; Two Runs</b><small>12 cards</small></span></span></td><td>·</td><td>·</td><td>·</td><td>·</td><td>·</td><td>·</td></tr><tr class="todo"><td class="l"><span class="dk-rl"><span class="dk-rn">7</span><span><b>Three Runs</b><small>12 cards</small></span></span></td><td>·</td><td>·</td><td>·</td><td>·</td><td>·</td><td>·</td></tr></tbody><tfoot><tr class="tot"><td class="l">Total</td><td>35</td><td>58</td><td>52</td><td>44</td><td>80</td><td>61</td></tr><tr class="plc"><td class="l">Place</td><td>1st</td><td>4th</td><td>3rd</td><td>2nd</td><td>6th</td><td>5th</td></tr></tfoot></table></div>
+    <aside class="dk-insp">
+      <button class="lr-goal dk-goal" aria-label="Three Sets: open the round guide"><span class="lr-rn">Round 4 · the goal</span><span class="lr-melds" aria-hidden="true"><span class="lr-meld"><span data-c="heart-7"></span><span data-c="spade-7"></span><span data-c="diamond-7"></span></span><span class="lr-meld"><span data-c="club-q"></span><span data-c="heart-q"></span><span data-c="spade-q"></span></span><span class="lr-meld"><span data-c="diamond-4"></span><span data-c="club-4"></span><span data-c="joker"></span></span></span><span class="lr-rule">Three of a kind, three times. A joker can fill any set.</span><span class="lr-more">Round guide<svg aria-hidden="true"><use href="#chevl"/></svg></span></button>
+      <div class="dk-buys"><div class="lr-mayh"><img src="../art/icons/mayi.webp" alt=""><h4>May I?</h4></div><p class="fine">Click a face when someone wins a buy. Three each.</p>
+        <div class="lr-buys dense" data-limit="3"><button class="lr-b" data-k="dee" data-buys="1"></button><button class="lr-b" data-k="ben" data-buys="0" data-deal></button><button class="lr-b" data-k="cy" data-buys="0" data-first></button><button class="lr-b" data-k="ana" data-buys="2"></button><button class="lr-b" data-k="eve" data-buys="3"></button><button class="lr-b" data-k="fin" data-buys="1"></button></div></div>
+      <div class="dk-save"><p class="fine">2 hands left: Hayley and Junior.</p><button class="kb" disabled>Save round 4</button><p class="fine dk-keys"><b>Keyboard:</b> type a score, Tab for the next player, O marks who went out, Enter saves the round.</p></div>
+    </aside>
+  </div>
+</div></div></div></div>
+    <p class="bf-cap"><b>Desktop · keeping score.</b> The whole game on one paper sheet: faces across the top with the dealer and who starts; rounds 1 to 3 filled in with each Out; round 4 live, with Chelsea's 35 being typed. The side panel holds what the table needs mid-hand: the goal in real cards and the May I? faces. Save round 4 waits until the last two hands are in.</p>
+    <div class="bf-wrap"><div class="bf desk" data-fit="1440" data-max="1" style="--w:1440;--h:900" aria-label="Desktop, round 4 saved"><div class="bf-screen bs-desk dk dk-game"><nav class="bs-rail dk-rail" aria-label="May I?"><img class="logo" src="../art/logo-wordmark-v2.webp" alt="May I?"><div class="dk-railmid"><div class="bs-nav"><a href="#" aria-current="page"><img src="../art/icons/play.webp" alt="">Play</a><a href="#"><img src="../art/icons/rules.webp" alt="">Learn</a><a href="#"><img src="../art/icons/trophy.webp" alt="">Stats</a></div><div class="bs-nav"><h4>Tables</h4><a href="#" aria-current="page"><span class="dk-tn">Friday night<span class="dk-live">Playing now</span></span><span class="avs2"><span class="tok" data-tok="dee"></span><span class="tok" data-tok="ben"></span><span class="tok" data-tok="cy"></span></span></a><a href="#"><span class="dk-tn">The cousins</span><span class="avs2"><span class="tok" data-tok="cy"></span><span class="tok" data-tok="ana"></span></span></a><a href="#"><span class="dk-tn">Holiday cabin</span><span class="avs2"><span class="tok" data-tok="ana"></span><span class="tok" data-tok="dee"></span></span></a><a href="#" class="dk-add"><span class="lc-plus"><svg><use href="#plus"/></svg></span>New table</a></div></div><div class="bs-nav"><a href="#"><img src="../art/icons/settings.webp" alt="">Settings</a></div></nav>
+<div class="bs-main">
+  <div class="dk-tb"><button class="ib" aria-label="Back to Friday night"><svg><use href="#chevl"/></svg></button><div class="dk-tt"><h3>Friday night</h3><p>After round 4 of 7 · Rachel leads by 7</p></div><span class="sp"></span><button class="qp"><svg><use href="#plus"/></svg>Add a player</button><button class="ib" aria-label="Game menu"><svg><use href="#gear"/></svg></button></div>
+  <div class="dk-gbody">
+    <div class="dk-sheetcol"><div class="kt dk-news"><img src="../art/icons/out.webp" alt=""><div><b>Ada went out first</b><span>Up to 2nd. Chelsea drops to 3rd.</span></div></div>
+    <div class="sgrid-wrap dk-sheetw"><table class="sgrid dk-sheet-t"><thead><tr><th class="l">Round</th><th><span class="dk-ph"><span class="dk-tk"><span class="tok" data-tok="dee"></span><img class="dk-crown" src="../art/crown.webp" alt="Leading"></span><b>Rachel</b></span></th><th><span class="dk-ph"><span class="dk-tk"><span class="tok" data-tok="ben"></span></span><b>Dino</b></span></th><th><span class="dk-ph"><span class="dk-tk"><span class="tok" data-tok="cy"></span></span><b>Ada</b></span></th><th><span class="dk-ph"><span class="dk-tk"><span class="tok" data-tok="ana"></span></span><b>Chelsea</b></span></th><th><span class="dk-ph"><span class="dk-tk"><span class="tok" data-tok="eve"></span></span><b>Hayley</b></span></th><th><span class="dk-ph"><span class="dk-tk"><span class="tok" data-tok="fin"></span></span><b>Junior</b></span></th></tr></thead><tbody><tr class=""><td class="l"><span class="dk-rl"><span class="dk-rn done">1</span><span><b>Two Sets</b><small>10 cards</small></span></span></td><td><span class="chip out"><img src="../art/icons/out.webp" alt="">Out</span></td><td>18</td><td>25</td><td>12</td><td>35</td><td>30</td></tr><tr class=""><td class="l"><span class="dk-rl"><span class="dk-rn done">2</span><span><b>Set &amp; Run</b><small>10 cards</small></span></span></td><td>15</td><td>40</td><td>22</td><td><span class="chip out"><img src="../art/icons/out.webp" alt="">Out</span></td><td>30</td><td>6</td></tr><tr class=""><td class="l"><span class="dk-rl"><span class="dk-rn done">3</span><span><b>Two Runs</b><small>10 cards</small></span></span></td><td>20</td><td><span class="chip out"><img src="../art/icons/out.webp" alt="">Out</span></td><td>5</td><td>32</td><td>15</td><td>25</td></tr><tr class=""><td class="l"><span class="dk-rl"><span class="dk-rn done">4</span><span><b>Three Sets</b><small>12 cards</small></span></span></td><td>10</td><td>22</td><td><span class="chip out"><img src="../art/icons/out.webp" alt="">Out</span></td><td>27</td><td>31</td><td>34</td></tr><tr class="todo"><td class="l"><span class="dk-rl"><span class="dk-rn">5</span><span><b>Two Sets &amp; a Run</b><small>12 cards</small></span></span></td><td>·</td><td>·</td><td>·</td><td>·</td><td>·</td><td>·</td></tr><tr class="todo"><td class="l"><span class="dk-rl"><span class="dk-rn">6</span><span><b>Set &amp; Two Runs</b><small>12 cards</small></span></span></td><td>·</td><td>·</td><td>·</td><td>·</td><td>·</td><td>·</td></tr><tr class="todo"><td class="l"><span class="dk-rl"><span class="dk-rn">7</span><span><b>Three Runs</b><small>12 cards</small></span></span></td><td>·</td><td>·</td><td>·</td><td>·</td><td>·</td><td>·</td></tr></tbody><tfoot><tr class="tot"><td class="l">Total</td><td>45</td><td>80</td><td>52</td><td>71</td><td>111</td><td>95</td></tr><tr class="plc"><td class="l">Place</td><td>1st</td><td>4th</td><td>2nd<em class="up">▲1</em></td><td>3rd<em class="dn">▼1</em></td><td>6th</td><td>5th</td></tr></tfoot></table></div></div>
+    <aside class="dk-insp">
+      <h4 class="dk-ih">Next round</h4>
+      <div class="guides lb-guides dk-oneg" data-guides-from="5" role="region" aria-label="Round 5 guide"></div>
+      <p class="dk-who">Ada deals · Chelsea starts</p>
+      <div class="dk-save"><button class="kb">Start round 5</button><button class="link">Undo round 4</button></div>
+    </aside>
+  </div>
+</div></div></div></div>
+    <p class="bf-cap"><b>Desktop · after a save.</b> Nothing jumps to a new screen. The row fills, Total and Place update (Ada ▲1, Chelsea ▼1), and a banner gives the news. The side panel turns into round 5's card with who deals, and Start round 5.</p>
+    <div class="bf-wrap"><div class="bf desk" data-fit="1440" data-max="1" style="--w:1440;--h:900" aria-label="Desktop, the finished game"><div class="bf-screen bs-desk dk dk-game dk-done"><nav class="bs-rail dk-rail" aria-label="May I?"><img class="logo" src="../art/logo-wordmark-v2.webp" alt="May I?"><div class="dk-railmid"><div class="bs-nav"><a href="#" aria-current="page"><img src="../art/icons/play.webp" alt="">Play</a><a href="#"><img src="../art/icons/rules.webp" alt="">Learn</a><a href="#"><img src="../art/icons/trophy.webp" alt="">Stats</a></div><div class="bs-nav"><h4>Tables</h4><a href="#" aria-current="page"><span class="dk-tn">Friday night<span class="dk-live">Playing now</span></span><span class="avs2"><span class="tok" data-tok="dee"></span><span class="tok" data-tok="ben"></span><span class="tok" data-tok="cy"></span></span></a><a href="#"><span class="dk-tn">The cousins</span><span class="avs2"><span class="tok" data-tok="cy"></span><span class="tok" data-tok="ana"></span></span></a><a href="#"><span class="dk-tn">Holiday cabin</span><span class="avs2"><span class="tok" data-tok="ana"></span><span class="tok" data-tok="dee"></span></span></a><a href="#" class="dk-add"><span class="lc-plus"><svg><use href="#plus"/></svg></span>New table</a></div></div><div class="bs-nav"><a href="#"><img src="../art/icons/settings.webp" alt="">Settings</a></div></nav>
+<div class="bs-main">
+  <div class="dk-tb"><button class="ib" aria-label="Back to Friday night"><svg><use href="#chevl"/></svg></button><div class="dk-tt"><h3>Friday night</h3><p>Finished · Fri 14 Nov · seven rounds</p></div><span class="sp"></span><button class="kb sm cream"><svg><use href="#share"/></svg>Share</button><button class="kb sm"><svg><use href="#again"/></svg>Rematch</button><button class="ib" aria-label="More: reopen or delete">•••</button></div>
+  <div class="dk-gbody">
+    <div class="sgrid-wrap dk-sheetw"><table class="sgrid dk-sheet-t"><thead><tr><th class="l">Round</th><th class="win"><span class="dk-ph"><span class="dk-tk"><span class="tok" data-tok="dee"></span><img class="dk-crown" src="../art/crown.webp" alt="Leading"></span><b>Rachel</b></span></th><th><span class="dk-ph"><span class="dk-tk"><span class="tok" data-tok="ben"></span></span><b>Dino</b></span></th><th><span class="dk-ph"><span class="dk-tk"><span class="tok" data-tok="cy"></span></span><b>Ada</b></span></th><th><span class="dk-ph"><span class="dk-tk"><span class="tok" data-tok="ana"></span></span><b>Chelsea</b></span></th><th><span class="dk-ph"><span class="dk-tk"><span class="tok" data-tok="eve"></span></span><b>Hayley</b></span></th><th><span class="dk-ph"><span class="dk-tk"><span class="tok" data-tok="fin"></span></span><b>Junior</b></span></th></tr></thead><tbody><tr class=""><td class="l"><span class="dk-rl"><span class="dk-rn done">1</span><span><b>Two Sets</b><small>10 cards</small></span></span></td><td class="win"><span class="chip out"><img src="../art/icons/out.webp" alt="">Out</span></td><td>18</td><td>25</td><td>12</td><td>35</td><td>30</td></tr><tr class=""><td class="l"><span class="dk-rl"><span class="dk-rn done">2</span><span><b>Set &amp; Run</b><small>10 cards</small></span></span></td><td class="win">15</td><td>40</td><td>22</td><td><span class="chip out"><img src="../art/icons/out.webp" alt="">Out</span></td><td>30</td><td>6</td></tr><tr class=""><td class="l"><span class="dk-rl"><span class="dk-rn done">3</span><span><b>Two Runs</b><small>10 cards</small></span></span></td><td class="win">20</td><td><span class="chip out"><img src="../art/icons/out.webp" alt="">Out</span></td><td>5</td><td>32</td><td>15</td><td>25</td></tr><tr class=""><td class="l"><span class="dk-rl"><span class="dk-rn done">4</span><span><b>Three Sets</b><small>12 cards</small></span></span></td><td class="win">10</td><td>22</td><td><span class="chip out"><img src="../art/icons/out.webp" alt="">Out</span></td><td>27</td><td>31</td><td>34</td></tr><tr class=""><td class="l"><span class="dk-rl"><span class="dk-rn done">5</span><span><b>Two Sets &amp; a Run</b><small>12 cards</small></span></span></td><td class="win"><span class="chip out"><img src="../art/icons/out.webp" alt="">Out</span></td><td>15</td><td>20</td><td>35</td><td>25</td><td>40</td></tr><tr class=""><td class="l"><span class="dk-rl"><span class="dk-rn done">6</span><span><b>Set &amp; Two Runs</b><small>12 cards</small></span></span></td><td class="win"><span class="chip out"><img src="../art/icons/out.webp" alt="">Out</span></td><td>45</td><td>30</td><td>10</td><td>35</td><td>20</td></tr><tr class=""><td class="l"><span class="dk-rl"><span class="dk-rn done">7</span><span><b>Three Runs</b><small>12 cards</small></span></span></td><td class="win"><span class="chip out"><img src="../art/icons/out.webp" alt="">Out</span></td><td>25</td><td>15</td><td>40</td><td>50</td><td>30</td></tr></tbody><tfoot><tr class="tot"><td class="l">Total</td><td class="win">45</td><td>165</td><td>117</td><td>156</td><td>221</td><td>185</td></tr><tr class="plc"><td class="l">Place</td><td class="win">1st</td><td>4th</td><td>2nd</td><td>3rd</td><td>6th</td><td>5th</td></tr></tfoot></table></div>
+    <aside class="dk-insp finale lb-fin dk-fin2">
+      <div class="lb-wincard"><div data-c="heart-q"></div><img class="lb-wcrown" src="../art/crown.webp" alt=""></div>
+      <div class="ribbon"><span class="tail l"></span>Rachel wins!<span class="tail r"></span></div>
+      <p class="lede">45 points · 72 clear of Ada</p>
+      <ul class="dk-aw">
+        <li><img src="../art/icons/hattrick.webp" alt=""><span><b>Hat trick</b>Rachel · out in rounds 5, 6 and 7</span></li>
+        <li><img src="../art/icons/comeback.webp" alt=""><span><b>Comeback kid</b>Ada · 3rd to 2nd in round 4</span></li>
+        <li><img src="../art/icons/heavy.webp" alt=""><span><b>Heavy pockets</b>Hayley · caught with 50 in round 7</span></li>
+      </ul>
+    </aside>
+  </div>
+</div></div></div></div>
+    <p class="bf-cap"><b>Desktop · the finished game.</b> The sheet stays as the record, with Rachel's column in gold. The side panel becomes the finale: her card under the crown, the ribbon, the margin and the night's awards. Share and Rematch sit in the toolbar.</p>
+    <div class="bf-wrap"><div class="bf desk" data-fit="1440" data-max="1" style="--w:1440;--h:900" aria-label="Desktop, Home"><div class="bf-screen bs-desk dk dk-dash"><nav class="bs-rail dk-rail" aria-label="May I?"><img class="logo" src="../art/logo-wordmark-v2.webp" alt="May I?"><div class="dk-railmid"><div class="bs-nav"><a href="#" aria-current="page"><img src="../art/icons/play.webp" alt="">Play</a><a href="#"><img src="../art/icons/rules.webp" alt="">Learn</a><a href="#"><img src="../art/icons/trophy.webp" alt="">Stats</a></div><div class="bs-nav"><h4>Tables</h4><a href="#"><span class="dk-tn">Friday night<span class="dk-live">Playing now</span></span><span class="avs2"><span class="tok" data-tok="dee"></span><span class="tok" data-tok="ben"></span><span class="tok" data-tok="cy"></span></span></a><a href="#"><span class="dk-tn">The cousins</span><span class="avs2"><span class="tok" data-tok="cy"></span><span class="tok" data-tok="ana"></span></span></a><a href="#"><span class="dk-tn">Holiday cabin</span><span class="avs2"><span class="tok" data-tok="ana"></span><span class="tok" data-tok="dee"></span></span></a><a href="#" class="dk-add"><span class="lc-plus"><svg><use href="#plus"/></svg></span>New table</a></div></div><div class="bs-nav"><a href="#"><img src="../art/icons/settings.webp" alt="">Settings</a></div></nav>
+<div class="bs-main">
+  <div class="dk-tb"><div class="dk-tt"><h3>Play</h3><p>3 tables · 86 games since March</p></div><span class="sp"></span><button class="kb sm">New game</button></div>
+  <div class="dk-dgrid">
+    <button class="now lc-now2 dk-nowd" aria-label="Resume Friday night: round 4 of 7, Three Sets">
+      <span class="live">Playing now</span><span class="name">Friday night</span><span class="meta">Round 4 of 7 · <b>Three Sets</b> · Rachel leads by 9</span>
+      <span class="foot"><span class="avs"><span class="av sm" data-p="dee"></span><span class="av sm" data-p="ben"></span><span class="av sm" data-p="cy"></span><span class="av sm" data-p="ana"></span></span><span class="grow"></span><span class="kb sm">Resume</span></span>
+    </button>
+    <div class="dk-hero2"><div class="lc-hero"><div class="lc-fan" aria-hidden="true"><div data-c="spade-k" style="--r:-44deg"></div><div data-c="heart-q" style="--r:-24deg"></div><div data-c="diamond-j" style="--r:24deg"></div><div data-c="joker" style="--r:44deg"></div></div><img class="lc-crest" src="../art/logo-emblem.webp" alt=""></div></div>
+    <section class="dk-card dk-tabs3"><h4 class="dk-ih">Your tables</h4><table class="sgrid dk-list"><thead><tr><th class="l">Table</th><th class="l">Holds it</th><th>Wins</th><th>Games</th><th class="l">Last played</th></tr></thead><tbody><tr><td class="l"><span class="dk-wn"><span class="lc-champ-c dk-mini" data-c="heart-q" aria-hidden="true"></span>Friday night</span></td><td class="l"><span class="dk-wn"><span class="tok" data-tok="dee"></span>Rachel</span></td><td>12</td><td>31</td><td class="l">Fri 14 Nov</td></tr><tr><td class="l"><span class="dk-wn"><span class="lc-champ-c dk-mini" data-c="spade-k" aria-hidden="true"></span>The cousins</span></td><td class="l"><span class="dk-wn"><span class="tok" data-tok="cy"></span>Ada</span></td><td>7</td><td>34</td><td class="l">Sun 9 Nov</td></tr><tr><td class="l"><span class="dk-wn"><span class="lc-champ-c dk-mini" data-c="club-j" aria-hidden="true"></span>Holiday cabin</span></td><td class="l"><span class="dk-wn"><span class="tok" data-tok="ana"></span>Chelsea</span></td><td>2</td><td>4</td><td class="l">Sat 1 Nov</td></tr></tbody></table><button class="link dk-addt">New table</button></section>
+    <section class="dk-card dk-recent"><h4 class="dk-ih">Recent games</h4>
+      <table class="sgrid dk-list"><thead><tr><th class="l">Date</th><th class="l">Table</th><th class="l">Winner</th><th>Score</th><th>Margin</th></tr></thead><tbody>
+        <tr><td class="l">Fri 14 Nov</td><td class="l">Friday night</td><td class="l"><span class="dk-wn"><span class="tok" data-tok="dee"></span>Rachel</span></td><td>212</td><td>6</td></tr>
+        <tr><td class="l">Sun 9 Nov</td><td class="l">The cousins</td><td class="l"><span class="dk-wn"><span class="tok" data-tok="cy"></span>Ada</span></td><td>188</td><td>21</td></tr>
+        <tr><td class="l">Fri 7 Nov</td><td class="l">Friday night</td><td class="l"><span class="dk-wn"><span class="tok" data-tok="ben"></span>Dino</span></td><td>240</td><td>2</td></tr>
+        <tr><td class="l">Sat 1 Nov</td><td class="l">Holiday cabin</td><td class="l"><span class="dk-wn"><span class="tok" data-tok="ana"></span>Chelsea</span></td><td>226</td><td>14</td></tr>
+        <tr><td class="l">Fri 31 Oct</td><td class="l">Friday night</td><td class="l"><span class="dk-wn"><span class="tok" data-tok="dee"></span>Rachel</span></td><td>198</td><td>30</td></tr>
+      </tbody></table></section>
+  </div>
+</div></div></div></div>
+    <p class="bf-cap"><b>Desktop · Home.</b> The live game first, beside the crest. Then a dashboard: each table with its champion's card, who holds it and how often it's played, beside the recent games as a list to scan. New game is a small toolbar button; the rail lists every table.</p>
+    <div class="bf-wrap"><div class="bf desk" data-fit="1440" data-max="1" style="--w:1440;--h:900" aria-label="Desktop, the table page"><div class="bf-screen bs-desk dk dk-tablep"><nav class="bs-rail dk-rail" aria-label="May I?"><img class="logo" src="../art/logo-wordmark-v2.webp" alt="May I?"><div class="dk-railmid"><div class="bs-nav"><a href="#" aria-current="page"><img src="../art/icons/play.webp" alt="">Play</a><a href="#"><img src="../art/icons/rules.webp" alt="">Learn</a><a href="#"><img src="../art/icons/trophy.webp" alt="">Stats</a></div><div class="bs-nav"><h4>Tables</h4><a href="#" aria-current="page"><span class="dk-tn">Friday night<span class="dk-live">Playing now</span></span><span class="avs2"><span class="tok" data-tok="dee"></span><span class="tok" data-tok="ben"></span><span class="tok" data-tok="cy"></span></span></a><a href="#"><span class="dk-tn">The cousins</span><span class="avs2"><span class="tok" data-tok="cy"></span><span class="tok" data-tok="ana"></span></span></a><a href="#"><span class="dk-tn">Holiday cabin</span><span class="avs2"><span class="tok" data-tok="ana"></span><span class="tok" data-tok="dee"></span></span></a><a href="#" class="dk-add"><span class="lc-plus"><svg><use href="#plus"/></svg></span>New table</a></div></div><div class="bs-nav"><a href="#"><img src="../art/icons/settings.webp" alt="">Settings</a></div></nav>
+<div class="bs-main">
+  <div class="dk-tb"><button class="ib" aria-label="Back to Friday night"><svg><use href="#chevl"/></svg></button><div class="dk-tt"><h3>Friday night</h3><p>31 games since March · Rachel holds it</p></div><span class="sp"></span><div class="kseg dk-tabs" role="group" aria-label="View"><button aria-pressed="false">Standings</button><button aria-pressed="true">Games</button><button aria-pressed="false">Head to head</button></div><button class="kb sm">Start a game</button></div>
+  <div class="dk-tgrid">
+    <section class="dk-card"><table class="sgrid dk-list dk-games"><thead><tr><th class="l">Date ▾</th><th class="l">Winner</th><th>Score</th><th>Margin</th><th class="l">Story</th></tr></thead><tbody><tr><td class="l">Fri 14 Nov</td><td class="l"><span class="dk-wn"><span class="tok" data-tok="dee"></span>Rachel</span></td><td>212</td><td>6</td><td class="l dk-hlc">Hat trick in rounds 5, 6 and 7</td></tr><tr class="sel"><td class="l">Fri 7 Nov</td><td class="l"><span class="dk-wn"><span class="tok" data-tok="ben"></span>Dino</span></td><td>240</td><td>2</td><td class="l dk-hlc">Up from 4th in the last round</td></tr><tr><td class="l">Fri 31 Oct</td><td class="l"><span class="dk-wn"><span class="tok" data-tok="dee"></span>Rachel</span></td><td>198</td><td>30</td><td class="l dk-hlc">Never more than 40 in a round</td></tr><tr><td class="l">Fri 24 Oct</td><td class="l"><span class="dk-wn"><span class="tok" data-tok="cy"></span>Ada</span></td><td>231</td><td>11</td><td class="l dk-hlc">Six buys, the most that night</td></tr><tr><td class="l">Fri 17 Oct</td><td class="l"><span class="dk-wn"><span class="tok" data-tok="ana"></span>Chelsea</span></td><td>226</td><td>2</td><td class="l dk-hlc">Won by 2 points</td></tr><tr><td class="l">Fri 10 Oct</td><td class="l"><span class="dk-wn"><span class="tok" data-tok="dee"></span>Rachel</span></td><td>205</td><td>18</td><td class="l dk-hlc">Out first four times</td></tr><tr><td class="l">Fri 3 Oct</td><td class="l"><span class="dk-wn"><span class="tok" data-tok="fin"></span>Junior</span></td><td>244</td><td>9</td><td class="l dk-hlc">First win at the table</td></tr></tbody></table></section>
+    <aside class="dk-insp dk-peek">
+      <h4 class="dk-ih">Fri 7 Nov · Dino won by 2</h4>
+      <ol class="ldr dense" data-rows="ben|240||comeback|Up from 4th in round 7; dee|242||crown|Led for six rounds; cy|251; ana|266; fin|284; eve|301"></ol>
+      <div class="dk-save"><button class="kb sm cream">Open the full sheet</button></div>
+    </aside>
+  </div>
+</div></div></div></div>
+    <p class="bf-cap"><b>Desktop · the table page.</b> Every game at the table as a sortable list, each with its story. Click one to preview the final standings beside it, or open the full sheet. Standings and Head to head are one click away in the toolbar.</p>
+    <div class="bf-wrap"><div class="bf desk" data-fit="1440" data-max="1" style="--w:1440;--h:900" aria-label="Desktop, Stats"><div class="bf-screen bs-desk dk dk-statsd"><nav class="bs-rail dk-rail" aria-label="May I?"><img class="logo" src="../art/logo-wordmark-v2.webp" alt="May I?"><div class="dk-railmid"><div class="bs-nav"><a href="#"><img src="../art/icons/play.webp" alt="">Play</a><a href="#"><img src="../art/icons/rules.webp" alt="">Learn</a><a href="#" aria-current="page"><img src="../art/icons/trophy.webp" alt="">Stats</a></div><div class="bs-nav"><h4>Tables</h4><a href="#"><span class="dk-tn">Friday night<span class="dk-live">Playing now</span></span><span class="avs2"><span class="tok" data-tok="dee"></span><span class="tok" data-tok="ben"></span><span class="tok" data-tok="cy"></span></span></a><a href="#"><span class="dk-tn">The cousins</span><span class="avs2"><span class="tok" data-tok="cy"></span><span class="tok" data-tok="ana"></span></span></a><a href="#"><span class="dk-tn">Holiday cabin</span><span class="avs2"><span class="tok" data-tok="ana"></span><span class="tok" data-tok="dee"></span></span></a><a href="#" class="dk-add"><span class="lc-plus"><svg><use href="#plus"/></svg></span>New table</a></div></div><div class="bs-nav"><a href="#"><img src="../art/icons/settings.webp" alt="">Settings</a></div></nav>
+<div class="bs-main">
+  <div class="dk-tb"><div class="dk-tt"><h3>Stats</h3><p>Every table, every game since March</p></div><span class="sp"></span></div>
+  <div class="dk-fgrid">
+    <div class="dk-kpis">
+      <figure><img src="../art/icons/regular.webp" alt=""><b>86</b><figcaption>games played</figcaption></figure>
+      <figure><img src="../art/crown.webp" alt=""><b>4</b><figcaption>wins in a row, Rachel's record</figcaption></figure>
+      <figure><img src="../art/icons/flawless.webp" alt=""><b>141</b><figcaption>lowest game, Ada in August</figcaption></figure>
+      <figure><img src="../art/icons/fullcabinet.webp" alt=""><b>23<small>/24</small></b><figcaption>awards claimed</figcaption></figure>
+    </div>
+    <section class="dk-card"><h4 class="dk-ih">Head to head</h4><table class="sgrid dk-h2h"><thead><tr><th class="l">Finished lower than</th><th><span class="tok" data-tok="dee"></span>Rachel</th><th><span class="tok" data-tok="ben"></span>Dino</th><th><span class="tok" data-tok="cy"></span>Ada</th><th><span class="tok" data-tok="ana"></span>Chelsea</th></tr></thead><tbody><tr><td class="l"><span class="dk-wn"><span class="tok" data-tok="dee"></span>Rachel</span></td><td class="me">·</td><td class="up">9–5</td><td class="up">7–4</td><td class="up">8–3</td></tr><tr><td class="l"><span class="dk-wn"><span class="tok" data-tok="ben"></span>Dino</span></td><td class="dn">5–9</td><td class="me">·</td><td class="">6–6</td><td class="up">7–5</td></tr><tr><td class="l"><span class="dk-wn"><span class="tok" data-tok="cy"></span>Ada</span></td><td class="dn">4–7</td><td class="">6–6</td><td class="me">·</td><td class="up">5–4</td></tr><tr><td class="l"><span class="dk-wn"><span class="tok" data-tok="ana"></span>Chelsea</span></td><td class="dn">3–8</td><td class="dn">5–7</td><td class="dn">4–5</td><td class="me">·</td></tr></tbody></table><p class="fine">Each square: how often the row's player finished lower than the column's, in games they both played.</p></section>
+    <section class="dk-card dk-hallc"><h4 class="dk-ih">Hall of fame</h4><div class="cab hall dk-hall"><div class="cab-spot" aria-live="polite"><span class="med"><img src="../art/icons/out.webp" alt=""></span><div><b></b><p></p><span class="st"></span></div></div><div class="cab-grid" role="group" aria-label="Hall of fame"></div></div></section>
+  </div>
+</div></div></div></div>
+    <p class="bf-cap"><b>Desktop · Stats.</b> Records first, as big numbers with their art. Then head to head as a grid, gold where the row's player usually wins, and the Hall of fame with every medallion on show.</p>
+    <div class="bf-wrap"><div class="bf desk" data-fit="1440" data-max="1" style="--w:1440;--h:900" aria-label="Desktop, New game sheet"><div class="bf-screen bs-desk dk dk-newsheet"><nav class="bs-rail dk-rail" aria-label="May I?"><img class="logo" src="../art/logo-wordmark-v2.webp" alt="May I?"><div class="dk-railmid"><div class="bs-nav"><a href="#" aria-current="page"><img src="../art/icons/play.webp" alt="">Play</a><a href="#"><img src="../art/icons/rules.webp" alt="">Learn</a><a href="#"><img src="../art/icons/trophy.webp" alt="">Stats</a></div><div class="bs-nav"><h4>Tables</h4><a href="#"><span class="dk-tn">Friday night<span class="dk-live">Playing now</span></span><span class="avs2"><span class="tok" data-tok="dee"></span><span class="tok" data-tok="ben"></span><span class="tok" data-tok="cy"></span></span></a><a href="#"><span class="dk-tn">The cousins</span><span class="avs2"><span class="tok" data-tok="cy"></span><span class="tok" data-tok="ana"></span></span></a><a href="#"><span class="dk-tn">Holiday cabin</span><span class="avs2"><span class="tok" data-tok="ana"></span><span class="tok" data-tok="dee"></span></span></a><a href="#" class="dk-add"><span class="lc-plus"><svg><use href="#plus"/></svg></span>New table</a></div></div><div class="bs-nav"><a href="#"><img src="../art/icons/settings.webp" alt="">Settings</a></div></nav>
+<div class="bs-main">
+  <div class="dk-body dk-homegrid" aria-hidden="true">
+    <div class="dk-homel"><div class="kt lc-last"><img src="../art/icons/trophy.webp" alt=""><div><b>Rachel won last Friday by 6</b><span>Her 12th win at Friday night</span></div></div></div>
+    <div class="dk-homer"><div class="lc-hero"><img class="lc-crest" src="../art/logo-emblem.webp" alt=""></div></div>
+  </div>
+  <div class="lr-dim dk-dim"></div>
+  <div class="ksheet lr-sheet ng-sheet dk-sheet" role="dialog" aria-label="New game">
+    <div class="head"><h3>New game</h3><button class="ib cream" aria-label="Close"><svg><use href="#xmark"/></svg></button></div>
+    <div class="body">
+      <p class="lr-dealrow"><span>At <b>Friday night</b></span><button class="link ink">Change table</button></p>
+      <div class="ng-h"><h3 class="sub">Who's playing</h3><button class="qp"><svg><use href="#die"/></svg>Roll for dealer</button></div>
+      <div class="ng-faces"><button class="ng-f" aria-pressed="true" aria-label="Rachel"><span class="ng-t"><span class="tok" data-tok="dee"></span><span class="dl" aria-hidden="true">D</span><span class="ng-ok" aria-hidden="true"><svg><use href="#tick"/></svg></span></span><b>Rachel</b></button><button class="ng-f" aria-pressed="true" aria-label="Dino"><span class="ng-t"><span class="tok" data-tok="ben"></span><span class="ng-ok" aria-hidden="true"><svg><use href="#tick"/></svg></span></span><b>Dino</b></button><button class="ng-f" aria-pressed="false" aria-label="Ada"><span class="ng-t"><span class="tok" data-tok="cy"></span><span class="ng-ok" aria-hidden="true"><svg><use href="#tick"/></svg></span></span><b>Ada</b></button><button class="ng-f" aria-pressed="true" aria-label="Chelsea"><span class="ng-t"><span class="tok" data-tok="ana"></span><span class="ng-ok" aria-hidden="true"><svg><use href="#tick"/></svg></span></span><b>Chelsea</b></button><button class="ng-f" aria-pressed="true" aria-label="Hayley"><span class="ng-t"><span class="tok" data-tok="eve"></span><span class="ng-ok" aria-hidden="true"><svg><use href="#tick"/></svg></span></span><b>Hayley</b></button><button class="ng-f" aria-pressed="false" aria-label="Junior"><span class="ng-t"><span class="tok" data-tok="fin"></span><span class="ng-ok" aria-hidden="true"><svg><use href="#tick"/></svg></span></span><b>Junior</b></button></div>
+      <p class="fine">Click a face to deal them in or out. Rachel deals first; right-click a face to pick another dealer.</p>
+      <button class="prow ng-rules"><img src="../art/icons/rules.webp" alt=""><span class="grow"><b>House rules</b><small>Aces 15 · Jokers wild · 3 buys a round</small></span><svg class="chev"><use href="#chev"/></svg></button>
+    </div>
+    <div class="foot"><button class="kb">Deal round 1</button></div>
+  </div>
+</div></div></div></div>
+    <p class="bf-cap"><b>Desktop · New game.</b> The kit's paper sheet, centred, with the rail visible behind the dim.</p>
+    <div class="bf-wrap"><div class="bf desk" data-fit="1440" data-max="1" style="--w:1440;--h:900" aria-label="Desktop, Learn"><div class="bf-screen bs-desk dk dk-learn"><nav class="bs-rail dk-rail" aria-label="May I?"><img class="logo" src="../art/logo-wordmark-v2.webp" alt="May I?"><div class="dk-railmid"><div class="bs-nav"><a href="#"><img src="../art/icons/play.webp" alt="">Play</a><a href="#" aria-current="page"><img src="../art/icons/rules.webp" alt="">Learn</a><a href="#"><img src="../art/icons/trophy.webp" alt="">Stats</a></div><div class="bs-nav"><h4>Tables</h4><a href="#"><span class="dk-tn">Friday night<span class="dk-live">Playing now</span></span><span class="avs2"><span class="tok" data-tok="dee"></span><span class="tok" data-tok="ben"></span><span class="tok" data-tok="cy"></span></span></a><a href="#"><span class="dk-tn">The cousins</span><span class="avs2"><span class="tok" data-tok="cy"></span><span class="tok" data-tok="ana"></span></span></a><a href="#"><span class="dk-tn">Holiday cabin</span><span class="avs2"><span class="tok" data-tok="ana"></span><span class="tok" data-tok="dee"></span></span></a><a href="#" class="dk-add"><span class="lc-plus"><svg><use href="#plus"/></svg></span>New table</a></div></div><div class="bs-nav"><a href="#"><img src="../art/icons/settings.webp" alt="">Settings</a></div></nav>
+<div class="bs-main">
+  <div class="bf-bar dk-bar"><h3 class="dk-h">Learn</h3><span class="sp"></span><div class="kseg rg-tabs dk-tabs" role="group" aria-label="Guide section"><button aria-pressed="true">Rounds</button><button aria-pressed="false">Basics</button><button aria-pressed="false">Q&amp;A</button><button aria-pressed="false">House</button></div></div>
+  <div class="dk-body dk-lgrid">
+    <div class="panel dk-rlist" role="tablist" aria-label="Round"><button class="prow"><span class="dk-rn done">1</span><span class="grow"><b>Two Sets</b><small>10 cards</small></span></button><button class="prow"><span class="dk-rn done">2</span><span class="grow"><b>Set &amp; Run</b><small>10 cards</small></span></button><button class="prow"><span class="dk-rn done">3</span><span class="grow"><b>Two Runs</b><small>10 cards</small></span></button><button class="prow dk-cur" aria-current="true"><span class="dk-rn">4</span><span class="grow"><b>Three Sets</b><small>12 cards · playing now</small></span></button><button class="prow"><span class="dk-rn">5</span><span class="grow"><b>Two Sets &amp; a Run</b><small>12 cards</small></span></button><button class="prow"><span class="dk-rn">6</span><span class="grow"><b>Set &amp; Two Runs</b><small>12 cards</small></span></button><button class="prow"><span class="dk-rn">7</span><span class="grow"><b>Three Runs</b><small>12 cards · no final discard</small></span></button></div>
+    <div class="rg-body dk-guide">
+      <div class="rg-hero">
+        <span class="lr-rn">Round 4 · playing now</span><h3>Three Sets</h3>
+        <span class="lr-melds" aria-hidden="true"><span class="lr-meld"><span data-c="heart-4"></span><span data-c="spade-4"></span><span data-c="diamond-4"></span></span><span class="lr-meld"><span data-c="club-9"></span><span data-c="spade-9"></span><span data-c="heart-9"></span></span><span class="lr-meld"><span data-c="heart-q"></span><span data-c="diamond-q"></span><span data-c="joker"></span></span></span>
+        <p class="rg-goal">Three sets of three matching ranks. From this round on, everyone gets 12 cards.</p>
+        <div class="rg-facts"><span><b>12</b>cards dealt</span><span><b>9</b>to lay down</span><span><b>3</b>left over</span></div>
+      </div>
+      <div class="rg-calls">
+        <div class="rg-call warn"><span class="rg-m" aria-hidden="true"><svg><use href="#flag"/></svg></span><div><b>Watch out</b><p>12 cards now, so more points if someone's caught.</p></div></div>
+        <div class="rg-call"><span class="rg-m" aria-hidden="true"><svg><use href="#down"/></svg></span><div><b>After laying down</b><p>Most players are left with a few cards. Lay off on any set on the table and discard each turn to finish fast.</p></div></div>
+        <div class="rg-call"><span class="rg-m" aria-hidden="true"><svg><use href="#bulb"/></svg></span><div><b>Tips</b><ul><li>Aim for three pairs. Keep pairs, let single cards go.</li><li>Buying is strong here. One May I? can finish a set.</li></ul></div></div>
+        <button class="link lb-center">Show pro tips</button>
+      </div>
+    </div>
+  </div>
+</div></div></div></div>
+    <p class="bf-cap"><b>Desktop · Learn.</b> List and detail: the seven rounds down the left, the chosen round's guide on the right.</p>
+    <div class="bf-wrap"><div class="bf desk" data-fit="1440" data-max="1" style="--w:1440;--h:900" aria-label="Desktop, Settings"><div class="bf-screen bs-desk dk dk-settings"><nav class="bs-rail dk-rail" aria-label="May I?"><img class="logo" src="../art/logo-wordmark-v2.webp" alt="May I?"><div class="dk-railmid"><div class="bs-nav"><a href="#"><img src="../art/icons/play.webp" alt="">Play</a><a href="#"><img src="../art/icons/rules.webp" alt="">Learn</a><a href="#"><img src="../art/icons/trophy.webp" alt="">Stats</a></div><div class="bs-nav"><h4>Tables</h4><a href="#"><span class="dk-tn">Friday night<span class="dk-live">Playing now</span></span><span class="avs2"><span class="tok" data-tok="dee"></span><span class="tok" data-tok="ben"></span><span class="tok" data-tok="cy"></span></span></a><a href="#"><span class="dk-tn">The cousins</span><span class="avs2"><span class="tok" data-tok="cy"></span><span class="tok" data-tok="ana"></span></span></a><a href="#"><span class="dk-tn">Holiday cabin</span><span class="avs2"><span class="tok" data-tok="ana"></span><span class="tok" data-tok="dee"></span></span></a><a href="#" class="dk-add"><span class="lc-plus"><svg><use href="#plus"/></svg></span>New table</a></div></div><div class="bs-nav"><a href="#" aria-current="page"><img src="../art/icons/settings.webp" alt="">Settings</a></div></nav>
+<div class="bs-main">
+  <div class="bf-bar dk-bar"><h3 class="dk-h">Settings</h3><span class="sp"></span></div>
+  <div class="dk-body dk-setgrid lc-set">
+    <div class="dk-lookrow"><h3 class="lc-h">Look</h3><div class="looks dk-looks" role="radiogroup" aria-label="Look">
+        <button class="look" role="radio" aria-checked="true" style="--c2:#3DBDB1;--c3:#1C8E9D;--c5:#0B5866"><img src="../art/crown.webp" alt=""><span class="tick"><svg><use href="#tick"/></svg></span><b>Lagoon</b><small>The house look</small></button>
+        <button class="look" role="radio" aria-checked="false" style="--c2:#6F96FF;--c3:#3463D8;--c5:#17337E"><img src="../art/jewel-spade.webp" alt=""><span class="tick"><svg><use href="#tick"/></svg></span><b>Sapphire</b><small>Deep royal blue</small></button>
+        <button class="look" role="radio" aria-checked="false" style="--c2:#A8DB62;--c3:#458F25;--c5:#1F5212"><img src="../art/jewel-club.webp" alt=""><span class="tick"><svg><use href="#tick"/></svg></span><b>Jade</b><small>A garden table</small></button>
+        <button class="look" role="radio" aria-checked="false" style="--c2:#F07080;--c3:#C42645;--c5:#680D26"><img src="../art/jewel-heart.webp" alt=""><span class="tick"><svg><use href="#tick"/></svg></span><b>Ruby</b><small>Warm cherry red</small></button>
+        <button class="look day" role="radio" aria-checked="false"><img src="../art/jewel-diamond.webp" alt=""><span class="tick"><svg><use href="#tick"/></svg></span><b>Daylight</b><small>For playing outside</small></button>
+      </div></div>
+    <div>
+      <h3 class="lc-h">Text size</h3>
+      <div class="kt lc-prev" aria-hidden="true"><img src="../art/crown.webp" alt=""><div><b>Rachel leads by 12</b><span>After round 4</span></div></div>
+      <div class="kseg" role="group" aria-label="Text size"><button aria-pressed="true">Standard</button><button aria-pressed="false">Large</button><button aria-pressed="false">Largest</button></div>
+      <h3 class="lc-h">Seeing</h3>
+      <div class="prow"><span class="grow"><b>Sunlight contrast</b><small>Darker text and bolder edges for bright rooms</small></span><button class="ksw" role="switch" aria-checked="false" aria-label="Sunlight contrast"><span>OFF</span><i></i></button></div>
+      <div class="prow"><span class="grow"><b>Never colour alone</b><small>Every player also shows a card index and a pattern</small></span><button class="ksw" role="switch" aria-checked="true" aria-label="Never colour alone"><span>ON</span><i></i></button></div>
+    </div>
+    <div>
+      <h3 class="lc-h">During a game</h3>
+      <div class="prow"><span class="grow"><b>Sounds</b><small>Card snaps, chimes and a fanfare for the winner</small></span><button class="ksw" role="switch" aria-checked="true" aria-label="Sounds"><span>ON</span><i></i></button></div>
+      <div class="prow"><span class="grow"><b>Keep screen awake</b><small>While a game is open</small></span><button class="ksw" role="switch" aria-checked="true" aria-label="Keep screen awake"><span>ON</span><i></i></button></div>
+      <div class="prow"><span class="grow"><b>Calm mode</b><small>No sliding, no confetti, softer sounds</small></span><button class="ksw" role="switch" aria-checked="false" aria-label="Calm mode"><span>OFF</span><i></i></button></div>
+      <div class="prow"><span class="grow"><b>Undo last</b><small>Shows Undo after every saved round</small></span><button class="ksw" role="switch" aria-checked="true" aria-label="Undo last"><span>ON</span><i></i></button></div>
+      <div class="call"><span class="ci"><svg><use href="#bolt"/></svg></span><span><b>Calm already?</b><p>If the computer asks for less motion, May I? stays calm without this switch.</p></span></div>
+    </div>
+  </div>
+</div></div></div></div>
+    <p class="bf-cap"><b>Desktop · Settings.</b> The looks as illustrated tiles across the top, then the settings in two columns. The thumb setting is phone-only, so it's left out.</p>
+
+    <div class="lay-grid two">
+      <div class="lay-note">
+        <h3 class="lay-h">How the desktop is laid out</h3>
+        <ul>
+          <li><b>The game is a score sheet.</b> Families keep May I? on paper: names across the top, rounds down the side, totals at the bottom. On a laptop the app becomes that sheet, so everyone at the table can read the whole game at a glance, and the scorekeeper types straight into the live row.</li>
+          <li><b>Keyboard first.</b> Type a score, Tab to the next player, O for who went out, Enter to save. The mouse is for buys, which happen mid-hand and are one click on a face.</li>
+          <li><b>No screen changes during a game.</b> On a phone, scoring and between rounds are separate screens. Here the sheet stays put: saving fills the row, the totals and places update with ▲▼, a banner gives the news, and the side panel turns into the next round's card.</li>
+          <li><b>The side panel follows the moment.</b> While playing: the goal and the buys. After a save: the next round and Start round 5. At the end: the winner's card, the ribbon and the awards, beside the finished sheet.</li>
+          <li><b>Actions live in the toolbar.</b> Desktop buttons sit top right, small (Share, Rematch, New game, Start a game). The big docked phone button is gone; the one large teal button is Save or Start round, inside the side panel where the eye already is.</li>
+          <li><b>Looking back is a dashboard.</b> Home shows who holds each table and the recent games as a sortable list. The table page lists every game with its story, and picking one previews the standings. Stats leads with records, then a head-to-head grid, then the Hall of fame.</li>
+        </ul>
+      </div>
+      <div class="lay-note">
+        <h3 class="lay-h">Breakpoints</h3>
+        <table class="dk-bp"><thead><tr><th>Width</th><th>Layout</th></tr></thead><tbody>
+          <tr><td>Under 768</td><td>The phone: the round screen, the score pad and between rounds as separate screens.</td></tr>
+          <tr><td>768–1099</td><td>Tablet: two columns, still the phone's flow.</td></tr>
+          <tr><td>1100 and up</td><td>Desktop: the rail, the score sheet and the side panel. Up to eight players fit across at 1100; the side panel drops under the sheet below that.</td></tr>
+        </tbody></table>
+        <h3 class="lay-h">New to the kit, needs sign-off</h3>
+        <ul>
+          <li><b>Score sheet</b> (<code>.sgrid.dk-sheet-t</code>): the kit's paper grid grown into a game sheet: player headers with face, dealer and buys; a live row of entry wells; future rounds as dots; Total and Place in the footer; the winner's column in gold.</li>
+          <li><b>Toolbar</b> (<code>.dk-tb</code>): back, a title with one line of context, and small actions on the right.</li>
+          <li><b>Records strip</b> (<code>.dk-kpis</code>) and <b>head-to-head grid</b> (<code>.dk-h2h</code>) on Stats.</li>
+          <li><b>Keyboard hints</b> are plain help text for now; a keycap style would make them scannable.</li>
+        </ul>
+      </div>
+    </div>
   </section>
 
   <!-- ═══ Layout: a big night ═══ -->
@@ -4382,14 +4954,14 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
     wiretowire: [["cy"], 2], photofinish: [["dee"], 3], heist: [["ana"], 1], upfrombottom: [["cy"], 1], selfmade: [["ana"], 3], curtaincall: [["dee"], 1], quickoff: [["ben"], 6],
     dealerschoice: [["cy"], 5], soclose: [["ana"], 4], rollercoaster: [["ben"], 6], friends: [["ben"], 5], aceupsleeve: [["cy"], 4], hotheels: [["cy"], 6], goodsport: [["ana"], 3],
     runmaker: [["dee"], 2], setcollector: [["ben"], 2], flawless: [[], 0] };
-  var hallEl = document.getElementById("hall");
+  var hallEls = document.querySelectorAll("#hall, .dk-hall"), hallEl = hallEls[0];
   var holders = function (h) { return h.map(function (k) { return NAME[k]; }).join(" and "); };
-  if (hallEl) shelf(hallEl, { hall: { label: "Hall of fame", pick: 0, items: GAME.map(function (it) { var h = HOLD[it[0]]; return [it[0], it[1], it[2], h[0], h[1]]; }) } }, {
+  [].forEach.call(hallEls, function (hallEl) { shelf(hallEl, { hall: { label: "Hall of fame", pick: 0, items: GAME.map(function (it) { var h = HOLD[it[0]]; return [it[0], it[1], it[2], h[0], h[1]]; }) } }, {
     first: "hall", got: function (it) { return it[3].length > 0; },
     status: function (it) { return !it[3].length ? "Not won yet" : it[3].length > 1 ? "Shared by " + holders(it[3]) + " · " + times(it[4]) + " each" : "Held by " + holders(it[3]) + " · won " + times(it[4]); },
     said: function (it) { return it[1] + ", " + (!it[3].length ? "not won yet" : (it[3].length > 1 ? "shared by " : "held by ") + holders(it[3])); },
     badge: function (it) { return it[3].length ? '<span class="holder" aria-hidden="true">' + it[3].map(avHtml).join("") + "</span>" : ""; }
-  });
+  }); });
 
   // Dressing room: a player is one of the deck's faces, a photo or their initials. Picking a face deals it onto the stage.
   (function () {
@@ -5029,8 +5601,8 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
       b.disabled = left <= 0; b.classList.toggle("spent", left <= 0);
       var role = b.hasAttribute("data-deal") ? ", dealt this round" : b.hasAttribute("data-first") ? ", plays first" : "";
       b.setAttribute("aria-label", left <= 0 ? p[0] + role + " has no buys left" : p[0] + role + ", record a May I? buy. " + n + " of " + limit + " used");
-      b.innerHTML = '<span class="lr-t"><span class="tok" style="--c:' + p[2] + '">' + tokHTML(k) + "</span>" + (b.hasAttribute("data-deal") ? '<span class="dl" title="Dealt this round">D</span>' : "") + (b.hasAttribute("data-first") ? '<span class="fst" title="Plays first">1st</span>' : "") + "</span><b>" + p[0] + "</b>" +
-        (left <= 0 ? '<span class="lr-none">No buys left</span>' : '<span class="jp" aria-hidden="true">' + pips + "</span>") + (b.hasAttribute("data-deal") ? '<span class="lr-role">Dealt 12</span>' : b.hasAttribute("data-first") ? '<span class="lr-role">Goes first</span>' : "");
+      b.innerHTML = '<span class="lr-t"><span class="tok" style="--c:' + p[2] + '">' + tokHTML(k) + "</span>" + (b.hasAttribute("data-lead") ? '<img class="lr-crown" src="../art/crown.webp" alt="">' : "") + (b.hasAttribute("data-deal") ? '<span class="dl" title="Dealt this round">D</span>' : "") + (b.hasAttribute("data-first") ? '<span class="fst" title="Plays first">1st</span>' : "") + "</span><b>" + p[0] + "</b>" +
+        (left <= 0 ? '<span class="lr-none">No buys left</span>' : '<span class="jp" aria-hidden="true">' + pips + "</span>") + (b.hasAttribute("data-deal") ? '<span class="lr-role">Deals 12 each</span>' : b.hasAttribute("data-first") ? '<span class="lr-role">Goes first</span>' : "");
     }
     document.querySelectorAll(".lr-buys").forEach(function (g) { var lim = +(g.dataset.limit || 3); g.querySelectorAll(".lr-b").forEach(function (b) { drawBuy(b, lim); }); });
     document.querySelectorAll(".mo-tok").forEach(function (b) { drawBuy(b, 3); b.removeAttribute("aria-label"); });
@@ -5042,11 +5614,13 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
       var ph = b.closest(".ph"); if (!ph) return;
       var t = ph.querySelector(".lr-toast"); if (t) t.remove();
       var nm = PL[b.dataset.k][0], n = +b.dataset.buys, ord = ["", "1st", "2nd", "3rd"][n] || n + "th";
-      t = document.createElement("button"); t.type = "button"; t.className = "lr-toast"; t.setAttribute("aria-live", "polite");
-      t.innerHTML = '<img src="../art/icons/mayi.webp" alt=""><span><b>' + nm + "</b> bought a card · " + ord + " of " + lim + (n >= lim ? ", no buys left" : "") + '<em>Tap to undo</em></span><svg class="lr-undo" aria-hidden="true"><use href="#again"/></svg>';
-      ph.appendChild(t);
-      t.addEventListener("click", function () { b.dataset.buys = +b.dataset.buys - 1; drawBuy(b, lim); t.remove(); b.focus(); });
-      clearTimeout(ph._lrT); ph._lrT = setTimeout(function () { t.remove(); }, 5000);
+      var slot = ph.querySelector(".lr-mayslot"), hint = slot && slot.querySelector(".lr-mayp");
+      t = document.createElement("button"); t.type = "button"; t.className = "lr-toast" + (slot ? " in" : ""); t.setAttribute("aria-live", "polite");
+      t.innerHTML = '<img src="../art/icons/mayi.webp" alt=""><span><b>' + nm + "</b>" + (n >= lim ? "'s last buy · " : " bought a card · ") + ord + " of " + lim + '</span><em><svg class="lr-undo" aria-hidden="true"><use href="#again"/></svg>Undo</em>';
+      if (hint) hint.hidden = true; (slot || ph).appendChild(t);
+      function gone() { t.remove(); if (hint) hint.hidden = false; }
+      t.addEventListener("click", function () { b.dataset.buys = +b.dataset.buys - 1; drawBuy(b, lim); gone(); b.focus(); });
+      clearTimeout(ph._lrT); ph._lrT = setTimeout(gone, 5000);
     });
 
     // Hero cards: <div data-c="heart-q"> gets the deck's real card.
@@ -5250,6 +5824,16 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
     var y0 = null; side.addEventListener("touchstart", function (e) { y0 = side.scrollTop <= 0 ? e.touches[0].clientY : null; }, { passive: true });
     side.addEventListener("touchmove", function (e) { if (y0 != null && e.touches[0].clientY - y0 > 70) { y0 = null; close(false); } }, { passive: true });
     mq.addEventListener("change", function () { if (!mq.matches) close(false); });
+  })();
+
+  // A rolling die shows its faces: the pips change with every tumble and settle on the last one.
+  (function () {
+    function face(u) { var k; do { k = 1 + Math.floor(Math.random() * 6); } while (k === u._f); u._f = k; u.setAttribute("href", "#die" + k); }
+    document.addEventListener("click", function (e) {
+      var b = e.target.closest("button"); if (!b) return; var u = b.querySelector('use[href^="#die"]'); if (!u) return;
+      face(u);
+      setTimeout(function tick() { if (!b.classList.contains("rolling")) return; face(u); setTimeout(tick, 85); }, 20);
+    });
   })();
 
   bind(document);

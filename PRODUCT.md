@@ -10,7 +10,7 @@ web
 Family and friends at a casual card night, often across several regular groups (a family table, a weekly friends' game). One person keeps score on a phone at the table, usually with mixed ages and some players who are new to May I? rules. The scorekeeper is also playing, so entering scores competes with holding cards and talking.
 
 ## Product Purpose
-A scorekeeper and companion for May I?, a seven-round contract rummy game. It tracks each round's contract, buys ("May I?" calls), who went out, round scores, the dealer and running standings, then celebrates the winner. Success means the table never stops the game to work out scores or rules, and everyone enjoys the scoring moments.
+A scorekeeper and companion for May I?, a seven-round contract rummy game. It tracks each round's contract, buys ("May I?" calls), who went out, round scores, the dealer and running standings, then celebrates the winner. Success means the table never stops the game to work out scores or rules, and everyone enjoys the scoring moments. It replaces pencil and paper, so it has to be faster than writing eight names on a sheet and ruling a score grid.
 
 ## Positioning
 - **Built for May I? rules:** it already knows the seven contracts, the buy limits, the dealing order and the out rule, so there's nothing to set up.
@@ -22,7 +22,7 @@ A scorekeeper and companion for May I?, a seven-round contract rummy game. It tr
 ## Operating Context
 - Played around a physical table, often in the evening and sometimes outdoors.
 - One phone keeps score, while other members follow live on their own phones.
-- On desktop or tablet, the screen is set on the table as a big scoreboard everyone can read.
+- Phone first. A tablet set on the table is a very close second, and may be the ideal way to play because everyone can see it. Desktop and TV are not priorities for now (owner, 2026-11-17).
 - Rhythm of play: deal, a round of play with buys, someone goes out, everyone counts their cards, scores are entered, then the next round. There are seven rounds.
 
 ## Capabilities and Constraints
@@ -41,7 +41,7 @@ No testimonials, user numbers or press exist. Don't invent any.
 2. Rules are built in, not looked up.
 3. Scoring is part of the fun, not a chore.
 4. Anyone can pick it up: no sign-up, no setup, plain words.
-5. Readable from across the table: the scoreboard works at a distance on a big screen.
+5. Readable from across the table: on a tablet, the scores work at a distance.
 
 ## Accessibility & Inclusion
 Mixed ages at the table. Text must be readable at a glance in bright light, and every tap target must be large enough for a quick, imprecise tap. Respect reduced-motion preferences.
