@@ -6,7 +6,7 @@ const path = require("node:path");
 const vm = require("node:vm");
 
 const EXPORTS = [
-  "ROUNDS", "DEFAULT_RULES", "GUIDE", "QUICK_START", "TURN_STEPS", "MAYI_STEPS", "FAQ", "GLOSSARY", "RULE_WHY",
+  "ROUNDS", "DEFAULT_RULES", "GUIDE", "TURN_STEPS", "MAYI_STEPS", "RULE_WHY",
   "ruleHint", "rankPart", "cardValue", "buyLimitOf", "rulesLine", "contractLine",
   "roundDone", "totalsOf", "rankOf", "dealerIdx", "plOf", "namesOf",
   "gameAwards", "tableMoments", "AWARDS", "LIFE", "lifeAchievements", "chaseNotes", "caughtStats", "playerProfile", "groupRecords", "rankMoves",

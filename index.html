@@ -1864,26 +1864,7 @@ if (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIn
 .kit .pp-pad .plaque {padding: 2px 16px 0;}
 .kit .pp-fix {margin: -4px 0 0; text-align: center; font-size: .85rem; color: var(--ink2);}
 .kit .pp-pad .tapped {min-height: 56px;}
-.kit .nt-body {gap: 16px; padding-bottom: 110px;}
-.kit .nt-body > *, .kit .nt-body input, .kit .ts-sheet input {box-sizing: border-box; min-width: 0; max-width: 100%;}
-.kit .nt-head h3 {margin: 0; font: 800 2rem/1.05 var(--display); color: var(--on-bg);}
-.kit .nt-head p {margin: 6px 0 0; color: var(--on-bg2);}
-.kit .nt-name {max-width: none;}
-.kit .nt-table {position: relative; height: 268px; margin: 4px 0 0; border-radius: 50% / 46%; border: 1.5px solid rgba(255, 231, 163, .22); background: radial-gradient(70% 60% at 50% 45%, rgba(255, 231, 163, .12), rgba(var(--k-panel), .18) 80%); box-shadow: inset 0 0 0 6px rgba(255, 231, 163, .04);}
-.kit .nt-seat {position: absolute; translate: -50% -50%; display: grid; justify-items: center; gap: 3px; padding: 0; border: 0; background: none; color: var(--on-bg); cursor: pointer;}
-.kit .nt-seat .tok {display: block; width: 48px; height: 48px; border-width: 3px; box-shadow: 0 6px 10px -6px rgba(0, 0, 0, .6);}
-.kit .nt-seat b {font: 800 .86rem/1 var(--display);}
-.kit .nt-seat.empty i {display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; border: 2px dashed rgba(255, 231, 163, .4); color: rgba(255, 231, 163, .55);}
-.kit .nt-seat.empty svg {width: 16px; height: 16px;}
-.kit .nt-seat.empty {margin-top: -8px;}
-.kit .nt-mid {position: absolute; left: 50%; top: 50%; translate: -50% -50%; text-align: center; font: 700 .9rem/1.2 var(--num); color: var(--on-bg2);}
-.kit .nt-mid b {display: block; font: 800 1.9rem/1 var(--num); color: #FFE7A3;}
-.kit .nt-add {display: flex; align-items: center; gap: 10px; min-height: 56px; padding: 4px 6px 4px 8px; border-radius: 16px; background: linear-gradient(180deg, #FFFDF6, var(--paper-hi)); box-shadow: 0 8px 18px -12px rgba(0, 0, 0, .6);}
-.kit .nt-add input {flex: 1; min-width: 0; height: 44px; border: 0; background: none; font: 700 1.1rem/1 var(--display); color: var(--ink);}
-.kit .nt-add input:focus {outline: none;}
-.kit .nt-add .qp {min-height: 44px; padding: 0 18px; border: 2px solid var(--gold); color: #6E4A10; background: linear-gradient(180deg, #FFF3C8, #F2D27C); text-transform: none; letter-spacing: 0; font: 800 1rem/1 var(--display);}
-.kit .nt-add .pe-plus {flex: none;}
-.kit .nt-hint {margin: -4px 4px 0; font-size: .86rem; color: var(--on-bg2);}
+.kit .ts-sheet input {box-sizing: border-box; min-width: 0; max-width: 100%;}
 .kit .ts-sheet .body {gap: 16px;}
 .kit .ts-sheet .kfield {max-width: none;}
 .kit .ts-sheet .kfield label {color: #7A5A1E;}
@@ -2308,7 +2289,7 @@ if (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIn
 .kit .lb-wtok { box-shadow: 0 0 0 4px var(--gold, #E4C27A), 0 14px 28px rgba(0, 0, 0, .38); }
 
 /* ── Home (app) ── */
-.kit.khome .lc-homenav { position: absolute; top: 0; left: 0; right: 0; z-index: 3; background: none; }
+.kit.khome .lc-homenav, .kit.kfirst .lc-homenav { position: absolute; top: 0; left: 0; right: 0; z-index: 3; background: none; }
 .kit.khome .lc-home { padding-top: calc(30px + env(safe-area-inset-top, 0px)); padding-bottom: calc(240px + env(safe-area-inset-bottom, 0px)); }
 .kit .lc-hero { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .kit .lc-h1 { margin: 0; }
@@ -2324,7 +2305,12 @@ if (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIn
 .kit .lc-blocks .blk { text-align: left; }
 .kit.khome .ph-dock.lc-dock-home { padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
 /* First run */
-.kit.kfirst .lc-first { padding-top: calc(30px + env(safe-area-inset-top, 0px)); gap: 14px; padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px)); }
+.kit.kfirst .lc-first { padding-top: calc(30px + env(safe-area-inset-top, 0px)); gap: 14px; padding-bottom: calc(214px + env(safe-area-inset-bottom, 0px)); }
+.kit.kfirst.ksub .lc-first { padding-top: 6px; text-align: left; margin-block: 0 auto; }
+.kit.kscreen .ph-dock.lc-dock-home { background: linear-gradient(rgba(var(--k-veil), 0), rgba(var(--k-veil), .92) 26%, rgb(var(--k-veil)) 44%); padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
+/* The tab bar sits in exactly the same place on every screen that has it, so it never shifts between tabs. */
+.kit.kscreen .ph-dock.lc-dock-home .tabbar { width: 100%; max-width: 560px; }
+.kit.kfirst.ksub .lc-first .lc-lede { margin-top: -6px; }
 .kit .lc-firsth { margin: 4px 0 0; font: 800 1.9rem/1.1 var(--display); text-wrap: balance; color: var(--on-bg); }
 .kit .lc-who h3 { margin: 6px 0 0; font: 800 1.15rem/1 var(--display); color: var(--on-bg); }
 .kit .lc-name input.nm { flex: 1; min-width: 0; height: 44px; padding: 0; border: 0; background: none; font: 700 1.1rem/1 var(--display); color: var(--on-bg); }
@@ -2364,7 +2350,7 @@ if (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIn
 /* Legacy sheets opened from a kit sheet sit above it */
 .kit.kport ~ .scrim { z-index: 45; }
 /* ── Table page (app) ── */
-.kit.ktable .lt-body { align-content: start; gap: 14px; padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px)); }
+.kit.ktable .lt-body { align-content: start; gap: 14px; padding-bottom: calc(214px + env(safe-area-inset-bottom, 0px)); }
 .kit .lc-champ h1 { margin: 18px 0 4px; width: 180px; font: 800 2rem/1 var(--display); text-wrap: balance; color: var(--on-bg); }
 .kit.ktable .lc-champ { margin-top: 18px; }
 html.scrolled .kit.kscreen > .ph-nav { background: rgba(var(--k-bar), .8); -webkit-backdrop-filter: blur(14px) saturate(1.2); backdrop-filter: blur(14px) saturate(1.2); box-shadow: 0 10px 18px -14px rgba(0, 0, 0, .6); }
@@ -2395,16 +2381,8 @@ html.scrolled .kit.kscreen > .ph-nav { background: rgba(var(--k-bar), .8); -webk
 .kit .lc-past button .tok { display: block; flex: none; }
 .kit .lc-past button > small { flex: 1; }
 .kit .lt-chev { width: 16px; height: 16px; flex: none; rotate: 180deg; color: #FFE7A3; }
-.kit.ktable .ph-dock, .kit.knewtable .ph-dock { padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
+.kit.ktable .ph-dock { padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
 /* New table */
-.kit.knewtable .nt-body { padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px)); }
-.kit .nt-head h1 { margin: 0; font: 800 2rem/1.05 var(--display); color: var(--on-bg); }
-.kit .nt-seat.taken { display: grid; justify-items: center; gap: 3px; }
-.kit .nt-face { padding: 0; border: 0; background: none; cursor: pointer; border-radius: 50%; }
-.kit .nt-face .tok { display: block; width: 48px; height: 48px; border-width: 3px; box-shadow: 0 6px 10px -6px rgba(0, 0, 0, .6); }
-.kit .nt-x { position: absolute; right: -10px; top: -8px; display: grid; place-items: center; width: 24px; height: 24px; padding: 0; border-radius: 50%; border: 2px solid var(--gold); background: var(--paper-hi); color: var(--ink); cursor: pointer; }
-.kit .nt-x::before { content: ""; position: absolute; inset: -10px; }
-.kit .nt-x svg { width: 10px; height: 10px; }
 /* Players and table settings */
 .kit .ep-sheet .lr-seats { gap: 6px; }
 .kit .ep-sheet .body { max-height: min(64dvh, 600px); overflow-y: auto; }
@@ -2466,9 +2444,9 @@ html.calm *, html.calm *::before, html.calm *::after { animation-duration: .01ms
 /* ── Learn (app) ── */
 .kit.kscreen.klearn .ph-dock.lc-dock2 { bottom: calc(128px + env(safe-area-inset-bottom, 0px)); padding-bottom: 6px; }
 .kit.klearn .lc-learn { padding-bottom: 260px; }
-.kit.klearn .lc-ill .dcard.w { position: absolute; width: 66px; }
-.kit.klearn .lc-ill-count .dcard { width: 48px; }
-.kit.klearn .lc-ill-melds .lr-melds { transform: scale(.9); }
+.kit .lc-ill .dcard.w { position: absolute; width: 66px; }
+.kit .lc-ill-count .dcard { width: 48px; }
+.kit .lc-ill-melds .lr-melds { transform: scale(.9); }
 .kit.klearn .call p { margin: 2px 0 0; }
 
 /* ── Round guide (app) ── */
@@ -2748,7 +2726,8 @@ html.calm *, html.calm *::before, html.calm *::after { animation-duration: .01ms
   .kit.kscreen .ph-dock { background: none; justify-content: center; }
   .kit.kscreen .ph-dock::before { content: ""; position: absolute; z-index: -1; top: -12px; bottom: 0; left: calc(50% - 50vw); right: calc(50% - 50vw); pointer-events: none;
     background: linear-gradient(rgba(var(--k-veil), 0), rgba(var(--k-veil), .82) 55%); }
-  .kit.khome .ph-dock::before { top: -40px; background: linear-gradient(rgba(var(--k-veil), 0), rgba(var(--k-veil), .9) 34%); }
+  .kit.kscreen .ph-dock.lc-dock-home { background: none; }
+  .kit.kscreen .ph-dock.lc-dock-home::before { top: -40px; background: linear-gradient(rgba(var(--k-veil), 0), rgba(var(--k-veil), .92) 26%, rgb(var(--k-veil)) 44%); }
   .deskmain .kit.kscreen .ph-dock::before { left: calc(50% - 50vw + 140px); right: calc(50% - 50vw + 140px); }
   .kit.kscreen .ph-dock > .kb { flex: 0 1 auto; width: 100%; max-width: 440px; }
   .kit.kscreen .ph-dock.lc-dock-home, .kit.kscreen .ph-dock.lc-dock2 { align-items: center; }
@@ -2756,7 +2735,7 @@ html.calm *, html.calm *::before, html.calm *::after { animation-duration: .01ms
   .kit.kround .lr-may { margin-top: 28px; }
   .kit.kresults .finale.lb-fin { background: radial-gradient(60% 46% at 50% 30%, rgba(108, 233, 191, .22), rgba(61, 189, 177, 0) 72%); box-shadow: none; }
   .kit.kround.wide .lr-body.bs-rgrid { margin-block: auto; align-items: center; }
-  .kit.kfirst .lc-first { padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px)); }
+  .kit.kfirst .lc-first { padding-bottom: calc(214px + env(safe-area-inset-bottom, 0px)); }
 }
 
 /* p14: the add row's plus is a real button: adds the typed name, or puts the cursor in the field. */
@@ -2769,10 +2748,7 @@ html.calm *, html.calm *::before, html.calm *::after { animation-duration: .01ms
 .kit button.pe-plus { padding: 0; background: none; cursor: pointer; font: inherit; transition: background .15s ease, border-color .15s ease, scale .12s ease; }
 .kit button.pe-plus:hover { background: rgba(255, 231, 163, .14); border-style: solid; }
 .kit button.pe-plus:active { scale: .92; }
-.kit button.pe-plus:focus-visible, .kit button.nt-seat:focus-visible { outline: 3px solid #FFE7A3; outline-offset: 3px; }
-.kit button.nt-seat.empty:hover i { border-style: solid; border-color: rgba(255, 231, 163, .8); color: #FFE7A3; background: rgba(255, 231, 163, .1); }
-.kit button.nt-seat.empty:active i { scale: .92; }
-.kit .nt-seat.empty i { transition: background .15s ease, border-color .15s ease, scale .12s ease; }
+.kit button.pe-plus:focus-visible { outline: 3px solid #FFE7A3; outline-offset: 3px; }
 .kit .lc-hero { cursor: default; }
 .kit .qp { min-height: 44px; }
 .kit .lr-grip { position: relative; }
@@ -2806,7 +2782,6 @@ html.calm *, html.calm *::before, html.calm *::after { animation-duration: .01ms
 .kit .dk-logo:focus-visible { outline: 3px solid #FFE7A3; outline-offset: 4px; border-radius: 12px; }
 .kit button.pe-plus { position: relative; }
 .kit button.pe-plus::after { content: ""; position: absolute; inset: -4px; border-radius: 50%; }
-.kit button.nt-seat.empty { padding: 2px; }
 /* p16: faces can be changed where players are first added */
 .kit .lc-face { position: relative; flex: none; display: grid; place-items: center; width: 48px; height: 48px; padding: 0; border: 0; border-radius: 50%; background: none; cursor: pointer; transition: scale .12s ease; }
 .kit .lc-face .tok { width: 44px; height: 44px; }
@@ -2831,33 +2806,19 @@ html.calm *, html.calm *::before, html.calm *::after { animation-duration: .01ms
 .kit .lc-dtag:focus-visible { outline: 3px solid #FFE7A3; outline-offset: 2px; border-radius: 12px; }
 .kit .lc-dtag:disabled { cursor: default; }
 .kit .lc-first .lc-hero { transition: height .4s var(--out), margin .4s var(--out); }
-.kit .lc-first .lc-hero .lc-h1, .kit .lc-first .lc-hero .lc-fan { transition: scale .4s var(--out), translate .4s var(--out); transform-origin: 50% 0; }
+.kit .lc-first .lc-hero .lc-h1, .kit .lc-first .lc-hero .lc-fan { transition: scale .4s var(--out), translate .4s var(--out), top .4s var(--out); transform-origin: 50% 0; }
 .kit .lc-first.started .lc-hero { height: 132px; }
 .kit .lc-first.started .lc-hero .lc-crest { width: 118px; }
 .kit .lc-first .lc-hero .lc-crest { transition: width .4s var(--out), scale .35s var(--spring); }
-.kit .lc-first.started .lc-hero .lc-fan { scale: .56; translate: 0 -16px; }
-.kit .lc-newto { position: relative; display: flex; align-items: center; gap: 12px; width: 100%; margin-top: 22px; padding: 12px 14px 12px 10px; border-radius: 20px; border: 3px solid transparent; cursor: pointer; text-align: left; color: var(--ink); font: inherit;
+.kit .lc-first.started .lc-hero .lc-fan { --cs: .56; }
   background: radial-gradient(120% 90% at 30% 0%, var(--paper-hi), var(--paper) 60%, var(--paper-lo)) padding-box, var(--rim-soft) border-box; box-shadow: 0 12px 22px -14px rgba(0, 0, 0, .55); transition: transform .38s var(--spring); -webkit-tap-highlight-color: transparent; }
-.kit .lc-newto-art { position: relative; flex: none; width: 88px; height: 56px; }
-.kit .lc-newto-art .hand { position: absolute; left: 0; bottom: -4px; width: 88px; height: auto; rotate: -5deg; filter: drop-shadow(0 6px 6px rgba(0, 0, 0, .28)); transition: translate .32s var(--out), rotate .45s var(--out); }
-.kit .lc-newto-art .q { position: absolute; right: -8px; bottom: -8px; width: 40px; height: auto; filter: drop-shadow(0 3px 4px rgba(0, 0, 0, .3)); animation: k-learn-nod 2.6s 1.2s var(--out) 2 both; transition: scale .3s var(--spring), rotate .3s var(--spring); }
-.kit .lc-newto-t { flex: 1; min-width: 0; display: grid; gap: 3px; padding-left: 4px; }
-.kit .lc-newto-t b { font: 800 1.2rem/1.1 var(--display); }
-.kit .lc-newto-t small { color: var(--ink2); font-size: .95rem; line-height: 1.25; }
-.kit .lc-newto .chev { flex: none; width: 20px; height: 20px; color: var(--gold-deep); transition: translate .32s var(--out); }
-.kit .lc-newto:hover .hand { translate: 0 -4px; rotate: -8deg; }
-.kit .lc-newto:hover .q { scale: 1.1; rotate: 8deg; }
-.kit .lc-newto:hover .chev { translate: 3px 0; }
-.kit .lc-newto:active { transform: scale(.985); transition-duration: var(--press); }
-.kit .lc-newto:focus-visible { outline: 3px solid #FFE7A3; outline-offset: 3px; }
 @keyframes k-learn-nod { 0%, 100% { rotate: 0deg; scale: 1; } 12% { rotate: -12deg; scale: 1.12; } 26% { rotate: 9deg; scale: 1.12; } 40% { rotate: 0deg; scale: 1; } }
-@media (prefers-reduced-motion: reduce) { .kit .lc-newto-art .q, .kit .lc-dtag { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .kit .lc-dtag { animation: none; } }
 .kit .lc-name input.nm { width: 0; }
 .kit .lc-first > *, .kit .lc-who > * { min-width: 0; }
-@media (max-height: 720px) { .kit .lc-first:not(.started) .lc-hero { height: 176px; } .kit .lc-first:not(.started) .lc-hero .lc-crest { width: 158px; } .kit .lc-first:not(.started) .lc-hero .lc-fan { scale: .75; translate: 0 -10px; } }
-@media (max-height: 600px) { .kit .lc-first:not(.started) .lc-hero { height: 132px; } .kit .lc-first:not(.started) .lc-hero .lc-crest { width: 118px; } .kit .lc-first:not(.started) .lc-hero .lc-fan { scale: .56; translate: 0 -16px; }
-  .kit .lc-first .lc-lede { display: none; } .kit .lc-newto { margin-top: 12px; } }
-@media (max-width: 350px) { .kit .lc-newto { gap: 8px; padding-right: 10px; } .kit .lc-newto-art { width: 66px; height: 44px; } .kit .lc-newto-art .hand { width: 66px; } .kit .lc-newto-art .q { width: 32px; } .kit .lc-newto-t b { font-size: 1.08rem; white-space: nowrap; } .kit .lc-newto-t small { font-size: .9rem; } }
+@media (max-height: 720px) { .kit .lc-first:not(.started) .lc-hero { height: 176px; } .kit .lc-first:not(.started) .lc-hero .lc-crest { width: 158px; } .kit .lc-first:not(.started) .lc-hero .lc-fan { --cs: .75; } }
+@media (max-height: 600px) { .kit .lc-first:not(.started) .lc-hero { height: 132px; } .kit .lc-first:not(.started) .lc-hero .lc-crest { width: 118px; } .kit .lc-first:not(.started) .lc-hero .lc-fan { --cs: .56; }
+  .kit .lc-first .lc-lede { display: none; } }
 .kit .rg-every { margin-top: 18px; }
 .kit .lb-name .kfield { grid-column: 1 / -1; }
 .kit .lb-name .lb-nbtns { grid-column: 1 / -1; justify-content: flex-end; }
@@ -2936,9 +2897,7 @@ body:has(.kresults) .toast { top: auto; bottom: calc(20px + env(safe-area-inset-
 .kit .lc-home .lc-hero { transition: height .4s var(--out); }
 .kit .lc-home.busy .lc-hero { height: 150px; }
 .kit .lc-home.busy .lc-hero .lc-crest { width: 134px; }
-.kit .lc-home.busy .lc-hero .lc-fan { scale: .63; translate: 0 -14px; transform-origin: 50% 0; }
-.kit .lc-now2 .foot .lc-nowchev { flex: none; width: 18px; height: 18px; color: #FFE7A3; }
-.kit .lc-now2:hover .lc-nowchev { translate: 3px 0; }
+.kit .lc-home.busy .lc-hero .lc-fan { --cs: .63; }
 .kit .lc-last b { text-wrap: balance; }
 .kit .lc-hact { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .kit .lc-hact .lc-h { margin: 0; }
@@ -3080,7 +3039,7 @@ body:has(.kresults) .toast { top: auto; bottom: calc(20px + env(safe-area-inset-
 @media (min-width: 700px) and (max-height: 820px) {
   .kit.khome .lc-home .lc-hero, .kit.kfirst .lc-first .lc-hero { height: 132px; }
   .kit.khome .lc-home .lc-hero .lc-crest, .kit.kfirst .lc-first .lc-hero .lc-crest { width: 118px; }
-  .kit.khome .lc-home .lc-hero .lc-fan, .kit.kfirst .lc-first .lc-hero .lc-fan { scale: .56; translate: 0 -16px; transform-origin: 50% 0; }
+  .kit.khome .lc-home .lc-hero .lc-fan, .kit.kfirst .lc-first .lc-hero .lc-fan { --cs: .56; }
   .kit.kfirst .lc-first .lc-lede { display: none; }
 }
 /* p21b: bars inside the score pad and between rounds are clear at rest and backed edge to edge once content scrolls under them */
@@ -3159,8 +3118,6 @@ body:has(.kresults) .toast { top: auto; bottom: calc(20px + env(safe-area-inset-
 @keyframes k-nameroll { 0% { rotate: -200deg; scale: .7; } 100% { rotate: 0deg; scale: 1; } }
 @media (prefers-reduced-motion: reduce) { .kit .kname-die .roll { animation: none; } }
 .kit .lb-name .kname { grid-column: 1 / -1; }
-.kit .nt-x { isolation: isolate; }
-.kit .nt-x::after { content: ""; position: absolute; inset: -10px; }
 /* p24: the guide is the same book in the same corner of every game screen; the score pad shows what each card is worth */
 .kit .ib-guide img { width: 26px; height: 26px; object-fit: contain; filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .3)); transition: rotate .3s var(--spring), scale .3s var(--spring); }
 .kit .ib-guide:hover img { rotate: -8deg; scale: 1.08; }
@@ -3220,7 +3177,7 @@ html.calm .kit.kscreen.kscore::before, html.calm .kit.kscreen.kbetween::before, 
 .kit .lr-b > b { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 @media (min-width: 700px) and (min-height: 600px) {
   /* The start screen: bigger rows, so names read from across the table */
-  .kit.kscreen.kfirst, .kit.kscreen.kfirst .ph-dock, .kit.kscreen.knewtable, .kit.kscreen.knewtable .ph-dock { max-width: 720px; }
+  .kit.kscreen.kfirst, .kit.kscreen.kfirst .ph-dock { max-width: 720px; }
   .kit.kfirst .lc-firsth { font-size: 2.6rem; }
   .kit.kfirst .lc-first .lc-lede { font-size: 1.2rem; }
   .kit.kfirst .lc-who { gap: 10px; }
@@ -3237,17 +3194,11 @@ html.calm .kit.kscreen.kscore::before, html.calm .kit.kscreen.kbetween::before, 
   .kit.kfirst .lc-facehint { font-size: 1.05rem; }
   .kit.kfirst .lc-grip { width: 30px; height: 56px; }
   .kit.kfirst .lc-grip svg { width: 22px; height: 22px; }
-  .kit.kfirst .lc-newto { padding: 16px 20px 16px 14px; }
-  .kit.kfirst .lc-newto-art { width: 120px; height: 76px; }
-  .kit.kfirst .lc-newto-art .hand { width: 120px; }
-  .kit.kfirst .lc-newto-art .q { width: 52px; }
-  .kit.kfirst .lc-newto-t b { font-size: 1.6rem; }
-  .kit.kfirst .lc-newto-t small { font-size: 1.15rem; }
-  .kit.kfirst .ph-dock > .kb, .kit.knewtable .ph-dock > .kb, .kit.klearn .ph-dock > .kb { max-width: 520px; min-height: 64px; font-size: 1.35rem; }
+  .kit.kfirst .ph-dock > .kb, .kit.klearn .ph-dock > .kb { max-width: 520px; min-height: 64px; font-size: 1.35rem; }
   /* Learn: all seven steps on the page at once, in rows, instead of one card at a time */
-  .kit.kscreen.klearn, .kit.kscreen.klearn .ph-dock { max-width: 1000px; }
-  .kit.klearn .lc-guides { flex-wrap: wrap; justify-content: center; gap: 34px 20px; overflow: visible; scroll-snap-type: none; margin: 0; padding: 30px 0 10px; }
-  .kit.klearn .lc-dots { display: none; }
+  .kit.kscreen.klearn, .kit.kguide .kp-body { max-width: 720px; }
+  .kit .rg-lesson .lc-guides { flex-wrap: wrap; justify-content: center; gap: 34px 20px; overflow: visible; scroll-snap-type: none; margin: 0; padding: 30px 0 10px; }
+  .kit .rg-lesson .lc-dots { display: none; }
   /* Stats and Settings: a wider column and type that reads at arm's length */
   .kit.kscreen.ksettings { max-width: 720px; }
   .kit.kstats .st-hero { font-size: 1.15em; }
@@ -3264,8 +3215,182 @@ html.calm .kit.kscreen.kscore::before, html.calm .kit.kscreen.kbetween::before, 
   .kit.ksettings .kseg { max-width: none; }
   .kit.ksettings .kseg button { min-height: 54px; font-size: 1.1rem; }
 }
-.kit .lc-first.started .lc-newto { margin-top: 14px; }
 @media (min-width: 700px) and (min-height: 600px) { .kit.klearn .ph-dock::before { top: -34px; background: linear-gradient(rgba(var(--k-veil), 0), rgba(var(--k-veil), .95) 32%); } }
+/* p30: one guide. The lesson lives in its Basics tab; the page has one way back, at the bottom, that says where it goes. */
+.kit .rg-lesson { display: grid; gap: 8px; min-width: 0; }
+.kit .rg-lesson .lc-guides { padding-top: 30px; padding-bottom: 22px; margin-bottom: 0; }
+.kit.klearn .lc-learn { gap: 16px; padding-bottom: calc(150px + env(safe-area-inset-bottom, 0px)); }
+.kit.kpage .kp-foot { position: sticky; bottom: 0; z-index: 2; display: flex; justify-content: center; padding: 26px max(16px, env(safe-area-inset-right, 0px)) calc(20px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); pointer-events: none;
+  background: linear-gradient(rgba(var(--k-veil), 0), rgba(var(--k-veil), .92) 46%); }
+.kit.kpage .kp-foot .kb { pointer-events: auto; flex: 1; max-width: 440px; }
+.kit.kpage .kpage-in { display: flex; flex-direction: column; }
+.kit.kpage .kpage-in > * { flex: none; }
+.kit.kpage .kp-foot { margin-top: auto; }
+/* p31: the guide is Basics and Rounds. */
+.kit.kguide .rg-wild .rg-word { align-items: flex-start; gap: 14px; }
+.kit.kguide .rg-wild .rg-word p { margin: 0; font-size: .94rem; line-height: 1.45; color: var(--on-bg2); }
+.kit.kguide .rg-tabs .kseg { min-width: min(100%, 300px); }
+
+/* p33: the tab bar at a platform size (iOS 49pt, Android 80dp; this sits between). The art stays, smaller; pages carry the big pictures. */
+.kit .tabbar { padding: 5px 10px 6px; border-radius: 22px; }
+.kit .tab { gap: 1px; min-width: 76px; padding: 0 6px 10px; font-size: .75rem; }
+.kit .tab img { width: 34px; height: 34px; }
+.kit .tab[aria-current="page"] img { transform: translateY(-3px) scale(1.1); filter: drop-shadow(0 4px 6px rgba(0, 0, 0, .4)); }
+.kit .tab[aria-current="page"]::after { width: 6px; height: 6px; margin-left: -3px; bottom: 1px; }
+.kit.khome .lc-home { padding-bottom: calc(188px + env(safe-area-inset-bottom, 0px)); }
+.kit.khome .lc-home.busy { padding-bottom: calc(122px + env(safe-area-inset-bottom, 0px)); }
+.kit.kfirst .lc-first, .kit.ktable .lt-body { padding-bottom: calc(188px + env(safe-area-inset-bottom, 0px)); }
+.kit.kscreen.kstats .st-body { padding-bottom: calc(122px + env(safe-area-inset-bottom, 0px)); }
+.kit.klearn .lc-learn { padding-bottom: calc(122px + env(safe-area-inset-bottom, 0px)); }
+/* Home's game card: the leader's card looks over the corner, and Resume is the one way back in. */
+.kit .lc-now2 .lc-nowlead { display: flex; align-items: center; gap: 6px; margin-top: 6px; font: 700 .95rem/1 var(--display); color: #FFE7A3; }
+.kit .lc-now2 .lc-nowlead img { width: 22px; height: 22px; object-fit: contain; }
+.kit .lc-now2 { overflow: visible; }
+.kit .lc-now2::before { border-radius: 19px 19px 0 0; }
+.kit .lc-now2 .lc-now-c { position: absolute; right: 14px; top: -14px; width: 72px; rotate: 8deg; filter: drop-shadow(-4px 8px 10px rgba(0, 0, 0, .4)); transition: translate .32s var(--out), rotate .45s var(--out); }
+.kit .lc-now2 .lc-now-c .dcard { width: 100%; }
+.kit .lc-now2:hover .lc-now-c { translate: 0 -4px; rotate: 11deg; }
+.kit .lc-now2.has-card .name, .kit .lc-now2.has-card .meta { padding-right: 92px; }
+.kit .lc-now2 .foot { align-items: center; }
+.kit .lc-resume { flex: none; display: inline-flex; align-items: center; gap: 4px; min-height: 40px; padding: 0 12px 2px 18px; border-radius: 999px; border: 2px solid transparent; color: var(--ink); font: 700 1.05rem/1 var(--display);
+  background: linear-gradient(180deg, var(--paper-hi) 0%, var(--paper) 58%, var(--paper-lo) 100%) padding-box, var(--rim) border-box; box-shadow: inset 0 -2.5px 0 #D9BE86, inset 0 1.5px 0 #fff; }
+.kit .lc-resume .chev { width: 16px; height: 16px; color: var(--gold-deep); transition: translate .32s var(--out); }
+.kit .lc-now2:hover .lc-resume .chev { translate: 3px 0; }
+/* The fan behind the crest: four cards on one arc from one pivot, a little below the crest's centre. The inner pair show their top edge, the outer pair a little more. --cs is the crest's size (1 = 212px). */
+.kit .lc-fan { top: calc(6px + 156.5px * var(--cs, 1)); scale: var(--cs, 1); translate: none; transform-origin: 50% 0; }
+.kit .lc-fan > div { top: -167px; transform-origin: 50% 167px; }
+@media (min-width: 768px) { .kit.khome .lc-resume { min-height: 48px; padding: 0 16px 2px 24px; font-size: 1.25rem; } .kit .lc-now2 .lc-nowlead { font-size: 1.15rem; } .kit .lc-now2 .lc-now-c { width: 96px; right: 22px; } }
+
+/* p33: the main button contrasts with what it sits on. On the water it is cream paper; on a cream sheet it keeps the look's colour.
+   The second button does the opposite and goes quiet: on the water it is dark glass with the gold rim. */
+:is(.kit.kscreen, .kit.kpage) .kb:not(.cream, .sapphire, .ruby, :disabled, .ksheet .kb, .km .kb) { color: var(--ink);
+  background: linear-gradient(180deg, var(--paper-hi) 0%, var(--paper) 58%, var(--paper-lo) 100%) padding-box, var(--rim) border-box; box-shadow: inset 0 -3px 0 #D9BE86, inset 0 1.5px 0 #fff; }
+:is(.kit.kscreen, .kit.kpage) .kb:not(.cream, .sapphire, .ruby, :disabled, .ksheet .kb, .km .kb):is(:active, .pressed) { box-shadow: inset 0 -1.5px 0 #D9BE86, inset 0 3px 6px rgba(110, 74, 16, .18); }
+:is(.kit.kscreen, .kit.kpage) .kb.sm:not(.cream, .sapphire, .ruby, :disabled, .ksheet .kb, .km .kb) { box-shadow: inset 0 -2.5px 0 #D9BE86, inset 0 1.5px 0 #fff; }
+:is(.kit.kscreen, .kit.kpage) .kb.cream:not(:disabled, .ksheet .kb, .km .kb) { color: var(--on-bg); border-color: rgba(255, 233, 166, .6); background-image: none; background-color: rgba(var(--k-panel), .42); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1); }
+:is(.kit.kscreen, .kit.kpage) .kb.cream:not(:disabled, .ksheet .kb, .km .kb):is(:active, .pressed) { box-shadow: inset 0 3px 7px rgba(0, 0, 0, .3); }
+:is(.kit.kscreen, .kit.kpage) .kb.cream:not(:disabled, .ksheet .kb, .km .kb) svg { color: #FFE7A3; }
+
+/* p33: nothing shows through beside the main button. The dock fades in above it and is solid from the button down. */
+@media (max-width: 767px) { .kit.kscreen .ph-dock { background: linear-gradient(rgba(var(--k-veil), 0), rgba(var(--k-veil), .92) 26%, rgb(var(--k-veil)) 44%); } }
+@media (min-width: 768px) { .kit.kscreen .ph-dock:not(.lc-dock-home)::before { background: linear-gradient(rgba(var(--k-veil), 0), rgba(var(--k-veil), .92) 30%, rgb(var(--k-veil)) 55%); } }
+
+/* p34: four tabs share the bar evenly. Settings as a tab keeps clear of the bar. */
+.kit .tab { flex: 1 1 0; min-width: 0; }
+.kit.ksettings.ktabbed .lc-set { padding-bottom: calc(122px + env(safe-area-inset-bottom, 0px)); }
+.kit .lc-rulesrow { margin-top: 10px; text-align: left; }
+
+/* p35: the crest opens the app, then settles into Play's corner. Play keeps a small mark and gives its room to the table. */
+.kit.ksplash { position: fixed; inset: 0; z-index: 300; display: grid; place-items: center; overflow: hidden; touch-action: none; }
+.kit.ksplash::before { content: ""; position: absolute; inset: 0; background: radial-gradient(90% 70% at 50% 42%, var(--k-w1, #2FA7A8) 0%, var(--g4) 58%, var(--g5) 100%); transition: opacity .42s ease; }
+.kit.ksplash .lc-hero { width: 320px; height: 240px; margin: 0 0 6vh; cursor: default; }
+.kit.ksplash .lc-crest { animation: sp-crest .62s var(--spring) backwards; }
+.kit.ksplash .lc-fan > div { animation: sp-deal .5s calc(.28s + var(--i) * .09s) var(--out) backwards; }
+.kit.ksplash.out .lc-crest, .kit.ksplash.out .lc-fan > div { animation: none; }
+@keyframes sp-crest { from { scale: .5; opacity: 0; } 55% { opacity: 1; } to { scale: 1; opacity: 1; } }
+@keyframes sp-deal { from { rotate: 0deg; opacity: 0; } to { rotate: var(--r); opacity: 1; } }
+.kit.ksplash.out { pointer-events: none; }
+.kit.ksplash.out::before { opacity: 0; }
+.kit.ksplash.out .lc-hero::before { opacity: 0; transition: opacity .3s ease; }
+.kit.ksplash.out .lc-fan { opacity: 0; transition: opacity .22s ease; }
+.kit.ksplash.out .lc-crest { opacity: 0; scale: 1.08; transition: opacity .3s ease, scale .42s var(--out); }
+.kit.ksplash.out.lands .lc-crest { opacity: 0; scale: var(--ts); translate: calc(-50% + var(--tx)) var(--ty); transition: translate .44s var(--out), scale .44s var(--out), opacity .1s .38s; }
+.kit .lc-brand { gap: 10px; }
+.kit .lc-brand .lc-mark { width: 44px; height: 44px; flex: none; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, .4)); }
+.kit .lc-brand h1.lbl { margin: 0; }
+.kit.khome .lc-home, .kit.kfirst .lc-first { padding-top: 8px; }
+.kit .lc-home.busy > .lc-now2:first-child, .kit .lc-home > .lc-moment:first-child { margin-top: 10px; }
+.kit .lc-moment { display: flex; align-items: center; gap: 16px; width: 100%; padding: 8px 4px; border: 0; border-radius: 18px; background: none; color: var(--on-bg); text-align: left; cursor: pointer; transition: background .15s ease, transform .12s ease; -webkit-tap-highlight-color: transparent; }
+.kit .lc-moment:hover { background: rgba(255, 233, 166, .07); }
+.kit .lc-moment:active { transform: scale(.985); }
+.kit .lc-moment:focus-visible { outline: 3px solid #FFE7A3; outline-offset: 3px; }
+.kit .lc-mo-art { position: relative; flex: none; width: 76px; margin: 22px 8px 4px 10px; rotate: -6deg; filter: drop-shadow(0 8px 10px rgba(0, 0, 0, .4)); transition: rotate .45s var(--out), translate .32s var(--out); }
+.kit .lc-mo-art .dcard { width: 100%; }
+.kit .lc-mo-art .lc-mo-tok { display: block; width: 72px; height: 72px; border-width: 4px; }
+.kit .lc-mo-crown { position: absolute; left: 50%; top: -24px; width: 44px; translate: -50% 0; rotate: 6deg; filter: drop-shadow(0 3px 3px rgba(0, 0, 0, .4)); }
+.kit .lc-moment:hover .lc-mo-art { rotate: -3deg; translate: 0 -3px; }
+.kit .lc-mo-t { flex: 1; min-width: 0; display: grid; gap: 4px; }
+.kit .lc-mo-t b { font: 800 1.4rem/1.1 var(--display); color: #FFE7A3; text-wrap: balance; }
+.kit .lc-mo-t small { color: var(--on-bg2); font-size: .95rem; }
+.kit .lc-moment .chev { flex: none; width: 18px; height: 18px; color: #FFE7A3; transition: translate .32s var(--out); }
+.kit .lc-moment:hover .chev { translate: 3px 0; }
+@media (min-width: 768px) { .kit .lc-mo-art { width: 104px; margin-top: 30px; } .kit .lc-mo-crown { width: 58px; top: -32px; } .kit .lc-mo-t b { font-size: 2rem; } .kit .lc-mo-t small { font-size: 1.2rem; } .kit .lc-brand .lc-mark { width: 52px; height: 52px; } }
+
+
+/* The start screen without its hero: the welcome sits a little way down, and glides up to make room as soon as a name is typed. */
+.kit.kfirst .ph-body { margin-block: 0 auto; }
+.kit.kfirst:not(.ksub) .lc-first { padding-top: 7vh; transition: padding-top .45s var(--out); }
+.kit.kfirst:not(.ksub) .lc-first.started { padding-top: 10px; }
+@media (prefers-reduced-motion: reduce) { .kit.kfirst:not(.ksub) .lc-first { transition: none; } }
+html.calm .kit.kfirst:not(.ksub) .lc-first { transition: none; }
+
+/* p36: the last game in one piece. The winner, then that game's awards in a row that scrolls sideways: a small medal, the award, and the face and name of who took it. */
+.kit .lc-lastgame { display: grid; gap: 6px; min-width: 0; }
+.kit .lc-lastgame > .lc-h { margin: 0; }
+.kit .lc-aws { display: flex; gap: 22px; margin: 2px -16px 0; padding: 4px 16px 8px; list-style: none; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.kit .lc-aws::-webkit-scrollbar { display: none; }
+.kit .lc-aw { flex: none; display: grid; grid-template-columns: 46px auto; column-gap: 10px; row-gap: 3px; align-items: center; scroll-snap-align: start; }
+.kit .lc-aw > img { grid-row: span 2; width: 46px; height: 46px; object-fit: contain; filter: drop-shadow(0 4px 5px rgba(0, 0, 0, .35)); }
+.kit .lc-aw > b { align-self: end; font: 800 1rem/1.1 var(--display); color: #FFE7A3; white-space: nowrap; }
+.kit .lc-aw > span { align-self: start; display: inline-flex; align-items: center; gap: 6px; font: 600 .95rem/1 var(--font); color: var(--on-bg); white-space: nowrap; }
+.kit .lc-aw > span .tok { width: 24px; height: 24px; border-width: 2px; flex: none; }
+.kit.ktable .lc-lastgame > .lc-h { font: 800 1.25rem/1.1 var(--display); }
+@media (min-width: 768px) { .kit .lc-aws { gap: 30px; } .kit .lc-aw { grid-template-columns: 60px auto; column-gap: 12px; } .kit .lc-aw > img { width: 60px; height: 60px; } .kit .lc-aw > b { font-size: 1.3rem; } .kit .lc-aw > span { font-size: 1.15rem; } .kit .lc-aw > span .tok { width: 32px; height: 32px; } }
+
+/* p37: lights in opposite corners, in the look's own colour, breathing instead of circling, so no muddy patch crosses the middle. */
+.ground::before, .kit.kscreen.kscore::before, .kit.kscreen.kbetween::before, .kit.kport.kpage::before { inset: -12%;
+  background: radial-gradient(circle at 6% 2%, rgba(var(--orb1, 126,238,204), .46), transparent 46%), radial-gradient(circle at 96% 100%, rgba(var(--orb1, 126,238,204), .22), transparent 42%);
+  animation: glow 14s ease-in-out infinite alternate; }
+@keyframes glow { from { opacity: .8; transform: scale(1); } to { opacity: 1; transform: scale(1.06); } }
+/* The opening's loading line. */
+.kit.ksplash { align-content: center; justify-items: center; }
+.kit .sp-load { position: relative; display: grid; justify-items: center; gap: 10px; width: 180px; margin-top: -2vh; animation: k-rise .4s .3s var(--out) backwards; }
+.kit .sp-load::before { content: ""; width: 100%; height: 6px; border-radius: 99px; background: rgba(var(--k-panel, 3,38,46), .5); box-shadow: inset 0 0 0 1px rgba(255, 233, 166, .28); }
+.kit .sp-load i { position: absolute; left: 0; top: 0; height: 6px; width: 30%; border-radius: 99px; background: linear-gradient(90deg, #E9B44C, #FFEDB0); transition: width .5s var(--out); }
+.kit .sp-load.s1 i { width: 70%; } .kit .sp-load.s2 i { width: 100%; transition-duration: .22s; }
+.kit .sp-load span { font: 700 .8rem/1 var(--label); letter-spacing: .14em; text-transform: uppercase; color: var(--on-bg2); }
+.kit.ksplash.out .sp-load { opacity: 0; transition: opacity .2s ease; }
+/* Scores by round, players down the side. */
+.kit .ss.ss-t .ss-ph { width: 36%; text-align: left; padding-left: 2px; }
+.kit .ss.ss-t .ss-tot { width: 46px; }
+.kit .ss.ss-t thead th { padding: 8px 0 8px; vertical-align: middle; }
+.kit .ss.ss-t thead .ss-tot { font: 700 .7rem/1 var(--label); letter-spacing: .08em; text-transform: uppercase; color: #7A5A1E; }
+.kit .ss.ss-t thead .ss-rn { width: 24px; height: 24px; font-size: .8rem; }
+.kit .ss.ss-t button.ss-rn::after { inset: -10px -2px; }
+.kit .ss.ss-t tbody td, .kit .ss.ss-t tbody th { height: 46px; }
+.kit .ss.ss-t tbody td { font-size: .95rem; }
+.kit .ss.ss-t .ss-who { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.kit .ss.ss-t .ss-who .tok { display: block; flex: none; width: 28px; height: 28px; margin: 0; border-width: 2px; }
+.kit .ss.ss-t .ss-who .ss-nm { font-size: .95rem; text-align: left; padding: 0; }
+.kit .ss.ss-t td.out b { width: 24px; height: 24px; font-size: .9rem; }
+.kit .ss.ss-t td.ss-tot { border-left: 2px solid var(--gold); }
+.kit .ss.ss-t td.ss-tot b { font: 800 1.12rem/1 var(--num); }
+.kit .ss.ss-t td.ss-tot.win b { display: inline-grid; place-items: center; min-width: 34px; height: 30px; padding: 0 6px; border-radius: 99px; background: linear-gradient(180deg, var(--teal-face), var(--teal-lo)); color: #FFF6DC; }
+@media (min-width: 768px) { .kit .ss.ss-t .ss-ph { width: 30%; } .kit .ss.ss-t .ss-who .ss-nm { font-size: 1.15rem; } .kit .ss.ss-t tbody td { font-size: 1.15rem; } .kit .ss.ss-t .ss-tot { width: 64px; } }
+/* The start screen's teaching card, shown until the first name is typed. */
+.kit .lc-newto { position: relative; display: flex; align-items: center; gap: 12px; width: 100%; margin-top: 22px; padding: 12px 14px 12px 10px; border-radius: 20px; border: 3px solid transparent; cursor: pointer; text-align: left; color: var(--ink); font: inherit;
+  background: radial-gradient(120% 90% at 30% 0%, var(--paper-hi), var(--paper) 60%, var(--paper-lo)) padding-box, var(--rim-soft) border-box; box-shadow: 0 12px 22px -14px rgba(0, 0, 0, .55); transition: transform .38s var(--spring); -webkit-tap-highlight-color: transparent; }
+.kit .lc-newto-art { position: relative; flex: none; width: 88px; height: 56px; }
+.kit .lc-newto-art .hand { position: absolute; left: 0; bottom: -4px; width: 88px; height: auto; rotate: -5deg; filter: drop-shadow(0 6px 6px rgba(0, 0, 0, .28)); transition: translate .32s var(--out), rotate .45s var(--out); }
+.kit .lc-newto-art .q { position: absolute; right: -8px; bottom: -8px; width: 40px; height: auto; filter: drop-shadow(0 3px 4px rgba(0, 0, 0, .3)); animation: k-learn-nod 2.6s 1.2s var(--out) 2 both; transition: scale .3s var(--spring), rotate .3s var(--spring); }
+.kit .lc-newto-t { flex: 1; min-width: 0; display: grid; gap: 3px; padding-left: 4px; }
+.kit .lc-newto-t b { font: 800 1.2rem/1.1 var(--display); }
+.kit .lc-newto-t small { color: var(--ink2); font-size: .95rem; line-height: 1.25; }
+.kit .lc-newto .chev { flex: none; width: 20px; height: 20px; color: var(--gold-deep); transition: translate .32s var(--out); }
+.kit .lc-newto:hover .hand { translate: 0 -4px; rotate: -8deg; }
+.kit .lc-newto:hover .q { scale: 1.1; rotate: 8deg; }
+.kit .lc-newto:hover .chev { translate: 3px 0; }
+.kit .lc-newto:active { transform: scale(.985); transition-duration: var(--press); }
+.kit .lc-newto:focus-visible { outline: 3px solid #FFE7A3; outline-offset: 3px; }
+.kit .lc-newto { margin-top: 18px; }
+
+/* p37: rounds with three melds lay their cards on two lines, two above and one tucked under, so every card's corner can be read. */
+@media (min-height: 760px) {
+  .kit .lr-melds.three { display: grid; grid-template-columns: auto auto; justify-content: center; column-gap: 12px; row-gap: 0; padding-bottom: 0; }
+  .kit .lr-melds.three .lr-meld:last-child { grid-column: 1 / -1; justify-self: center; margin-top: -36px; }
+  .kit .lr-melds.three .lr-meld > span + span { margin-left: -30px; }
+  .kit .lr-melds.three .lr-meld.run > span + span { margin-left: -33px; }
+}
 </style>
 </head>
 <body>
@@ -3739,7 +3864,7 @@ const HOW_TO = [
   ["out", "Go out", "First with no cards ends the round. Everyone else counts what's left. Lowest total after 7 rounds wins."],
 ];
 // ── Rules & coaching content ──────────────────────────────────────
-// Ported from builds 039ea2e (round coaching, quick start, FAQ, glossary)
+// Ported from builds 039ea2e (round coaching)
 // and d1be84c ("Why this rule?" notes, live rule hints, May I? timeline).
 // Index 0 of GUIDE is round 1 and lines up with ROUNDS.
 
@@ -3841,18 +3966,10 @@ const GUIDE = [
   },
 ];
 
-const QUICK_START = [
-  { t: "Deal", d: "Shuffle two decks together, with jokers if the table plays them wild. Deal 10 cards in rounds 1–3 and 12 in rounds 4–7. Flip one card face up to start the discard pile." },
-  { t: "Take a turn", d: "Draw one card, from the stock or the top of the discard pile. Then discard one card face up." },
-  { t: "Go down, once", d: "When a hand holds the round's goal, its player lays it face up on their turn. Each player goes down once per round. After that, cards are played by laying them off on melds already on the table." },
-  { t: "Say “May I?”", d: "Want a discard on someone else's turn? Ask “May I?” If the next player doesn't take it, the asker gets it plus one penalty card from the stock." },
-  { t: "Score", d: "The round ends when someone runs out of cards. Everyone else adds up what's left in their hand. Lowest total after 7 rounds wins." },
-];
-
 const TURN_STEPS = [
   { t: "Draw", d: "Take the top card of the stock or the discard pile." },
-  { t: "Go down (once, optional)", d: "Holding the round's goal? Lay it down. Only once per round, and only the goal. No extra melds." },
-  { t: "Lay off (after going down)", d: "Add cards to any meld on the table, a player's own or anyone else's. Once down, this is the only way to play cards." },
+  { t: "Go down (once, when ready)", d: "Holding the round's goal? Lay it down: once a round, and only the goal. A set of four or a run of six still counts. Waiting is allowed, but if someone goes out first, the whole hand counts against its holder." },
+  { t: "Lay off (only after going down)", d: "Add cards to any meld on the table (a meld is a set or run someone has laid down), a player's own or anyone else's. Once down, this is the only way to play cards." },
   { t: "Discard", d: "Each turn ends with one card face up on the discard pile. If it was the last card, that player is out. In round 7 there's no final discard: going out means laying down every card." },
 ];
 
@@ -3861,38 +3978,8 @@ const MAYI_STEPS = [
   { t: "Ask “May I?”", d: "Speak up before the next player draws. Once they pick up, the chance is gone." },
   { t: "Next player chooses", d: "The player whose turn is next gets first refusal. If they take it as their draw, the asker doesn't get it." },
   { t: "Two cards come in", d: "Otherwise the asker takes the discard, plus one face-down penalty card from the stock. Their hand grows by two." },
+  { t: "Two people ask at once", d: "The next player still gets first refusal. If they pass, the card usually goes to whoever sits closest to them in turn order." },
   { t: "Buy limit", d: "This table allows {limit} per player, per round. The count resets each round." },
-];
-
-const FAQ = [
-  { q: "After going down, can a player lay down another set or run?",
-    a: "No. Each player goes down once per round, with the round's goal and nothing more. After that, no new melds, not even another copy of the goal. Cards go by laying off on melds already on the table, plus the discard each turn." },
-  { q: "So how does a player go out after going down?",
-    a: "Keep drawing, lay off every card that fits a meld on the table, and discard one card each turn. When the last card is laid off or discarded, that player is out and the round ends." },
-  { q: "Can melds be longer than the goal asks?",
-    a: "Yes. A set of four or a run of six still counts, so pack extra matching cards in when going down. What's not allowed is adding melds the goal doesn't ask for." },
-  { q: "Can a player lay off before going down?",
-    a: "No. A player must go down with the full goal before adding cards to anyone's melds." },
-  { q: "Does a player have to go down as soon as they can?",
-    a: "No, waiting is allowed. But every turn spent waiting risks someone going out while a full hand of points is still held." },
-  { q: "How many wild cards can go in one meld?",
-    a: "Wilds can't outnumber the natural cards. A set of three can hold one wild, and a run of four can hold two. Jokers are worth 15 if they're left in hand." },
-  { q: "What if two people say “May I?” at once?",
-    a: "The next player still gets first refusal. If they pass, the card usually goes to whoever is closest to them in turn order." },
-  { q: "What's different in round 7?",
-    a: "There's no final discard, so going down means going out. All three runs and every card in hand go down in one move." },
-];
-
-const GLOSSARY = [
-  { term: "Set", d: "Three or more cards of the same rank, any suits.", ex: ["7S", "7H", "7C"] },
-  { term: "Run", d: "Four or more cards in a row, all the same suit.", ex: ["8H", "9H", "10H", "JH"] },
-  { term: "Meld", d: "Any set or run laid face up on the table.", ex: null },
-  { term: "Goal", d: "The sets and runs each round asks for.", ex: null },
-  { term: "Go down", d: "Lay the round's goal face up. Once per round. Afterwards, no new melds.", ex: null },
-  { term: "Lay off", d: "Add cards to a meld already on the table. Only allowed after going down, and then it's the only way to play cards.", ex: null },
-  { term: "Go out", d: "Get rid of the last card. This ends the round.", ex: null },
-  { term: "Wild card", d: "A joker, and 2s if the table plays them wild. It stands in for any card, but wilds can't outnumber natural cards in a meld.", ex: ["8H", "JOKER", "10H", "JH"] },
-  { term: "Buy", d: "Taking a discard out of turn with “May I?”, plus one penalty card from the stock.", ex: null },
 ];
 
 const RULE_WHY = {
@@ -4863,14 +4950,16 @@ function App() {
     const live = Object.values(s.games).find(g => g.status === "live");
     return live ? { at: "game", gameId: live.id } : { at: "home" };
   });
-  const [sheet, setSheet] = useState(null);
+  const [sheet, setSheet] = useState(null), [intro, setIntro] = useState(introDue);
   const [toast, setToast] = useState(null);
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(null), toast.undo ? 6000 : toast.sub ? 3800 : 2800); return () => clearTimeout(t); }, [toast]);
   // Destructive actions happen at once and offer Undo, instead of asking twice.
   const withUndo = (text, change) => { const before = s; change(); setToast({ text, undo: () => { api.set(() => before); setToast(null); } }); };
   const startGame = (groupId, players, dealer, rules) => {
     const id = uid();
-    api.set(x => ({ ...x, games: { ...x.games, [id]: { id, groupId, players, dealer, rules: { ...DEFAULT_RULES, ...rules }, names: namesOf(x.groups[groupId], players), round: 0, scores: {}, buys: {}, hands: {}, status: "live", startedAt: now(), updatedAt: now() } } }));
+    // The rules a game is dealt with become the table's rules, so its next game starts from them.
+    api.set(x => ({ ...x, groups: { ...x.groups, [groupId]: { ...x.groups[groupId], rules: { ...DEFAULT_RULES, ...rules } } },
+      games: { ...x.games, [id]: { id, groupId, players, dealer, rules: { ...DEFAULT_RULES, ...rules }, names: namesOf(x.groups[groupId], players), round: 0, scores: {}, buys: {}, hands: {}, status: "live", startedAt: now(), updatedAt: now() } } }));
     close(); go({ at: "game", gameId: id });
   };
   // Rematch: same players and rules, the deal moves one seat left.
@@ -4880,17 +4969,13 @@ function App() {
   // Headers sit on the background; once the page scrolls under one it frosts over.
   useEffect(() => { const f = () => document.documentElement.classList.toggle("scrolled", scrollY > 8); addEventListener("scroll", f, { passive: true }); f(); return () => removeEventListener("scroll", f); }, []);
   // First run: the table is made from the names typed, and the first hand is dealt.
-  const firstGame = (name, players, dealer) => { const gid = uid();
+  const firstGame = (name, players, dealer, rules) => { const gid = uid();
     api.set(x => ({ ...x, groups: { ...x.groups, [gid]: { id: gid, name, auto: true, code: newCode(), players, createdAt: now(), updatedAt: now() } }, groupOrder: [...x.groupOrder, gid] }));
-    startGame(gid, players.map(p => p.id), dealer || 0, DEFAULT_RULES); };
+    startGame(gid, players.map(p => p.id), dealer || 0, rules || DEFAULT_RULES); };
   // A new face at a table, from New game's Add.
   const addToTable = (gid, name) => { const grp = s.groups[gid], used = grp.players.map(q => q.color), id = uid();
     const p = { id, name: name.slice(0, 20), color: (PEGS.find(c => !used.includes(c.k)) || PEGS[grp.players.length % 8]).k, avatar: avSeed(name, heldFaces(grp.players)) };
     api.group(gid, x => ({ ...x, players: [...x.players, p] })); haptic(10); sound("chip"); return id; };
-  // A new table can be named now or after its first game. Unnamed, it is dealt a name, and the New game sheet opens so the first hand is one tap away.
-  const createTable = (name, players) => { const id = uid(), auto = dealTableName(Object.values(s.groups).map(g => g.name));
-    api.set(x => ({ ...x, groups: { ...x.groups, [id]: { id, name: name || auto, auto: !name, code: newCode(), players, createdAt: now(), updatedAt: now() } }, groupOrder: [...x.groupOrder, id] }));
-    haptic(12); sound("save"); go({ at: "group", groupId: id }); setSheet({ type: "newgame", groupId: id }); };
   const open = (type, extra) => { if (type === "settings") { setSheet(null); haptic(6); return setView(v => v.at === "settings" ? v : { at: "settings", back: v }); } setSheet({ type, ...(extra || {}) }); };
   const close = () => setSheet(null);
   const go = v => { haptic(6); setView(v); };
@@ -4898,14 +4983,14 @@ function App() {
   let screen;
   const g = view.gameId && s.games[view.gameId], grp = view.groupId && s.groups[view.groupId];
   if (view.at === "group" && grp) screen = ce(GroupPage, { s, group: grp, open, go, sync });
-  else if (view.at === "newtable") screen = ce(NewTablePage, { go, onCreate: createTable });
+  else if (view.at === "newtable") screen = ce(FirstRun, { onDeal: firstGame, go, open, sync, sub: true, taken: Object.values(s.groups).map(x => x.name) });
   else if (view.at === "game" && g) screen = ce(GameScreen, { s, api, game: g, open, go, wide, setToast, level: settings.level, fixAsk: view.fix != null ? view.fix + ":" + view.k : null });
   else if (view.at === "recap" && g) screen = ce(Recap, { s, game: g, go, setToast, rematch, settings, setSettings, onTable: patch => api.group(g.groupId, x => ({ ...x, ...patch })),
     onReopen: g.status === "done" && !Object.values(s.games).some(x => x.groupId === g.groupId && x.status === "live") ? () => {
       api.game(g.id, x => { const { endedAt, early, ...rest } = x, gap = ROUNDS.findIndex((_, i) => !roundDone(x, i)); return { ...rest, status: "live", round: gap >= 0 ? gap : 6, reopened: x }; });
       setToast({ text: "Game reopened" }); go({ at: "game", gameId: g.id }); } : null,
     onDelete: () => withUndo("Game deleted", () => { api.set(x => { const games = { ...x.games }; delete games[g.id]; return { ...x, games }; }); go({ at: "group", groupId: g.groupId }); }) });
-  else if (view.at === "settings") screen = ce(SettingsPage, { s, settings, setSettings, go, open, setToast, onBack: () => go(view.back || { at: "home" }),
+  else if (view.at === "settings") screen = ce(SettingsPage, { s, settings, setSettings, go, open, setToast, tab: !view.back, onBack: () => go(view.back || { at: "home" }),
     onRestore: st => withUndo("Backup loaded", () => api.set(() => st)) });
   else if (view.at === "learn") screen = ce(LearnPage, { s, open, go });
   else if (view.at === "stats") screen = ce(StatsPage, { s, open, go });
@@ -4935,7 +5020,7 @@ function App() {
       const done = () => sheet.back ? open("profile", { groupId: dg.id, playerId: dp.id }) : close();
       sheetEl = dp && ce(AvatarSheet, { dress: true, player: dp, taken: dg.players.filter(q => q.id !== dp.id).map(q => q.color), onClose: done,
         onSave: (color, avatar) => { api.group(dg.id, x => ({ ...x, players: x.players.map(q => q.id === dp.id ? { ...q, color, avatar } : q) })); haptic(12); sound("save"); done(); } }); }
-    if (sheet.type === "rules") sheetEl = ce(RulesSheet, { onClose: close, round: sg ? sg.round : 0, rules: sg ? sg.rules : DEFAULT_RULES, level: settings.level, onLevel: lv => setSettings(x => ({ ...x, level: lv })), initialTab: sheet.tab, live: !!(sg && sg.status === "live"),
+    if (sheet.type === "rules") sheetEl = ce(RulesSheet, { onClose: close, round: sg ? sg.round : 0, rules: sg ? sg.rules : DEFAULT_RULES, level: settings.level, onLevel: lv => setSettings(x => ({ ...x, level: lv })), initialTab: sheet.tab, backTo: sheet.backTo, live: !!(sg && sg.status === "live"),
       setRules: sg && sg.status === "live" ? fn => api.game(sg.id, x => ({ ...x, rules: fn(x.rules) })) : null });
     if (sheet.type === "gamePlayers" && sg) sheetEl = ce(GamePlayersSheet, { onClose: close, game: sg, group: s.groups[sg.groupId], s,
       onChange: fn => api.game(sg.id, fn),
@@ -4947,8 +5032,9 @@ function App() {
           who = p.name;
           return { ...x, groups, games: { ...x.games, [gm.id]: { ...joinGame(gm, p.id, namesOf({ players: [p] }, [p.id])[p.id], target), updatedAt: now() } } }; });
         haptic(10); sound("chip"); setToast({ text: (who || "New player") + " joined the game" }); } });
+    if (sheet.type === "house" && sg) sheetEl = ce(HouseSheet, { onClose: () => open("game", { gameId: sg.id }), rules: sg.rules, setRules: fn => { api.game(sg.id, x => ({ ...x, rules: fn(x.rules) })); api.group(sg.groupId, x => ({ ...x, rules: fn({ ...DEFAULT_RULES, ...(x.rules || sg.rules) }) })); } });
     if (sheet.type === "game" && sg) sheetEl = ce(GameMenu, { onClose: close, game: sg, group: s.groups[sg.groupId], onSettings: () => open("settings"),
-      onPlayers: () => open("gamePlayers", { gameId: sg.id }), onRules: () => open("rules", { gameId: sg.id }),
+      onPlayers: () => open("gamePlayers", { gameId: sg.id }), onHouse: () => open("house", { gameId: sg.id }),
       onFix: i => { close(); go({ at: "game", gameId: sg.id, fix: i, k: Date.now() }); },
       onEnd: () => { close(); const back = !!sg.reopened;
         withUndo(back ? "Changes discarded" : "Game ended without saving", () => { api.game(sg.id, x => x.reopened ? x.reopened : ({ ...x, status: "abandoned" })); go(back ? { at: "recap", gameId: sg.id } : { at: "group", groupId: sg.groupId }); }); },
@@ -4959,7 +5045,7 @@ function App() {
   }
   const railOn = desk && s.groupOrder.some(id => s.groups[id]) && !(view.at === "game" && g);
   return ce(Fragment, null, railOn ? ce("div", { className: "deskwrap" }, ce(DeskRail, { s, view, go }), ce("div", { className: "deskmain" }, screen)) : screen,
-    !railOn && topLevel && ["learn", "stats"].includes(view.at) && ce(TabBar, { at: ["learn", "stats"].includes(view.at) ? view.at : "home", go }), sheetEl,
+    !railOn && topLevel && (["learn", "stats"].includes(view.at) || (view.at === "settings" && !view.back)) && ce(TabBar, { at: view.at, go }), sheetEl, intro && ce(Splash, { onDone: () => setIntro(false) }),
     toast && onTop(ce("div", { key: toast.text, className: "toast" + (toast.undo ? " has-undo" : "") + (toast.art ? " kt" : ""), role: "status" },
       toast.art && ce("img", { src: "art/" + toast.art + ".webp", alt: "" }),
       toast.sub ? ce("span", null, ce("b", null, toast.text), ce("small", null, toast.sub)) : ce("span", null, toast.text),
@@ -4981,30 +5067,27 @@ const ago = t => { if (!t) return ""; const d = Math.floor((now() - t) / 864e5);
 function Avatars({ players, size }) { return ce("span", { className: "avs" }, players.slice(0, 4).map(p => ce(Peg, { key: p.id, color: p.color, name: p.name, av: p.avatar, size: size || 30 }))); }
 function Home({ s, open, go, sync, onFirst }) {
   const groups = s.groupOrder.map(id => s.groups[id]).filter(Boolean);
-  if (!groups.length) return ce(FirstRun, { onDeal: onFirst, go, open });
+  if (!groups.length) return ce(FirstRun, { onDeal: onFirst, go, open, sync });
   const lives = groups.map(g => ({ g, game: groupStats(s, g.id).live })).filter(x => x.game);
   const cur = lives.slice().sort((a, b) => (b.game.updatedAt || 0) - (a.game.updatedAt || 0))[0];
   const last = Object.values(s.games).filter(g => g.status === "done" && s.groups[g.groupId]).sort((a, b) => b.endedAt - a.endedAt)[0];
-  // Last night's winner, on the background: the trophy and one line.
-  const lastLine = last && (() => { const lg = s.groups[last.groupId], pl = plOf(lg, last), r = rankOf(last), best = r[0].total, top = r.filter(x => x.total === best), next = r.find(x => x.total > best);
-    const wins = groupStats(s, lg.id).wins[top[0].id] || 0, nm = top.map(t => pl(t.id).name);
-    return ce("div", { className: "kt lc-last" }, ce("img", { src: "art/icons/trophy.webp", alt: "" }),
-      ce("div", null, ce("b", null, top.length > 1 ? nm.join(" and ") + " shared " + lg.name : nm[0] + " won " + lg.name + (next ? " by " + (next.total - best) : "")),
-        ce("span", null, top.length > 1 ? "Level on " + best + ", " + ago(last.endedAt) : nm[0] + "'s " + wins + ordOf(wins) + " win at " + lg.name + " · " + ago(last.endedAt)))); })();
+  // "New game" is another game for a table that already exists, so the button names the table: the one played at most recently.
+  const lastAny = Object.values(s.games).filter(g => s.groups[g.groupId]).sort((a, b) => (b.updatedAt || b.endedAt || 0) - (a.updatedAt || a.endedAt || 0))[0], nextT = lastAny ? s.groups[lastAny.groupId] : groups[groups.length - 1];
   return ce("div", { className: "kit kscreen khome" },
-    ce("div", { className: "ph-nav lc-homenav" }, ce("span", { className: "sp" }), ce(SyncPill, { sync }),
-      ce("button", { className: "ib", onClick: () => open("settings"), "aria-label": "Settings" }, kIcon("gear"))),
+    ce("div", { className: "ph-nav lc-brand" }, ce("img", { className: "lc-mark", src: "art/logo-emblem.webp", alt: "", decoding: "async" }), ce("h1", { className: "lbl" }, "May I?"), ce("span", { className: "sp" }), ce(SyncPill, { sync })),
     ce("main", { className: "ph-body lc-pad lc-home" + (lives.length ? " busy" : "") },
-      ce(HomeHero),
       lives.map(({ g, game }) => { const pl = plOf(g, game), tt = ROUNDS.some((_, i) => roundDone(game, i)) ? [...totalsOf(game)].sort((a, b) => a.total - b.total) : [], lead = tt[0] && !(tt[1] && tt[1].total === tt[0].total) ? pl(tt[0].id) : null;
-        return ce("button", { key: game.id, className: "now lc-now2", onClick: () => go({ at: "game", gameId: game.id }), "aria-label": "Resume " + g.name + ": round " + (game.round + 1) + " of 7, " + ROUNDS[game.round].name },
+        const lav = lead && avOf(lead.avatar, lead.name), lcard = lav && lav.type === "card" && cardOfAv(lav.card);
+        return ce("button", { key: game.id, className: "now lc-now2" + (lcard ? " has-card" : ""), onClick: () => { haptic(8); go({ at: "game", gameId: game.id }); }, "aria-label": "Resume " + g.name + ": round " + (game.round + 1) + " of 7, " + ROUNDS[game.round].name },
           ce("span", { className: "live" }, "Playing now"),
           ce("span", { className: "name" }, g.name),
           ce("span", { className: "meta" }, "Round " + (game.round + 1) + " of 7 · ", ce("b", null, ROUNDS[game.round].name)),
-          ce("span", { className: "foot" }, ce("span", { className: "avs" }, game.players.slice(0, 5).map(id => ce(Tok, { key: id, p: pl(id) }))), ce("span", { className: "grow" }),
-            tt.length > 0 && ce("span", { className: "leads" }, lead && ce("img", { src: "art/crown.webp", alt: "" }), lead ? lead.name + " leads" : "All square"), kIcon("chev", "chev lc-nowchev"))); }),
-      // While a game is going, last night's result steps aside so the tables stay in view.
-      !lives.length && lastLine,
+          tt.length > 0 && ce("span", { className: "meta lc-nowlead" }, lead && ce("img", { src: "art/crown.webp", alt: "" }), lead ? lead.name + " leads" : "All square"),
+          lcard && ce("span", { className: "lc-now-c", "aria-hidden": true }, ce(DeckCard, faceProps(lav.card))),
+          ce("span", { className: "foot" }, ce("span", { className: "avs" }, game.players.slice(0, 6).map(id => ce(Tok, { key: id, p: pl(id) }))), ce("span", { className: "grow" }),
+            ce("span", { className: "lc-resume" }, "Resume", kIcon("chev", "chev")))); }),
+      // Nothing in play: the last game leads. While a game is going it waits under the tables.
+      !lives.length && last && ce(LastGame, { s, game: last, go, withTable: true }),
       ce("div", { className: "lc-hact" }, ce("h2", { className: "lc-h" }, groups.length === 1 ? "The table" : "Tables"),
         ce("button", { className: "qp", onClick: () => go({ at: "newtable" }) }, kIcon("plus"), "New table")),
       ce("div", { className: "blocks lc-blocks" },
@@ -5018,11 +5101,11 @@ function Home({ s, open, go, sync, onFirst }) {
             champ && (card ? ce("span", { className: "lc-champ-c", "aria-hidden": true }, ce(DeckCard, faceProps(av.card))) : ce(Tok, { p: champ, cls: "lc-champ-t" })),
             champ && ce("img", { className: "lc-crown", src: "art/crown.webp", alt: "" })); }),
         null),
+      lives.length > 0 && last && ce(LastGame, { s, game: last, go, withTable: true }),
       syncOn && ce("button", { className: "link lc-join", onClick: () => open("join") }, "Join a table with a code")),
-    ce("div", { className: "ph-dock lc-dock-home" },
-      // One main action: pick the game back up while one is going, otherwise start one.
-      cur ? ce("button", { className: "kb", onClick: () => { haptic(8); go({ at: "game", gameId: cur.game.id }); } }, cur.g.name.length <= 18 ? "Resume " + cur.g.name : "Resume the game")
-        : ce("button", { className: "kb", onClick: () => open("newgame") }, "New game"),
+    ce("div", { className: "ph-dock lc-dock-home" + (lives.length ? " bare" : "") },
+      // One main action: while a game is going, its card is the way back in, so the dock is only the tabs. Otherwise: start one.
+      !lives.length && ce("button", { className: "kb", onClick: () => open("newgame", { groupId: nextT.id }) }, nextT.name.length <= 15 ? "New game at " + nextT.name : "New game"),
       ce(KTabs, { at: "home", go })));
 }
 // A die that shows a face, so a roll can be watched: the pips change with every tumble and settle on the last one.
@@ -5061,25 +5144,67 @@ function KAddPlus() {
   return ce("button", { type: "button", className: "pe-plus", "aria-label": "Add a player", onMouseDown: e => e.preventDefault(), onClick: tap }, kIcon("plus"));
 }
 // The crest is the hero, four court cards fanned behind it. A tap fans them wider, the way you'd check a hand.
-const HOME_FAN = [["K", "spade", -44], ["Q", "heart", -24], ["J", "diamond", 24], [null, null, 44]];
-function HomeHero() {
-  const [spread, setSpread] = useState(false), t = useRef(0);
-  const fan = () => { clearTimeout(t.current); setSpread(true); haptic(6); t.current = setTimeout(() => setSpread(false), 700); };
-  useEffect(() => () => clearTimeout(t.current), []);
-  return ce("div", { className: "lc-hero" + (spread ? " spread" : ""), onPointerDown: fan },
-    ce("div", { className: "lc-fan", "aria-hidden": true }, HOME_FAN.map(([r, su, a], i) => ce(DeckCard, { key: i, joker: !r, rank: r, suit: su, style: { "--r": a + "deg", "--i": i } }))),
-    ce("h1", { className: "lc-h1" }, ce("img", { className: "lc-crest", src: "art/logo-emblem.webp", alt: "May I?", decoding: "async" })));
+const HOME_FAN = [["K", "spade", -50], ["Q", "heart", -17], ["J", "diamond", 17], [null, null, 50]];
+// The last game, kept together: the winner's own card under the crown and how it was won, then every award that game handed out, each with the face and name of who took it.
+// It opens that game's results. Play shows the most recent game anywhere; a table's page shows its own.
+function LastGame({ s, game, go, withTable }) {
+  const lg = s.groups[game.groupId], pl = plOf(lg, game), r = rankOf(game), best = r[0].total, top = r.filter(x => x.total === best), next = r.find(x => x.total > best);
+  const nm = top.map(t => pl(t.id).name), w = pl(top[0].id), av = avOf(w.avatar, w.name), card = av.type === "card" && cardOfAv(av.card);
+  const title = top.length > 1 ? nm.join(" and ") + " shared it" : nm[0] + " won" + (next ? " by " + (next.total - best) : ""), sub = (withTable ? lg.name + " · " : "") + ago(game.endedAt);
+  const aws = gameAwards(game).map(a => ({ a, A: AWARDS[a.key] || {}, p: pl(a.id) })).filter(x => x.A.art).sort((x, y) => (y.a.id === top[0].id) - (x.a.id === top[0].id));
+  return ce("section", { className: "lc-lastgame", "aria-label": "Last game" },
+    ce("h2", { className: "lc-h" }, "Last game"),
+    ce("button", { className: "lc-moment", onClick: () => go({ at: "recap", gameId: game.id }), "aria-label": title + ". " + sub + ". See the results" },
+      ce("span", { className: "lc-mo-art", "aria-hidden": true }, card ? ce(DeckCard, faceProps(av.card)) : ce(Tok, { p: w, cls: "lc-mo-tok" }), ce("img", { className: "lc-mo-crown", src: "art/crown.webp", alt: "" })),
+      ce("span", { className: "lc-mo-t" }, ce("b", null, title), ce("small", null, sub)),
+      kIcon("chev", "chev")),
+    aws.length > 0 && ce("ul", { className: "lc-aws", "aria-label": "Awards from that game" }, aws.map(({ a, A, p }) =>
+      ce("li", { key: a.key + ":" + a.id, className: "lc-aw", title: a.d }, ce("img", { src: "art/icons/" + A.art + ".webp", alt: "", loading: "lazy", decoding: "async" }),
+        ce("b", null, A.t || a.t), ce("span", null, ce(Tok, { p }), p.name)))));
+}
+// The opening: the crest arrives and the fan deals out behind it, then the crest settles into Play's corner. About a second, once a visit. A tap skips it.
+const INTRO_KEY = "mayi:intro";
+const introDue = () => { try { return !sessionStorage.getItem(INTRO_KEY) && !reducedMotion(); } catch (e) { return false; } };
+function Splash({ onDone }) {
+  const [out, setOut] = useState(false), [step, setStep] = useState(0), me = useRef(null), left = useRef(false);
+  const leave = () => { if (left.current) return; left.current = true;
+    const el = me.current, m = document.querySelector(".lc-mark"), c = el && el.querySelector(".lc-crest");
+    if (m && c) { const a = c.getBoundingClientRect(), b = m.getBoundingClientRect();
+      el.style.setProperty("--tx", (b.left + b.width / 2 - a.left - a.width / 2).toFixed(1) + "px"); el.style.setProperty("--ty", (b.top + b.height / 2 - a.top - a.height / 2).toFixed(1) + "px");
+      el.style.setProperty("--ts", (b.width / a.width).toFixed(3)); el.classList.add("lands"); }
+    setOut(true); setTimeout(onDone, 480); };
+  // The bar is honest: it fills as the lettering and the art arrive, and the opening leaves once they have and the cards have been dealt out. It never waits more than four seconds.
+  useEffect(() => { try { sessionStorage.setItem(INTRO_KEY, "1"); } catch (e) {}
+    let live = true; const wait = ms => new Promise(r => setTimeout(r, ms)), c = me.current && me.current.querySelector(".lc-crest");
+    const fonts = (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(() => live && setStep(x => Math.max(x, 1)));
+    const art = (c && c.decode ? c.decode().catch(() => {}) : Promise.resolve()).then(() => live && setStep(x => Math.max(x, 1)));
+    Promise.race([Promise.all([fonts, art, wait(1100)]), wait(4000)]).then(() => { if (!live) return; setStep(2); setTimeout(leave, 260); });
+    addEventListener("keydown", leave); return () => { live = false; removeEventListener("keydown", leave); }; }, []);
+  return ce("div", { ref: me, className: "kit ksplash" + (out ? " out" : ""), onPointerDown: leave },
+    ce("div", { className: "lc-hero", role: "img", "aria-label": "May I?" },
+      ce("div", { className: "lc-fan", "aria-hidden": true }, HOME_FAN.map(([r, su, a], i) => ce(DeckCard, { key: i, joker: !r, rank: r, suit: su, style: { "--r": a + "deg", "--i": i } }))),
+      ce("img", { className: "lc-crest", src: "art/logo-emblem.webp", alt: "" })),
+    ce("div", { className: "sp-load s" + step, role: "progressbar", "aria-label": "Getting the table ready", "aria-valuemin": 0, "aria-valuemax": 100, "aria-valuenow": [30, 70, 100][step] },
+      ce("i", null), ce("span", null, ["Shuffling the deck", "Dealing the cards", "Ready"][step])));
 }
 // The kit's tab bar: Learn, Play and Stats, each with its own art. The current room lifts and wears the gold pip.
-const KTAB_ORDER = [["learn", "rules", "Learn"], ["home", "play", "Play"], ["stats", "trophy", "Stats"]];
-function KTabs({ at, go }) {
+const KTAB_ORDER = [["learn", "rules", "Learn"], ["home", "play", "Play"], ["stats", "trophy", "Stats"], ["settings", "settings", "Settings"]];
+function KTabs({ at, go, sub }) {
   return ce("nav", { className: "tabbar", "aria-label": "Main" }, KTAB_ORDER.map(([k, art, label]) =>
-    ce("button", { key: k, className: "tab", "aria-current": at === k ? "page" : undefined, onClick: () => at !== k && go({ at: k }) },
+    ce("button", { key: k, className: "tab", "aria-current": at === k ? "page" : undefined, onClick: () => (at !== k || sub) && go({ at: k }) },
       ce("img", { src: "art/icons/" + art + ".webp", alt: "", width: 48, height: 48, decoding: "async" }), label)));
 }
-// First run: one line of table talk, then names. A face is dealt the moment a name is typed.
-function FirstRun({ onDeal, go, open }) {
-  const [players, setPlayers] = useState([]), [draft, setDraft] = useState(""), [editing, setEditing] = useState(null), [deal, setDeal] = useState(null), [rolling, setRolling] = useState(false), [dface, setDface] = useState(3);
+// Seating a table: names, and a face dealt the moment each is typed. The Play tab shows this until a table exists;
+// "New table" is the same screen with a way back. Either way it deals straight into round one.
+const FIRST_KEY = "mayi:first";
+function FirstRun({ onDeal, go, open, sync, sub, taken }) {
+  // Names typed so far are kept for the visit, so the guide, a reload or a wrong turn never costs them.
+  const saved = useRef(null);
+  if (!saved.current) { try { const v = JSON.parse(sessionStorage.getItem(FIRST_KEY) || "null"), ps = v && Array.isArray(v.players) ? v.players.filter(p => p && p.id && typeof p.name === "string").slice(0, MAX_PLAYERS) : []; saved.current = { players: ps, deal: v && ps.some(p => p.id === v.deal) ? v.deal : null, rules: v && v.rules && typeof v.rules === "object" ? v.rules : null }; } catch (e) { saved.current = { players: [], deal: null, rules: null }; } }
+  const [players, setPlayers] = useState(saved.current.players);
+  const [draft, setDraft] = useState(""), [editing, setEditing] = useState(null), [deal, setDeal] = useState(saved.current.deal), [rolling, setRolling] = useState(false), [dface, setDface] = useState(3);
+  const [rules, setRules] = useState(() => ({ ...DEFAULT_RULES, ...(saved.current.rules || {}) })), [house, setHouse] = useState(false);
+  useEffect(() => { try { sessionStorage.setItem(FIRST_KEY, JSON.stringify({ players, deal, rules })); } catch (e) {} }, [players, deal, rules]);
   const ref = useRef(null), ready = players.filter(p => p.name.trim()), ed = players.find(p => p.id === editing);
   const dealer = ready.find(p => p.id === deal) || ready[0] || null, two = ready.length >= 2;
   const face = (name, others) => avSeed(name || "?", heldFaces(others));
@@ -5103,12 +5228,13 @@ function FirstRun({ onDeal, go, open }) {
         btn.addEventListener("pointermove", mv); btn.addEventListener("pointerup", up); btn.addEventListener("pointercancel", up); } },
     ce("svg", { viewBox: "0 0 18 18", "aria-hidden": true }, ce("g", { fill: "currentColor" }, [[6, 4], [12, 4], [6, 9], [12, 9], [6, 14], [12, 14]].map(([x, y], k) => ce("circle", { key: k, cx: x, cy: y, r: 1.6 })))));
   const label = two ? "Deal the first hand" : ready.length === 1 ? "Add one more name" : "Add two names to start";
-  const start = () => onDeal(dealTableName(), ready.map(({ keep, ...p }) => ({ ...p, name: p.name.trim() })), Math.max(0, ready.indexOf(dealer)));
-  return ce("div", { className: "kit kscreen kfirst" },
+  const start = () => { try { sessionStorage.removeItem(FIRST_KEY); } catch (e) {} onDeal(dealTableName(taken), ready.map(({ keep, ...p }) => ({ ...p, name: p.name.trim() })), Math.max(0, ready.indexOf(dealer)), rules); };
+  return ce("div", { className: "kit kscreen kfirst" + (sub ? " ksub" : "") },
+    sub ? ce("div", { className: "ph-nav" }, ce("button", { className: "ib", onClick: () => go({ at: "home" }), "aria-label": "Back to home" }, kIcon("chevl")), ce("span", { className: "lbl" }, "Home"))
+      : ce("div", { className: "ph-nav lc-brand" }, ce("img", { className: "lc-mark", src: "art/logo-emblem.webp", alt: "", decoding: "async" }), ce("h1", { className: "lbl" }, "May I?"), ce("span", { className: "sp" }), ce(SyncPill, { sync })),
     ce("main", { className: "ph-body lc-pad lc-first" + (players.length ? " started" : "") },
-      ce(HomeHero),
-      ce("h2", { className: "lc-firsth" }, "Pull up a chair."),
-      ce("p", { className: "lc-lede", "aria-hidden": players.length ? true : undefined }, "Seven rounds, each with its own goal. Lowest score wins."),
+      ce("h2", { className: "lc-firsth" }, sub ? "A new table" : "Pull up a chair."),
+      ce("p", { className: "lc-lede", "aria-hidden": players.length ? true : undefined }, sub ? "Everyone who plays here. The table gets its name after the first game." : "Seven rounds, each with its own goal. Lowest score wins."),
       ce("div", { className: "lc-who" },
         ce("div", { className: "lc-whoh" }, ce("h3", null, "Who's playing?"),
           two && ce("button", { type: "button", className: "qp" + (rolling ? " rolling" : ""), onClick: roll, disabled: rolling }, ce(KDie, { n: dface }), rolling ? "Rolling…" : "Roll for dealer")),
@@ -5127,12 +5253,17 @@ function FirstRun({ onDeal, go, open }) {
             onChange: e => setDraft(e.target.value), onBlur: () => draft.trim() && addName(draft) })),
         sameName(players, draft) && ce("p", { className: "dupe", role: "status" }, "There's already a " + draft.trim() + ". Add an initial, like " + draft.trim() + " B."),
         players.length > 0 && ce("p", { className: "lc-facehint" }, two ? "Drag the dots to match the seats. Tap a face to change it, or the D to pass the deal." : "Tap a face to change it.")),
-      ce("button", { type: "button", className: "lc-newto", onClick: () => go({ at: "learn" }) },
+      // The table's rules, agreed before the first deal as they would be at the table. The usual ones are already set.
+      ce("button", { type: "button", className: "lc-hrow lc-rulesrow", onClick: () => setHouse(true) }, ce("img", { src: "art/icons/dealerschoice.webp", alt: "" }),
+        ce("span", null, ce("b", null, "House rules"), ce("small", null, rulesShort(rules))), kIcon("chev")),
+      !sub && !players.length && ce("button", { type: "button", className: "lc-newto", onClick: () => go({ at: "learn" }) },
         ce("span", { className: "lc-newto-art", "aria-hidden": true }, ce("img", { className: "hand", src: "art/hero-hand.webp", alt: "" }), ce("img", { className: "q", src: "art/icons/mayi.webp", alt: "" })),
-        ce("span", { className: "lc-newto-t" }, ce("b", null, "New to May I?"), ce("small", null, "Learn it in a minute")),
+        ce("span", { className: "lc-newto-t" }, ce("b", null, "New to May I?"), ce("small", null, "Seven pictures and the game makes sense")),
         kIcon("chev", "chev")),
-      syncOn && ce("div", { className: "lc-firstlinks" }, ce("button", { className: "link", onClick: () => open("join") }, "Join a table with a code"))),
-    ce("div", { className: "ph-dock" }, ce("button", { className: "kb", disabled: !two || rolling, onClick: start }, label)),
+      syncOn && !sub && ce("div", { className: "lc-firstlinks" }, ce("button", { className: "link", onClick: () => open("join") }, "Join a table with a code"))),
+    ce("div", { className: "ph-dock lc-dock-home" }, ce("button", { className: "kb", disabled: !two || rolling, onClick: start }, label),
+      ce(KTabs, { at: "home", go, sub })),
+    house && ce(HouseSheet, { onClose: () => setHouse(false), rules, setRules, note: "These are this table's rules. They can still change during a game, from its menu." }),
     ed && ce(AvatarSheet, { player: ed, taken: players.filter(q => q.id !== ed.id).map(q => q.color), onClose: () => setEditing(null),
       onSave: (color, avatar) => { setPlayers(players.map(p => p.id === ed.id ? { ...p, color, avatar, keep: true } : p)); setEditing(null); } }));
 }
@@ -5153,12 +5284,12 @@ function NewGameSheet({ s, groupId, rules: r0, onClose, onStart, onResume, onNew
   const [gid, setGid] = useState(() => groupId && s.groups[groupId] ? groupId : recent());
   const group = s.groups[gid] || tables[0], st = groupStats(s, group.id);
   const [sel, setSel] = useState(() => group.players.slice(0, MAX_PLAYERS).map(p => p.id)), [dealer, setDealer] = useState(null);
-  const [rules, setRules] = useState(() => ({ ...DEFAULT_RULES, ...(r0 || (st.games[0] && st.games[0].rules) || {}) }));
+  const [rules, setRules] = useState(() => ({ ...DEFAULT_RULES, ...(group.rules || r0 || (st.games[0] && st.games[0].rules) || {}) }));
   const [pick, setPick] = useState(false), [showRules, setShowRules] = useState(false), [adding, setAdding] = useState(false), [draft, setDraft] = useState(""), [rolling, setRolling] = useState(false), [dface, setDface] = useState(3);
   const hold = useRef(0), held = useRef(false);
   const auto = nextDealer(group, sel, st.games[0]);
   const chosen = group.players.filter(p => sel.includes(p.id)), dId = chosen.some(p => p.id === dealer) ? dealer : auto || (chosen[0] && chosen[0].id), dp = chosen.find(p => p.id === dId);
-  const switchTo = t => { const ts = groupStats(s, t.id); setGid(t.id); setSel(t.players.slice(0, MAX_PLAYERS).map(p => p.id)); setDealer(null); setRules({ ...DEFAULT_RULES, ...((ts.games[0] && ts.games[0].rules) || {}) }); setPick(false); haptic(8); };
+  const switchTo = t => { const ts = groupStats(s, t.id); setGid(t.id); setSel(t.players.slice(0, MAX_PLAYERS).map(p => p.id)); setDealer(null); setRules({ ...DEFAULT_RULES, ...(t.rules || (ts.games[0] && ts.games[0].rules) || {}) }); setPick(false); haptic(8); };
   const toggle = id => { if (held.current) { held.current = false; return; } haptic(6); setSel(x => x.includes(id) ? x.filter(i => i !== id) : x.length >= MAX_PLAYERS ? x : [...x, id]); };
   // Press and hold a face to make them the dealer.
   const press = id => { held.current = false; clearTimeout(hold.current); hold.current = setTimeout(() => { held.current = true; setSel(x => x.includes(id) || x.length >= MAX_PLAYERS ? x : [...x, id]); setDealer(id); haptic(14); sound("chip"); }, 450); };
@@ -5292,6 +5423,7 @@ function GroupPage({ s, group, open, go, sync }) {
       rows.length ? ce(Leaderboard, { rows, hi: true, unit: n => n === 1 ? "win" : "wins", label: "Most wins at " + group.name, onPick: id => open("profile", { groupId: group.id, playerId: id }) })
         : ce("div", { className: "lt-seated" }, group.players.map(p => ce("span", { key: p.id, className: "lt-seat" }, ce(Tok, { p }), ce("b", null, p.name)))),
       per.some(x => !x.played) && rows.length > 0 && ce("p", { className: "lt-new" }, "Yet to play: " + per.filter(x => !x.played).map(x => x.p.name).join(", ") + "."),
+      games.length > 0 && ce(LastGame, { s, game: games[0], go }),
       tiles.length > 0 && ce(Fragment, null, ce("h2", { className: "lc-sec" }, "Records"),
         ce("div", { className: "lc-tiles" }, tiles.slice(0, 3).map(([ic, v, t]) => ce("div", { key: t, className: "lc-tile" }, ce("img", { src: "art/icons/" + ic + ".webp", alt: "" }), ce("b", null, v), ce("small", null, t))))),
       games.length > 0 && ce(Fragment, null, ce("h2", { className: "lc-sec" }, "Past games"),
@@ -5299,10 +5431,11 @@ function GroupPage({ s, group, open, go, sync }) {
           return ce("button", { key: g.id, onClick: () => go({ at: "recap", gameId: g.id }) }, ce(Tok, { p: top[0] }),
             ce("b", null, new Date(g.endedAt).toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" })),
             ce("small", null, top.length > 1 ? top.map(p => p.name).join(" & ") + " tied" : top[0].name + (next ? " won by " + (next.total - best) : " won")), kIcon("chevl", "lt-chev")); })))),
-    ce("div", { className: "ph-dock" }, st.live
+    ce("div", { className: "ph-dock lc-dock-home" }, st.live
       ? ce("button", { className: "kb", onClick: () => go({ at: "game", gameId: st.live.id }) }, "Resume round " + (st.live.round + 1) + " · " + ROUNDS[st.live.round].name)
       : short ? ce("button", { className: "kb", onClick: () => open("players", { groupId: group.id }) }, "Seat two players")
-      : ce("button", { className: "kb", onClick: () => open("newgame", { groupId: group.id, rules: games[0] && games[0].rules }) }, "New game at this table")));
+      : ce("button", { className: "kb", onClick: () => open("newgame", { groupId: group.id, rules: games[0] && games[0].rules }) }, "New game at this table"),
+      ce(KTabs, { at: "home", go, sub: true })));
 }
 // Table records: the bragging rights.
 function Records({ s, group }) {
@@ -5526,7 +5659,7 @@ const GOAL_LINE = [
 const SUIT_KEY = { S: "spade", H: "heart", D: "diamond", C: "club" };
 const codeCard = (code, key) => code === "JKR" || code === "JOKER" ? ce(DeckCard, { key, joker: true }) : ce(DeckCard, { key, rank: code.slice(0, -1), suit: SUIT_KEY[code.slice(-1)] });
 function GoalMelds({ r }) {
-  return ce("span", { className: "lr-melds", "aria-hidden": true }, r.ex.map((m, i) => ce("span", { key: i, className: "lr-meld" + (m.length > 3 ? " run" : "") }, m.map((c, j) => ce("span", { key: j }, codeCard(c))))));
+  return ce("span", { className: "lr-melds" + (r.ex.length > 2 ? " three" : ""), "aria-hidden": true }, r.ex.map((m, i) => ce("span", { key: i, className: "lr-meld" + (m.length > 3 ? " run" : "") }, m.map((c, j) => ce("span", { key: j }, codeCard(c))))));
 }
 function Seat({ i, p, total, isLead, place, isDealer, gap, hasAny, buys, limit, value, changeBuy, onEdit, move }) {
   const shown = useCount(total), has = typeof value === "number", atLimit = limit !== Infinity && buys >= limit;
@@ -5923,19 +6056,20 @@ function ScoreSheet({ game, pl, onRound, fixable, plain }) {
   const tot = id => rounds.reduce((t, i) => t + (num(i, id) || 0), 0), best = Math.min(...game.players.map(tot));
   const late = ids.filter(id => game.joined && game.joined[id] > 0 && rounds.some(i => i < game.joined[id] && num(i, id) != null));
   if (!rounds.length) return null;
+  // Players go down the side with their faces and full names; the seven rounds go across. The sheet grows downwards with the table, never sideways.
   return ce("div", { className: plain ? "ss-plain" : "sgrid-wrap ss-wrap" },
-    ce("table", { className: "ss", "data-n": ids.length },
+    ce("table", { className: "ss ss-t", "data-r": rounds.length },
       ce("caption", { className: "vh" }, "Scores by round"),
-      ce("thead", null, ce("tr", null, ce("th", { className: "ss-rh", scope: "col" }, ce("span", { className: "vh" }, "Round")),
-        ids.map(id => { const p = pl(id); return ce("th", { key: id, scope: "col" }, ce(Tok, { p }), ce("span", { className: "ss-nm" }, p.name)); }))),
-      ce("tbody", null, rounds.map(i => ce("tr", { key: i },
-        ce("th", { scope: "row", className: "ss-rh" }, onRound && fixable && fixable.includes(i)
+      ce("thead", null, ce("tr", null, ce("th", { className: "ss-ph", scope: "col" }, ce("span", { className: "vh" }, "Player")),
+        rounds.map(i => ce("th", { key: i, scope: "col" }, onRound && fixable && fixable.includes(i)
           ? ce("button", { type: "button", className: "ss-rn", onClick: () => onRound(i), "aria-label": "Fix round " + (i + 1) + ", " + ROUNDS[i].name }, i + 1)
-          : ce("span", { className: "ss-rn" }, ce("span", { className: "vh" }, "Round "), i + 1)),
-        ids.map(id => { const pre = game.joined && game.joined[id] > i, v = pre ? null : num(i, id);
-          return ce("td", { key: id, className: v === 0 ? "out" : v == null ? "none" : "" }, v == null ? ce("span", { "aria-label": pre ? "Not at the table yet" : "Did not play" }, "–") : v === 0 ? ce("b", null, "0", ce("span", { className: "vh" }, ", went out")) : v); })))),
-      ce("tfoot", null, ce("tr", null, ce("th", { scope: "row", className: "ss-rh" }, "Total"),
-        ids.map(id => { const w = game.players.includes(id) && tot(id) === best; return ce("td", { key: id, className: w ? "win" : "" }, ce("b", null, tot(id)), w && ce("span", { className: "vh" }, ", lowest")); })))),
+          : ce("span", { className: "ss-rn" }, ce("span", { className: "vh" }, "Round "), i + 1))),
+        ce("th", { className: "ss-tot", scope: "col" }, "Total"))),
+      ce("tbody", null, ids.map(id => { const p = pl(id), w = game.players.includes(id) && tot(id) === best;
+        return ce("tr", { key: id }, ce("th", { scope: "row", className: "ss-ph" }, ce("span", { className: "ss-who" }, ce(Tok, { p }), ce("span", { className: "ss-nm" }, p.name))),
+          rounds.map(i => { const pre = game.joined && game.joined[id] > i, v = pre ? null : num(i, id);
+            return ce("td", { key: i, className: v === 0 ? "out" : v == null ? "none" : "" }, v == null ? ce("span", { "aria-label": pre ? "Not at the table yet" : "Did not play" }, "–") : v === 0 ? ce("b", null, "0", ce("span", { className: "vh" }, ", went out")) : v); }),
+          ce("td", { className: "ss-tot" + (w ? " win" : "") }, ce("b", null, tot(id)), w && ce("span", { className: "vh" }, ", lowest"))); }))),
     late.map(id => ce("p", { key: id, className: "ss-note" }, pl(id).name + " joined in round " + (game.joined[id] + 1) + ", starting on " + rounds.filter(i => i < game.joined[id]).reduce((t, i) => t + (num(i, id) || 0), 0) + ".")));
 }
 // Every player's highlight of the night, from the game's awards; nobody gets a blank row, and last place gets a kind one.
@@ -6188,35 +6322,6 @@ function PlayersSheet({ onClose, group, api, s }) {
       onSave: (color, avatar) => { setPlayers(players.map(p => p.id === ed.id ? { ...p, color, avatar } : p)); setEditing(null); } }));
 }
 // A new table is a page: the name on top, then everyone takes a seat round the oval table.
-const NT_SEATS = Array.from({ length: 8 }, (_, i) => { const a = -Math.PI / 2 + i * Math.PI / 4; return [50 + 37 * Math.cos(a), 50 + 35 * Math.sin(a)]; });
-function NewTablePage({ go, onCreate }) {
-  const [name, setName] = useState(""), [players, setPlayers] = useState([]), [draft, setDraft] = useState(""), [editing, setEditing] = useState(null), ref = useRef(null);
-  const used = players.map(p => p.color), ed = players.find(p => p.id === editing), full = players.length >= MAX_PLAYERS;
-  const add = e => { e.preventDefault(); const n = draft.trim().slice(0, 20); if (!n || full || sameName(players, n)) return;
-    haptic(8); sound("chip"); setPlayers([...players, { id: uid(), name: n, color: (PEGS.find(p => !used.includes(p.k)) || PEGS[players.length % 8]).k, avatar: avSeed(n, heldFaces(players)) }]); setDraft(""); ref.current && ref.current.focus(); };
-  const label = players.length >= 2 ? "Create table" : players.length ? "Seat one more" : "Seat two players";
-  return ce("div", { className: "kit kscreen knewtable" },
-    ce("div", { className: "ph-nav" }, ce("button", { className: "ib", onClick: () => go({ at: "home" }), "aria-label": "Back to home" }, kIcon("chevl")), ce("span", { className: "lbl" }, "Home")),
-    ce("main", { className: "ph-body nt-body" },
-      ce("div", { className: "nt-head" }, ce("h1", null, "A new table"), ce("p", null, "Seat everyone who plays here. The name can wait.")),
-      ce("div", { className: "nt-table", role: "group", "aria-label": "Seats, " + players.length + " of " + MAX_PLAYERS + " taken" },
-        NT_SEATS.map(([x, y], i) => { const p = players[i], pos = { left: x.toFixed(1) + "%", top: y.toFixed(1) + "%" };
-          return p ? ce("span", { key: p.id, className: "nt-seat taken", style: pos },
-              ce("button", { className: "nt-face", onClick: () => setEditing(p.id), "aria-label": p.name + ": change card, photo or colour" }, ce(Tok, { p, cls: "lc-face-in" })),
-              ce("b", null, p.name),
-              ce("button", { className: "nt-x", onClick: () => { haptic(8); setPlayers(players.filter(q => q.id !== p.id)); }, "aria-label": "Unseat " + p.name }, kIcon("xmark")))
-            : ce("button", { key: "e" + i, type: "button", className: "nt-seat empty", style: pos, tabIndex: -1, "aria-hidden": true, onMouseDown: e => e.preventDefault(), onClick: () => ref.current && ref.current.focus() }, ce("i", null, kIcon("plus"))); }),
-        ce("span", { className: "nt-mid" }, ce("b", null, players.length), "of " + MAX_PLAYERS + " seats")),
-      !full && ce("form", { className: "nt-add", onSubmit: add }, ce(KAddPlus),
-        ce("input", { ref, value: draft, maxLength: 20, "aria-label": "New player's name", placeholder: "Add a player", enterKeyHint: "done", autoFocus: true, onChange: e => setDraft(e.target.value) }),
-        ce("button", { className: "qp", type: "submit", disabled: !draft.trim() || sameName(players, draft) }, "Seat")),
-      sameName(players, draft) && ce("p", { className: "dupe", role: "status" }, "There's already a " + draft.trim() + " at this table. Add an initial, like " + draft.trim() + " B."),
-      ce("p", { className: "nt-hint" }, players.length ? "Tap a face to pick their card, add a photo or change their colour." : "Each name seated gets a face from the deck."),
-      players.length >= 2 && ce(KNameField, { id: "ntName", label: "Table name, now or later", value: name, onChange: setName, placeholder: "Type one, or roll the die" })),
-    ce("div", { className: "ph-dock" }, ce("button", { className: "kb", disabled: players.length < 2, onClick: () => onCreate(name.trim().slice(0, 30), players) }, label)),
-    ed && ce(AvatarSheet, { player: ed, taken: used.filter(c => c !== ed.color), onClose: () => setEditing(null),
-      onSave: (color, avatar) => { setPlayers(players.map(p => p.id === ed.id ? { ...p, color, avatar } : p)); setEditing(null); } }));
-}
 // Add or remove players while a game is going.
 function GamePlayersSheet({ onClose, game, group, s, onJoin, onChange }) {
   const [adding, setAdding] = useState(null), [draft, setDraft] = useState(""), [dealing, setDealing] = useState(false);
@@ -6356,7 +6461,13 @@ function AiKeyCard({ open, onSaved, cta }) {
     ce("button", { className: "kb", type: "submit", disabled: !draft.trim() }, cta || "Turn on the scanner"));
   return ce("p", { className: "lc-own" }, "It needs a one-time setup. ", ce("button", { className: "link", onClick: () => setShow(true) }, "Set up the scanner"));
 }
-function GameMenu({ onClose, game, group, onFinish, onEnd, onSettings, onPlayers, onRules, onFix }) {
+// This game's house rules, to check or change. Changes count from now on.
+function HouseSheet({ onClose, rules, setRules, note }) {
+  return ce(KSheet, { title: "House rules", onClose, cls: "hr-sheet", foot: ce("button", { className: "kb", onClick: onClose }, "Done") },
+    ce(KHouseRules, { rules, up: (k, v) => setRules(x => ({ ...x, [k]: v })) }),
+    ce("p", { className: "fine" }, note || "Changes apply to this game from now on, and to this table's next games."));
+}
+function GameMenu({ onClose, game, group, onFinish, onEnd, onSettings, onPlayers, onHouse, onFix }) {
   const done = ROUNDS.filter((_, i) => roundDone(game, i)).length, r = ROUNDS[game.round];
   const fixable = ROUNDS.map((_, i) => i).filter(i => i !== game.round && roundDone(game, i));
   const [picking, setPicking] = useState(false), [asking, setAsking] = useState(false);
@@ -6368,10 +6479,10 @@ function GameMenu({ onClose, game, group, onFinish, onEnd, onSettings, onPlayers
     ce("p", { className: "gm-where" }, "Round " + r.n + " of 7 · " + r.name + " · " + game.players.length + " playing"),
     ce("div", { className: "gm-list" },
       row("friends", "Players", "Seats, sitting out, adding someone", onPlayers),
-      row("rules", "Round guide", r.name + ", tips and the house rules", onRules),
       done > 0 && row("scores", "Scores so far", "Every round on one sheet, and fixing a score", () => setPicking(x => !x), { "aria-expanded": picking }),
       picking && ce("div", { className: "gm-sheetin" }, ce(ScoreSheet, { game, pl: plOf(group, game), onRound: onFix, fixable, plain: true }),
         fixable.length > 0 && ce("p", { className: "fine" }, "Tap a round's number to fix its scores.")),
+      row("dealerschoice", "House rules", rulesShort(game.rules), onHouse),
       row("settings", "Settings", "Text size, sounds and the card scanner", onSettings)),
     ce("div", { className: "gm-list gm-end" },
       !asking ? row("curtaincall", "Finish now and count", !done ? "Score a round first." : "Ends after round " + done + ". Lowest total wins.", () => done && setAsking(true), { disabled: !done })
@@ -6420,9 +6531,10 @@ function RoundGuide({ round, level, coach, rules, live, playing }) {
     !showPro && ce("button", { className: "link lb-center", onClick: () => setShowPro(true) }, "Show pro tips"),
     coach && ce(HandCoach, { round, rules }));
 }
-function RulesSheet({ onClose, round, rules, setRules, level, onLevel, initialTab, live }) {
-  const [tab, setTab] = useState(initialTab === "rounds" ? "round" : initialTab || "round");
-  return ce(KPage, { title: tab === "round" ? "Round guide" : "How to play", onClose, backLabel: live ? "Back to the round" : "Back", cls: "kguide", bodyCls: "rg-body" },
+function RulesSheet({ onClose, round, rules, setRules, level, onLevel, initialTab, live, backTo }) {
+  const [tab, setTab] = useState(initialTab === "how" ? "how" : "round");
+  const back = backTo || (live ? "Back to the round" : null);
+  return ce(KPage, { title: live && tab === "round" ? "Round guide" : "How to play", onClose, backLabel: back || "Back", foot: back, cls: "kguide", bodyCls: "rg-body" },
     ce(RulesBody, { tab, setTab, round, rules, setRules, level, onLevel, live }));
 }
 // A full-screen page over everything, for reading: the Round guide and the cabinet. Back closes it.
@@ -6440,7 +6552,7 @@ function tally(games) {
   return { games: done.length, awards: done.reduce((n, g) => n + gameAwards(g).filter(a => a.id && AWARDS[a.key]).length, 0) };
 }
 const shortDate = t => new Date(t).toLocaleDateString(undefined, { day: "numeric", month: "short" });
-function SettingsPage({ s, settings, setSettings, onBack, go, open, onRestore, setToast }) {
+function SettingsPage({ s, settings, setSettings, onBack, go, open, onRestore, setToast, tab }) {
   const up = (k, v) => setSettings(x => ({ ...x, [k]: v }));
   const sw = (k, t, d, def) => ce("div", { className: "prow" }, ce("span", { className: "grow" }, ce("b", null, t), ce("small", null, d)),
     ce(KSw, { on: settings[k] === undefined ? !!def : !!settings[k], onChange: v => up(k, v), label: t }));
@@ -6455,8 +6567,9 @@ function SettingsPage({ s, settings, setSettings, onBack, go, open, onRestore, s
       catch (_) { toast({ text: "That file isn't a May I? backup" }); } };
     r.readAsText(f); };
   const card = (h, i) => [["5", "diamond", -14, -58], ["K", "spade", 0, 0], [null, null, 14, 58]].map(([r, su, a, x], k) => ce(DeckCard, { key: k, joker: !r, rank: r, suit: su, style: { "--r": a + "deg", "--x": x + "px" } }));
-  return ce("div", { className: "kit kscreen ksettings" },
-    ce("div", { className: "ph-nav" }, ce("button", { className: "ib", onClick: onBack, "aria-label": "Back" }, kIcon("chevl")), ce("span", { className: "lbl" }, "Settings")),
+  // As a tab it is a place with the tab bar. Opened from a game's menu it sits over the game, with a way back and no tabs.
+  return ce("div", { className: "kit kscreen ksettings" + (tab ? " ktabbed" : "") },
+    ce("div", { className: "ph-nav" }, !tab && ce("button", { className: "ib", onClick: onBack, "aria-label": "Back" }, kIcon("chevl")), ce("span", { className: "lbl" }, "Settings")),
     ce("main", { className: "ph-body lc-pad lc-set" },
       ce("h1", { className: "vh" }, "Settings"),
       ce("h2", { className: "lc-h" }, "Text size"),
@@ -6487,11 +6600,6 @@ function SettingsPage({ s, settings, setSettings, onBack, go, open, onRestore, s
           ce("div", { className: "lc-bkp" }, ce("button", { className: "kb sm cream", onClick: () => setBk(null) }, "Keep what's here"), ce("button", { className: "kb sm", onClick: () => { onRestore(bk.st); setBk(null); } }, "Load the backup")))
         : ce("div", { className: "lc-bkp" }, ce("button", { className: "kb sm cream", onClick: saveBackup }, "Save a backup"), ce("button", { className: "kb sm cream", onClick: () => fileRef.current && fileRef.current.click() }, "Load a backup")),
       ce("input", { ref: fileRef, type: "file", accept: "application/json,.json", hidden: true, onChange: pickBackup }),
-      ce("h2", { className: "lc-h" }, "Help"),
-      ce("div", { className: "lc-help" },
-        [["rules", "How to play", "The basics in seven quick steps", () => go({ at: "learn" })], ["count", "The 7 rounds", "Every goal, drawn in cards", () => open("rules", { tab: "round" })],
-          ["dealerschoice", "House rules", "Buys, jokers and how this table plays", () => open("rules", { tab: "house" })]].map(([ic, t, d, fn]) =>
-          ce("button", { key: t, className: "lc-hrow", onClick: fn }, ce("img", { src: "art/icons/" + ic + ".webp", alt: "" }), ce("span", null, ce("b", null, t), ce("small", null, d)), kIcon("chev")))),
       ce("div", { className: "blk sap lc-offer" },
         ce("div", { className: "lc-scan", "aria-hidden": true },
           ce("div", { className: "lc-hand" }, card()),
@@ -6514,7 +6622,8 @@ function SettingsPage({ s, settings, setSettings, onBack, go, open, onRestore, s
         ce("a", { className: "kb wide lc-tipbtn" + (amount ? "" : " off"), href: SUPPORT_URL, target: "_blank", rel: "noopener", "aria-disabled": !amount || undefined,
           onClick: e => { if (!amount) e.preventDefault(); else { haptic(10); sound("win"); up("tipped", now()); } } }, amount ? "Tip £" + amount : tip === "other" && other.trim() ? "£1 to £200" : "Pick an amount")),
       ce("p", { className: "lc-credits" }, "Type: Fraunces by Undercase Type and Barlow by Jeremy Tribby (both OFL).")));
-}function KPage({ title, onClose, backLabel, cls, bodyCls, children }) {
+}
+function KPage({ title, onClose, backLabel, cls, bodyCls, children, foot }) {
   const [closing, setClosing] = useState(false), me = useRef(null);
   useEffect(() => { lockPage(true); return () => lockPage(false); }, []);
   const close = () => { if (closing) return; if (reducedMotion()) return onClose(); setClosing(true); setTimeout(onClose, 200); };
@@ -6525,18 +6634,19 @@ function SettingsPage({ s, settings, setSettings, onBack, go, open, onRestore, s
   return onTop(ce("div", { ref: me, className: "kit kport kpage" + (cls ? " " + cls : "") + (closing ? " out" : ""), role: "dialog", "aria-modal": true, "aria-label": title },
     ce("div", { className: "kpage-in" },
       ce("div", { className: "ph-nav" }, ce("button", { className: "ib", onClick: close, "aria-label": backLabel || "Back" }, kIcon("chevl")), ce("span", { className: "lbl" }, title)),
-      ce("div", { className: "ph-body kp-body" + (bodyCls ? " " + bodyCls : "") }, children))));
+      ce("div", { className: "ph-body kp-body" + (bodyCls ? " " + bodyCls : "") }, children),
+      foot && ce("div", { className: "kp-foot" }, ce("button", { className: "kb", onClick: close }, foot)))));
 }
 // The whole guide: rounds, basics, Q&A and house rules. Used by the Rules sheet and the Learn tab.
 function RulesBody({ tab, setTab, round, rules, setRules, level, onLevel, live }) {
   const [r, setR] = useState(round || 0);
+  const wilds = rules.jokersWild && rules.twosWild ? "Jokers and 2s stand in for any card." : rules.jokersWild ? "A joker stands in for any card." : rules.twosWild ? "A 2 stands in for any card." : null;
   const limit = buyLimitOf(rules), limitText = limit === Infinity ? "unlimited buys" : limit + (limit === 1 ? " buy" : " buys");
   const steps = (h, items) => ce("section", { className: "rg-sect" }, ce("h3", { className: "rg-h" }, h),
     ce("ol", { className: "rg-steps" }, items.map((x, i) => ce("li", { key: i, className: "rg-call" }, ce("span", { className: "rg-m n", "aria-hidden": true }, i + 1),
       ce("div", null, ce("b", null, x.t), ce("p", null, x.d.replace("{limit}", limitText)))))));
-  const ace = rules.aceValue == null && rules.acesPosition === "both" ? "1 or 15" : String(acePoints(rules));
   return ce(Fragment, null,
-    ce("div", { className: "rg-tabs" }, ce(KSeg, { label: "Guide section", value: tab, onChange: setTab, options: [["round", "Rounds"], ["how", "Basics"], ["faq", "Q&A"], ["house", "House"]] })),
+    ce("div", { className: "rg-tabs" }, ce(KSeg, { label: "Guide section", value: tab, onChange: setTab, options: [["how", "Basics"], ["round", "Rounds"]] })),
     tab === "round" && ce(Fragment, null,
       ce("div", { className: "rg-pick", role: "tablist", "aria-label": "Round" }, ROUNDS.map((x, i) => ce("button", { key: i, role: "tab", "aria-selected": i === r, "aria-label": "Round " + x.n + ", " + x.name,
         className: live && i < (round || 0) ? "done" : "", onClick: () => { haptic(6); setR(i); } }, x.n))),
@@ -6544,17 +6654,11 @@ function RulesBody({ tab, setTab, round, rules, setRules, level, onLevel, live }
       live && onLevel && ce("div", { className: "prow rg-every" }, ce("span", { className: "grow" }, ce("b", null, "Still learning?"), ce("small", null, "Open this guide as each round starts")),
         ce(KSw, { on: level === "new", onChange: v => onLevel(v ? "new" : "pro"), label: "Open this guide as each round starts" }))),
     tab === "how" && ce(Fragment, null,
-      steps("Learn in 60 seconds", QUICK_START), steps("A turn", TURN_STEPS), steps("How “May I?” works", MAYI_STEPS),
-      ce("section", { className: "rg-sect" }, ce("h3", { className: "rg-h" }, "Points left in hand"),
-        ce("div", { className: "rg-vals" }, [["2–9", rules.twosWild ? "3–9 face, 2s " + wildPoints(rules) : "face value"], ["10 J Q K", "10"], ["Ace", ace], ["Joker", String(wildPoints(rules))]]
-          .map(([k, v]) => ce("span", { key: k }, ce("b", null, v), k))))),
-    tab === "faq" && ce(Fragment, null,
-      ce("div", { className: "rg-faq" }, FAQ.map(f => ce("details", { key: f.q, className: "rg-qa" }, ce("summary", null, ce("span", null, f.q), kIcon("chev")), ce("p", null, f.a)))),
-      ce("section", { className: "rg-sect" }, ce("h3", { className: "rg-h" }, "Words at the table"),
-        ce("div", { className: "rg-gloss" }, GLOSSARY.map(w => ce("div", { key: w.term, className: "rg-word" },
-          ce("div", null, ce("b", null, w.term), ce("p", null, w.d)), w.ex && ce(GoalMelds, { r: { ex: [w.ex] } })))))),
-    tab === "house" && (setRules ? ce(Fragment, null, ce(KHouseRules, { rules, up: (k, v) => setRules(x => ({ ...x, [k]: v })) }), ce("p", { className: "rg-note" }, "Changes apply to this game from now on."))
-      : ce("p", { className: "rg-note" }, rulesLine(rules) + ". Set house rules when dealing a new game.")));
+      ce(Lesson, { rules }), steps("A turn", TURN_STEPS), steps("How “May I?” works", MAYI_STEPS),
+      wilds && ce("section", { className: "rg-sect rg-wild" }, ce("h3", { className: "rg-h" }, "Wild cards"),
+        ce("div", { className: "rg-word" }, ce("p", null, wilds + " Wilds can't outnumber the natural cards in a set or run: a set of three can hold one, a run of four can hold two. Left in hand, each costs " + wildPoints(rules) + "."),
+          ce(GoalMelds, { r: { ex: [rules.jokersWild ? ["8H", "JOKER", "10H", "JH"] : ["8H", "2S", "10H", "JH"]] } })))),
+    null);
 }
 // ── Lifetime achievements ─────────────────────────────────────────
 // Earned once, for good, across every table a player sits at (the same name at another table counts as the same person).
@@ -6631,10 +6735,18 @@ function Shelf({ sets, label, lockable }) {
         ce("span", { className: "nm" }, x.t)))));
 }
 
-// ── Learn tab ─────────────────────────────────────────────────────
+// ── Learn tab: the same guide the book opens in a game, starting on Basics ──
 function LearnPage({ s, open, go }) {
   const last = Object.values(s.games).sort((a, b) => (b.startedAt || 0) - (a.startedAt || 0))[0];
   const rules = { ...DEFAULT_RULES, ...((last && last.rules) || {}) };
+  const [tab, setTab] = useState("how");
+  return ce("div", { className: "kit kscreen klearn kguide" },
+    ce("div", { className: "ph-nav" }, ce("span", { className: "lbl" }, "How to play")),
+    ce("main", { className: "ph-body rg-body lc-learn" }, ce("h1", { className: "vh" }, "How to play May I?"),
+      ce(RulesBody, { tab, setTab, round: 0, rules, setRules: null, level: null, live: false })));
+}
+// The basics as seven picture cards, each one sentence. Swipe on a phone; all on the page on a tablet.
+function Lesson({ rules }) {
   const ace = rules.aceValue == null && rules.acesPosition === "both" ? "1 or 15" : String(acePoints(rules)), jk = String(wildPoints(rules));
   const lim = buyLimitOf(rules), buys = lim === Infinity ? "As many buys as anyone likes." : ["", "One buy", "Two buys", "Three buys", "Four buys", "Five buys"][lim] ? ["", "One buy", "Two buys", "Three buys", "Four buys", "Five buys"][lim] + " a round." : lim + " buys a round.";
   const pts = ace === jk ? "Ace and Joker at " + ace : "Ace at " + ace + " and Joker at " + jk;
@@ -6667,20 +6779,13 @@ function LearnPage({ s, open, go }) {
     ["Counting up", null, [["5", "diamond", "5"], ["10", "club", "10"], ["K", "spade", "10"], ["A", "spade", ace], [null, null, jk]].map(([rk, st, v], i) =>
         ce("span", { key: i }, ce("span", null, rk ? ce(DeckCard, { rank: rk, suit: st }) : ce(DeckCard, { joker: true })), ce("b", null, v))),
       "Everyone else adds up their hand: 2 to 9 at face value, 10 J Q K at 10, " + pts + ". House rules can change the last two.", "lc-ill-count"]];
-  const start = () => s.groupOrder.some(id => s.groups[id]) ? open("newgame") : go({ at: "home" });
-  return ce("div", { className: "kit kscreen klearn" },
-    ce("div", { className: "ph-nav" }, ce("span", { className: "lbl" }, "How to play"), ce("span", { className: "sp" }),
-      ce("button", { className: "ib", onClick: () => open("settings"), "aria-label": "Settings" }, kIcon("gear"))),
-    ce("main", { className: "ph-body lc-pad lc-learn" }, ce("h1", { className: "vh" }, "How to play May I?"),
+  return ce("div", { className: "rg-lesson" },
       ce("div", { ref, onScroll, className: "guides lc-guides", tabIndex: 0, role: "region", "aria-label": "How to play in 7 steps. Scroll sideways for the next step." },
         steps.map(([h, line, ill, say, cls], i) => ce("article", { key: i, className: "gcard", "aria-label": "Step " + (i + 1) + " of 7" },
           ce("span", { className: "num" }, i + 1), ce("h3", null, h), line && ce("span", { className: "line" }, line),
           ce("div", { className: "lc-ill" + (cls ? " " + cls : ""), "aria-hidden": true }, ill), ce("p", { className: "lc-say" }, say)))),
       ce("div", { className: "lc-dots", "aria-hidden": true }, steps.map((_, i) => ce("i", { key: i, className: i === step ? "on" : "" }))),
-      ce("p", { className: "lc-stepof vh", "aria-live": "polite" }, "Step " + (step + 1) + " of 7")),
-    ce("div", { className: "ph-dock lc-dock2" },
-      ce("button", { className: "kb", onClick: start }, "Start a game"),
-      ce("button", { className: "link", onClick: () => open("rules", { tab: "round" }) }, "See the 7 rounds")));
+      ce("p", { className: "lc-stepof vh", "aria-live": "polite" }, "Step " + (step + 1) + " of 7"));
 }
 // ── Stats tab: the trophy room across every table ─────────────────
 function StatsPage({ s, open, go }) {
@@ -6701,8 +6806,7 @@ function StatsPage({ s, open, go }) {
     const champ = top[0] && !(top[1] && top[1][1] === top[0][1]) ? plOf(g, null)(top[0][0]) : null; return { g, st, champ, wins: top[0] ? top[0][1] : 0 }; });
   const claimed = hall.filter(h => h.lit).length, nT = tables.filter(t => t.st.games.length).length;
   return ce("div", { className: "kit kscreen kstats" },
-    ce("div", { className: "ph-nav" }, ce("span", { className: "lbl" }, "Stats"), ce("span", { className: "sp" }),
-      ce("button", { className: "ib", onClick: () => open("settings"), "aria-label": "Settings" }, kIcon("gear"))),
+    ce("div", { className: "ph-nav" }, ce("span", { className: "lbl" }, "Stats")),
     ce("main", { className: "ph-body st-body" }, ce("h1", { className: "vh" }, "Stats"),
       ce("div", { className: "st-hero" }, ce("img", { src: "art/crown.webp", alt: "" }),
         ce("p", null, done.length ? stPlural(done.length, "game") + " across " + stPlural(nT, "table") + ", and " + claimed + " of " + AWARD_ORDER.length + " awards claimed"

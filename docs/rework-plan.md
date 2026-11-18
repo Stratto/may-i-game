@@ -25,7 +25,7 @@ Status: ✅ done · ◻ to do. Numbers in brackets are walkthrough findings.
 
 - ✅ Start screen is names and nothing else. The "Playing at Monday table" line is gone.
 - ✅ The table is given a name without being asked (now a dealt May I? name, see below). Results offers to rename it after the first game ("Same table next time?"). Renaming in Table settings also works.
-- ✅ Learn is a banner with the cards and the question mark, in view before any name is typed, on phones down to 375 × 667.
+- ✅ Learn is a banner with the cards and the question mark, in view before any name is typed, on phones down to 375 × 667. (Replaced later the same day by the Learn tab: see "One frame for every place".)
 - ✅ Nothing pops up at deal time. The "Still learning / Knows the game" sheet is removed [5, 10].
 - ✅ The round guide opens only when tapped. Tables that want it every round switch on "Guide every round" in Settings, or at the foot of the guide itself. This also removes the three screens between rounds for everyone else [4].
 - ✅ The dealer is visible and changeable: a D tag on the dealer's row passes the deal one seat a tap, and Roll for dealer picks for the table [6, part].
@@ -87,9 +87,160 @@ Status: ✅ done · ◻ to do. Numbers in brackets are walkthrough findings.
 - ✅ **UI kit:** the older frames (round, score pad, between rounds, results, Home, game menu, New game, New table, Learn) now match the app, and the two old tablet frames are replaced by the tablet screens as built.
 - ✅ **Screens canvas:** the reworked boards are re-captured (Home, New game, New table, the round, game menu, score pad, between rounds, results, How to play, and both tablet boards), on top of the 15 sheet boards done earlier.
 
+### How flows are tested from 2026-11-17
+
+The owner found flow problems the checks had missed (names lost on the way to the lesson; three layouts to learn the game). The checks proved things worked, not that they should be there. From now on, each flow is handled in this order:
+
+1. **Write the flow as plain steps first**, as the person at the table would do it, with a count of taps, decisions and layouts. Compare it with paper.
+2. **Removal pass.** Every element on the screen states the job it does at that moment, or it is removed, defaulted or moved.
+3. **Fresh eyes.** Someone who has not seen the screen is given a task and reports where they hesitate.
+4. **Report** taps, decisions and layouts before and after, and what was removed.
+5. **A real game on a real phone**, by the owner.
+
+### Flow: "New to May I?" from the start screen (2026-11-17)
+
+| | Before | After |
+|---|---|---|
+| Names typed before opening the lesson | Lost; typed again | Kept (also through a reload) |
+| Layouts on the way to the seven rounds | 3 (start, lesson, guide) | 2 (start, guide) |
+| Ways off the lesson screen | 6 (two buttons, three tabs, a gear) | 1 (Back to the names) plus the guide's four sections |
+| Taps to read the basics and get back to the names | 3, plus retyping every name | 2 |
+
+- There is now one guide. The seven-card lesson is its Basics section; the seven rounds, Q&A and house rules are the sections beside it. The book in a game, the Learn tab and "New to May I?" all open it.
+- From the start screen and from a game it opens over what is on screen, with no tab bar and one button at the bottom that says where it returns to.
+- Removed: "Start a game" and "See the 7 rounds" on Learn, the duplicate "Learn in 60 seconds" list, and the duplicate points table.
+
+### The guide, cut to two sections (2026-11-17)
+
+The owner asked whether House was needed (it had no real content) and said the Q&A belonged inside Basics and Rounds.
+
+| | Before | After |
+|---|---|---|
+| Sections in the guide | 4 (Basics, Rounds, Q&A, House) | 2 (Basics, Rounds) |
+| Questions in a separate list | 8 | 0 |
+| Word list entries | 9 | 0 |
+| Help rows in Settings | 3 | 1 |
+
+- **Folded into the step they belong to:** melds longer than the goal and waiting to go down (the "Go down" step); "meld" defined where it is first used (the "Lay off" step); two people asking at once (a step under How "May I?" works); wild cards (a short section with a picture, written from the table's own rules).
+- **Dropped as repeats:** laying down a second meld, going out after going down, laying off before going down (all in "A turn"), and what is different in round 7 (in round 7's own guide).
+- **House rules** left the guide. The game menu now has a House rules row that shows this game's rules in its second line and opens them to change. The menu's Round guide row is gone, because the book sits beside the gear on every game screen; the menu still has five rows.
+- Settings has one Help row, which opens the guide over Settings.
+
+### One frame for every place (2026-11-17)
+
+The owner asked whether the bottom tabs belong on the start screen and every screen, because the second visit opened on a different start from the first. Written out as steps, the app had three starts, not one.
+
+**Before**
+
+| Moment | What the person met |
+|---|---|
+| First open | The start screen: no top bar, no tabs, a "New to May I?" banner, one button |
+| Second open | Home: Settings top right, one button, then Learn, Play and Stats |
+| A second group ("New table") | A third layout: a round table of eight seats, a Seat button, a name field, "Create table", then the New game sheet, then "Deal" |
+| A table's own page | One button, no tabs |
+| Learn, from the start screen | A page over the names with a "Back to the names" button |
+| Learn, from Home | The Learn tab, with the tab bar |
+
+**After**
+
+| Moment | What the person meets |
+|---|---|
+| First open | The Play tab with no tables yet: Settings top right, the names list, one button, then Learn, Play and Stats |
+| Second open | The Play tab with tables: the same frame, the tables in place of the names |
+| A second group | The start screen again with a way back. The same names list, and it deals straight into round one |
+| A table's own page | The same frame: one button, then the tabs. Play goes back to the tables |
+| Learn | Always the Learn tab |
+
+| | Before | After |
+|---|---|---|
+| Frames a person meets before a game | 4 (start, Home, New table, table page) | 1 |
+| Layouts for seating players | 2 (a list, a round table) | 1 |
+| Ways to the guide from the start screen | 1 banner, different from Home's tab | 1 tab, the same everywhere |
+| Screens and confirms to start a second group of 4 | 3 screens, 2 confirms (Create table, Deal) | 1 screen, 1 confirm |
+| Ways to Settings before the first game | 0 | 1 |
+| Tab bar position between Play, Learn and Stats | moved 2px on a phone; 276px wide on Play and 560px on Learn on a tablet | identical on every screen and size |
+
+- **Removed:** the "New to May I?" banner (the Learn tab does its job), the round-table New table page and its Seat button, the table-name field before the first game, the "Create table" step, and the guide's "Back to the names" route.
+- **A bug this fixed:** a brand-new phone could not reach Settings until a table existed, so a saved backup could not be loaded without dealing a throwaway game first.
+- **Kept on purpose:** no tabs during a game (the round, the score pad, between rounds, Results). The round screen has no height to spare on a phone, a stray tap would walk the table out of the game, and the guide is already one tap away in the top bar. Sheets and Settings have no tabs either: they sit over whatever opened them and go back to it.
+- Names typed on either names screen are kept through Learn, Stats, Settings and a reload.
+- A new table starts with the standard house rules, as the first table does. They change from the game menu.
+
+### Home, the main button, the tab bar and the crest (2026-11-18)
+
+The owner's notes on the screens from the pass above.
+
+| | Before | After |
+|---|---|---|
+| Ways to resume a game on Home | 2 (the Playing now card and a Resume button under it) | 1 (the card, with Resume on it) |
+| Main button on a coloured screen | the look's colour on the same colour | cream, on every look |
+| Second button on a coloured screen | cream, louder than the main one | dark glass with a gold edge |
+| Tab bar height on a phone | 104px with 48px art | 72px with 34px art |
+| Dock height on Home with a game going | about 200px | about 100px |
+| Fan cards in view behind the crest | 2 of 4 | 4 of 4 |
+
+- **Home.** While a game is going its card is the one way back in: the table, the round and its goal, who leads, the leader's own card on the corner, and Resume. The dock is only the tabs. With nothing in play the dock holds New game.
+- **The main button never matches its ground.** Cream on the water; the look's colour on a cream sheet. The second button does the opposite and goes quiet. This closes the open question about the main button's colour, and it holds on all four looks.
+- **The tab bar** sits between the platform sizes: iOS uses a 49pt bar with roughly 25pt glyphs, Android's Material 3 bar is 80dp with 24dp icons. Ours is about 72px with 34px art and 12px labels, so the art still reads as art. The big pictures belong to the page above it (the crest, the champion's card, the crown on Stats).
+- **The crest's fan.** The inner two cards sit 40px higher, so the queen and the jack show over the crest's shoulders.
+
+**Later the same day, on the owner's next notes**
+
+| | Before | After |
+|---|---|---|
+| The crest's fan | inner pair lifted 40px, out of line with the outer pair | four cards on one arc from one pivot; inner pair show their top edge |
+| Ways to Settings | a gear on four different screens | one tab, the fourth, in the same place everywhere |
+| Gears at the top of Play, Learn and Stats | 4 | 0 |
+| Where a new table's rules are set | nowhere before the first deal (only in the game menu, after dealing) | a House rules line on the names screen, before dealing |
+| Help rows in Settings | 1 | 0 (Learn is the tab beside it) |
+
+- **Settings is a tab.** Learn, Play, Stats, Settings. Opened from a game's menu it still sits over the game with a way back and no tabs.
+- **Rules belong to the table.** House rules (buys a round, jokers and 2s wild, aces in runs, ace and joker points) are one line on the names screen once two names are in, with the usual rules already set. The same sheet opens from the New game sheet and from the game menu. Whatever a game is dealt with, or changed to mid-game, is saved on the table (`group.rules`) and is where its next game starts.
+- The names typed, the dealer and the rules chosen are all kept through the other tabs and a reload.
+
+### Play, thought through again (2026-11-18)
+
+The owner asked for fresh thinking on the Play screen: what is the context, the intent, the need and the fun. And whether the crest should open the app instead of sitting on Play.
+
+**Who is on this screen, and why**
+
+| Moment | What they want | What Play must give them |
+|---|---|---|
+| A game is going and the phone was put down | Back into the game | One unmistakable way back: the Playing now card with Resume |
+| Game night is starting with the usual people | A hand dealt | New game, one tap, at the table they last played |
+| A different group has sat down | A table for them | New table, beside the heading |
+| Nothing is happening; someone is curious | Who won, who holds the table, what they have earned | The last game as a moment, the tables with their champions, that night's awards |
+| The very first time | To start | The names list |
+
+**What changed**
+
+| | Before | After |
+|---|---|---|
+| The crest | a 236px hero on Play, and nowhere else | opens the app, then lands as a 44px mark in Play's corner |
+| Room on a phone before the first table | about 40% of the screen | about 80% |
+| The last game on Play | a trophy and two lines that both named the winner and the table | the winner's card under the crown, each fact once, and the award that told the story; it opens the results |
+| Awards on Play | none | the last game's awards on the shelf, tap to see who and how |
+| The start screen | the same hero, shrinking as names were typed | the welcome sits a little way down and glides up when the first name is typed |
+
+- **The opening** lasts about 1.3 seconds plus a short hand-off, plays once a visit (not again on a reload in the same visit), skips on a tap or a key, and does not play at all with reduced motion or Calm mode. It is the one place a wait was added on purpose; a table that finds it slow can skip it every time.
+- **Last game is one piece** (from a comment on the kit the same evening). The winner and that game's awards had been split by the tables, with a large medal, a tiny name and no face. They are now one block under a "Last game" heading: the winner's line, then the awards in a row that scrolls sideways, each a 46px medal with the award's name and the face and name of who took it. Each table's page carries the same block for its own last game.
+- **From the owner's comments on the kit, the same evening:**
+  - House rules show on the names screen from the first moment, not only after two names.
+  - The empty start screen has a teaching card again ("New to May I?"), until the first name is typed. It opens the Learn tab.
+  - The opening has a loading line that fills as the lettering and the crest's art arrive, with three plain steps. It never waits more than four seconds.
+  - The background lights sit in opposite corners in the look's own colour and breathe instead of circling. The gold light is gone; over teal it turned muddy.
+  - Scores by round is turned: players down the side with faces and full names, rounds across, the total at the end of each row. It grows downwards with the table.
+  - Rounds with three melds show their goal cards on two lines on phones 760px tall or more.
+  - "New game" names the table it is for ("New game at Friday night"). New game is another game for a table that exists; New table is a different group of people.
+- **Not done:** bigger table cards, a callout for what is close to being won, and anything on Play for a table's own look. The space is there for them.
+
+**Decisions waiting on the owner (raised 2026-11-18)**
+
+- **Looks per table.** Recommended: yes. A look belongs to a table (its block on Home, its page, its games) and Play, Learn, Stats and Settings stay on the lagoon. No light mode: the art is drawn for a deep ground, and the need it would serve (reading in a bright room) is the Sunlight contrast switch that already exists. Not built.
+- **Joining from another phone.** The owner wants a brand-new phone to be able to join a table by link or QR code and add a name and a character. This is option A below ("the table is the shared thing"). The join sheet, the invite sheet, table codes and `?join=` links exist in the app but are switched off, because no sync service is set up (`SUPABASE_URL` is empty). It needs a Supabase project, which the owner has to create. Then: the start screen gets "Join a table" beside the names, the invite shows a link and a QR code, and a joiner taps their face ("That's me") or adds a name and picks one. Not built.
+
 ### Still open after this pass
 
-- The main button's colour (cream on water, the look's colour on cream sheets) waits on the owner's yes.
 - The kit's Settings frames and the Screens canvas's Settings, Stats and Table page boards still show the earlier captures; the "look" rows on the canvas (Game night, Lime, Cherry, Daylight) are from before the rework.
 - The Daylight look is not mapped.
 - Real-device checks: VoiceOver, large text, sunlight contrast and offline play on an iPhone; all tablet sizes, and the background glows' smoothness and battery use, on a real iPhone and iPad.

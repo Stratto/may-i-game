@@ -1615,6 +1615,8 @@ input { caret-color: var(--teal); }
 
 /* First run */
 .lc-first { text-align: center; padding-top: 6px; }
+.lc-first.lc-sub { text-align: left; }
+.lc-first.lc-sub h3 { font-size: 2rem; margin-bottom: 8px; }
 .lc-first h3 { margin: 4px 0 2px; font: 800 1.6rem/1.1 var(--display); text-wrap: balance; }
 .lc-first p { margin: 0; color: var(--on-bg2); font-size: .95rem; }
 .lc-deal { position: relative; height: 180px; margin: 6px 0 0; }
@@ -1718,6 +1720,7 @@ input { caret-color: var(--teal); }
 .lc-hact .qp { flex: none; min-height: 44px; padding: 0 14px 0 10px; }
 .lc-hact .qp svg { width: 16px; height: 16px; }
 .lr-crown { position: absolute; left: 50%; top: -13px; width: 28px; translate: -50% 0; rotate: -8deg; filter: drop-shadow(0 3px 3px rgba(0, 0, 0, .4)); pointer-events: none; animation: k-crownin .5s var(--spring) both; }
+.ts-sheet input { box-sizing: border-box; min-width: 0; max-width: 100%; }
 .kname { max-width: none; }
 .kname-row { display: flex; align-items: center; gap: 10px; }
 .kname-row input { flex: 1; min-width: 0; }
@@ -1765,15 +1768,7 @@ input { caret-color: var(--teal); }
 .lc-facehint { margin: 8px 0 0; color: var(--on-bg2); font-size: .9rem; text-align: left; }
 .lc-first .lc-plus { width: 40px; height: 40px; border-radius: 50%; }
 .lc-first .lc-name.lc-empty { border-bottom-style: solid; border-bottom-color: transparent; }
-.lc-newto { position: relative; display: flex; align-items: center; gap: 12px; width: 100%; margin-top: 22px; padding: 12px 14px 12px 10px; border-radius: 20px; border: 3px solid transparent; cursor: pointer; text-align: left; color: var(--ink); font: inherit;
   background: radial-gradient(120% 90% at 30% 0%, var(--paper-hi), var(--paper) 60%, var(--paper-lo)) padding-box, var(--rim-soft) border-box; box-shadow: 0 12px 22px -14px rgba(0, 0, 0, .55); }
-.lc-newto-art { position: relative; flex: none; width: 88px; height: 56px; }
-.lc-newto-art .hand { position: absolute; left: 0; bottom: -4px; width: 88px; height: auto; rotate: -5deg; filter: drop-shadow(0 6px 6px rgba(0, 0, 0, .28)); }
-.lc-newto-art .q { position: absolute; right: -8px; bottom: -8px; width: 40px; height: auto; filter: drop-shadow(0 3px 4px rgba(0, 0, 0, .3)); }
-.lc-newto-t { flex: 1; min-width: 0; display: grid; gap: 3px; padding-left: 4px; }
-.lc-newto-t b { font: 800 1.2rem/1.1 var(--display); }
-.lc-newto-t small { color: var(--ink2); font-size: .95rem; line-height: 1.25; }
-.lc-newto .chev { flex: none; width: 20px; height: 20px; color: var(--gold-deep); }
 
 @media (prefers-reduced-motion: reduce) { .lc-name.typing .nm::after { animation: none; } }
 
@@ -2063,27 +2058,6 @@ input { caret-color: var(--teal); }
 .pp-fix { margin: -4px 0 0; text-align: center; font-size: .85rem; color: var(--ink2); }
 .pp-pad .tapped { min-height: 56px; }
 
-/* ── New table ── */
-.nt-body { gap: 16px; padding-bottom: 110px; }
-.nt-body > *, .nt-body input, .ts-sheet input { box-sizing: border-box; min-width: 0; max-width: 100%; }
-.nt-head h3 { margin: 0; font: 800 2rem/1.05 var(--display); color: var(--on-bg); }
-.nt-head p { margin: 6px 0 0; color: var(--on-bg2); }
-.nt-name { max-width: none; }
-.nt-table { position: relative; height: 268px; margin: 4px 0 0; border-radius: 50% / 46%; border: 1.5px solid rgba(255, 231, 163, .22); background: radial-gradient(70% 60% at 50% 45%, rgba(255, 231, 163, .12), rgba(3, 38, 46, .18) 80%); box-shadow: inset 0 0 0 6px rgba(255, 231, 163, .04); }
-.nt-seat { position: absolute; translate: -50% -50%; display: grid; justify-items: center; gap: 3px; padding: 0; border: 0; background: none; color: var(--on-bg); cursor: pointer; }
-.nt-seat .tok { display: block; width: 48px; height: 48px; border-width: 3px; box-shadow: 0 6px 10px -6px rgba(0, 0, 0, .6); }
-.nt-seat b { font: 800 .86rem/1 var(--display); }
-.nt-seat.empty i { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; border: 2px dashed rgba(255, 231, 163, .4); color: rgba(255, 231, 163, .55); }
-.nt-seat.empty svg { width: 16px; height: 16px; }
-.nt-seat.empty { margin-top: -8px; }
-.nt-mid { position: absolute; left: 50%; top: 50%; translate: -50% -50%; text-align: center; font: 700 .9rem/1.2 var(--num); color: var(--on-bg2); }
-.nt-mid b { display: block; font: 800 1.9rem/1 var(--num); color: #FFE7A3; }
-.nt-add { display: flex; align-items: center; gap: 10px; min-height: 56px; padding: 4px 6px 4px 8px; border-radius: 16px; background: linear-gradient(180deg, #FFFDF6, var(--paper-hi)); box-shadow: 0 8px 18px -12px rgba(0, 0, 0, .6); }
-.nt-add input { flex: 1; min-width: 0; height: 44px; border: 0; background: none; font: 700 1.1rem/1 var(--display); color: var(--ink); }
-.nt-add input:focus { outline: none; }
-.nt-add .qp { min-height: 44px; padding: 0 18px; border: 2px solid var(--gold); color: #6E4A10; background: linear-gradient(180deg, #FFF3C8, #F2D27C); text-transform: none; letter-spacing: 0; font: 800 1rem/1 var(--display); }
-.nt-add .pe-plus { flex: none; }
-.nt-hint { margin: -4px 4px 0; font-size: .86rem; color: var(--on-bg2); }
 /* ── Table settings ── */
 .ts-sheet .body { gap: 16px; }
 .ts-sheet .kfield { max-width: none; } .ts-sheet .kfield label { color: #7A5A1E; }
@@ -2617,6 +2591,45 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
 .kit-body .guides:not(.ph .guides):not(.bf .guides) { flex-wrap: wrap; overflow: visible; margin: 0; padding: 8px 0 0; scroll-snap-type: none; }
 /* KIT-PAGE-END */
 /* LAY-END */
+
+/* ── 18 November: sizes and grounds ── */
+/* The tab bar at a platform size (iOS 49pt, Android 80dp; this sits between). The art stays, smaller; pages carry the big pictures. */
+.tabbar { padding: 5px 10px 6px; border-radius: 22px; }
+.tab { gap: 1px; min-width: 76px; padding: 0 6px 10px; font-size: .75rem; }
+.tab img { width: 34px; height: 34px; }
+.tab[aria-current="page"] img { transform: translateY(-3px) scale(1.1); filter: drop-shadow(0 4px 6px rgba(0, 0, 0, .4)); }
+.tab[aria-current="page"]::after { width: 6px; height: 6px; margin-left: -3px; bottom: 1px; }
+.tabbar .pip { width: 6px; height: 6px; margin-left: -3px; bottom: 7px; }
+/* The main button contrasts with what it sits on: cream on the water, the look's colour on paper. The second button goes quiet: dark glass on the water, cream on paper. */
+:is(.ph, .gw) .kb:not(.cream, .sapphire, .ruby, :disabled, .ksheet .kb, .km .kb) { color: var(--ink);
+  background: linear-gradient(180deg, var(--paper-hi) 0%, var(--paper) 58%, var(--paper-lo) 100%) padding-box, var(--rim) border-box; box-shadow: inset 0 -3px 0 #D9BE86, inset 0 1.5px 0 #fff; }
+:is(.ph, .gw) .kb:not(.cream, .sapphire, .ruby, :disabled, .ksheet .kb, .km .kb):is(:active, .pressed) { box-shadow: inset 0 -1.5px 0 #D9BE86, inset 0 3px 6px rgba(110, 74, 16, .18); }
+:is(.ph, .gw) .kb.sm:not(.cream, .sapphire, .ruby, :disabled, .ksheet .kb, .km .kb) { box-shadow: inset 0 -2.5px 0 #D9BE86, inset 0 1.5px 0 #fff; }
+:is(.ph, .gw) .kb.cream:not(:disabled, .ksheet .kb, .km .kb) { color: var(--on-bg); border-color: rgba(255, 233, 166, .6); background-image: none; background-color: rgba(3, 38, 46, .42); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1); }
+:is(.ph, .gw) .kb.cream:not(:disabled, .ksheet .kb, .km .kb) svg { color: #FFE7A3; }
+.gw { display: contents; }
+.gp { display: inline-flex; gap: 30px; padding: 14px 24px; border-radius: 20px; background: linear-gradient(180deg, var(--paper-hi), var(--paper)); }
+/* Home's game card: the leader's card sits on the corner, and Resume is the one way back in. */
+.lc-now2 { overflow: visible; }
+.lc-now2::before { border-radius: 19px 19px 0 0; }
+.lc-now2 .lc-nowlead { display: flex; align-items: center; gap: 6px; margin-top: 6px; font: 700 .95rem/1 var(--display); color: #FFE7A3; }
+.lc-now2 .lc-nowlead img { width: 22px; height: 22px; object-fit: contain; }
+.lc-now2 .lc-now-c { position: absolute; right: 14px; top: -14px; width: 72px; rotate: 8deg; filter: drop-shadow(-4px 8px 10px rgba(0, 0, 0, .4)); }
+.lc-now2.has-card .name, .lc-now2.has-card .meta { padding-right: 92px; }
+.lc-now2 .lc-now-c > [data-c] { display: block; width: 100%; }
+.lc-now2 .foot { align-items: center; }
+.lc-resume { flex: none; display: inline-flex; align-items: center; gap: 4px; min-height: 40px; padding: 0 12px 2px 18px; border-radius: 999px; border: 2px solid transparent; color: var(--ink); font: 700 1.05rem/1 var(--display);
+  background: linear-gradient(180deg, var(--paper-hi) 0%, var(--paper) 58%, var(--paper-lo) 100%) padding-box, var(--rim) border-box; box-shadow: inset 0 -2.5px 0 #D9BE86, inset 0 1.5px 0 #fff; }
+.lc-resume .chev { width: 16px; height: 16px; color: var(--gold-deep); }
+/* The fan behind the crest: four cards on one arc from one pivot, a little below the crest's centre. --cs is the crest's size (1 = 212px). */
+.lc-fan { top: calc(6px + 156.5px * var(--cs, 1)); scale: var(--cs, 1); translate: none; transform-origin: 50% 0; }
+.lc-fan > div { top: -167px; transform-origin: 50% 167px; }
+.tab { flex: 1 1 0; min-width: 0; }
+.lc-rulesrow { margin-top: 10px; text-align: left; width: 100%; }
+
+/* Play's corner mark: where the crest lands after the opening. */
+.lc-brand { gap: 10px; }
+.lc-brand .lc-mark { width: 44px; height: 44px; flex: none; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, .4)); }
 </style>
 </head>
 <body>
@@ -2844,9 +2857,10 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
     <div>
       <h3 class="sub">Buttons</h3>
       <div class="row">
-        <div class="state"><button class="kb">Start game<svg class="chev"><use href="#chev"/></svg></button>Main</div>
+        <div class="gw"><div class="state"><button class="kb">Start game<svg class="chev"><use href="#chev"/></svg></button>Main, on the water</div>
         <div class="state"><button class="kb pressed">Start game<svg class="chev"><use href="#chev"/></svg></button>Pressed</div>
-        <div class="state"><button class="kb cream">Stay</button>Second</div>
+        <div class="state"><button class="kb cream">Share</button>Second, on the water</div></div>
+        <div class="state"><span class="gp"><button class="kb">Deal round 1</button><button class="kb cream">Stay</button></span>Main and second, on paper</div>
         <div class="state"><button class="kb sapphire">May I?</button>Call</div>
         <div class="state"><button class="kb ruby">Delete game</button>Careful</div>
         <div class="state"><button class="kb" disabled>Score round</button>Not yet</div>
@@ -2935,6 +2949,7 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
           <button class="tab"><img src="../art/icons/rules.webp" alt="">Learn</button>
           <button class="tab" aria-current="page"><img src="../art/icons/play.webp" alt="">Play</button>
           <button class="tab"><img src="../art/icons/trophy.webp" alt="">Stats</button>
+          <button class="tab"><img src="../art/icons/settings.webp" alt="">Settings</button>
         </div>
       </div>
       <div class="stack" style="gap:18px">
@@ -3136,18 +3151,26 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
     <ol class="rw-rules">
       <li><b>Ask nothing up front that can be defaulted or asked later.</b> A new table is dealt a May I? name (The Cheeky Jokers, Three of a Kind). Results offers to keep it, roll another or type the table's own, after the first game.</li>
       <li><b>Nothing pops up when the hand is dealt.</b> The round guide opens when tapped, or every round for tables that switch it on.</li>
-      <li><b>One main action a screen.</b> Home resumes the game that is going, or starts one. Never both.</li>
+      <li><b>One main action a screen.</b> While a game is going, Home's game card is the way back in and the dock is only the tabs. With nothing in play the dock holds New game.</li>
       <li><b>Nothing covers a face, and nothing rests under the main button.</b> A buy is confirmed in place of the hint line.</li>
       <li><b>The app notices what paper can't.</b> A score no hand could hold is asked about once, never blocked.</li>
       <li><b>The score sheet is always one tap away,</b> mid-game and after. On a tablet the running totals sit under every face.</li>
       <li><b>Everything that looks tappable works.</b> Every plus, face, dealer tag and empty seat is a real button of at least 44px.</li>
-      <li><b>Game screens stay focused; the guide is always in the same corner.</b> There are no Learn, Play and Stats tabs during a game. The Learn book sits in the top bar of the round, the score pad and between rounds, and Back returns to exactly where the table was. The score pad shows what each card is worth.</li>
+      <li><b>Light comes from the corners.</b> Two soft pools of the look's own colour, top left and bottom right, breathing slowly. Nothing circles through the middle of the screen, and no gold is mixed into the water.</li>
+      <li><b>The crest opens the app; Play belongs to the table.</b> The opening lasts about a second, plays once a visit, skips on a tap and never plays for anyone who asked for less motion. Play carries a small mark instead of a hero, so what is on it is the game in progress, the last game's moment, the tables and the awards.</li>
+      <li><b>The main button never matches its ground.</b> Cream on the water, the look's colour on a cream sheet. The second button goes quiet.</li>
+      <li><b>The tab bar is a platform size.</b> About 72px tall with 34px art, between iOS (49pt) and Android (80dp). Big pictures belong to the page above it.</li>
+      <li><b>Rules belong to the table.</b> House rules are a line on the names screen before the first deal, a row in the New game sheet for every game after, and a row in the game menu while playing. The same sheet opens from all three, and whatever a game is dealt with is where the table's next game starts.</li>
+      <li><b>One frame for every place.</b> The start screen, Home, a table, a new table, Learn, Stats and Settings share one frame: the main button, then Learn, Play, Stats and Settings in exactly the same spot. Settings is a tab, so no screen carries a gear for it. The first visit and the hundredth look the same; only what is on the table changes.</li>
+      <li><b>One job, one layout.</b> Seating players is one list, for the first table and every table after it. The guide is one page.</li>
+      <li><b>Game screens stay focused; the guide is always in the same corner.</b> There are no tabs during a game. The Learn book sits in the top bar of the round, the score pad and between rounds, and Back returns to exactly where the table was. The score pad shows what each card is worth.</li>
     </ol>
     <div class="rw-set">
-      <figure class="rw-fig"><img src="ui-kit/rework/start.jpg" alt="The start screen empty, with four names, round 1, and the table's name on Results with its die" loading="lazy" width="1542" height="820"><figcaption><b>The start and the first game.</b> Names and nothing else. Learn is a banner. The D tag passes the deal, Roll for dealer picks for the table, every face opens the dress-up sheet. Dealing goes straight to round 1, at a table already dealt a name. On Results the name can be kept, rolled again with the die, or typed.</figcaption></figure>
+      <figure class="rw-fig"><img src="ui-kit/rework/start.jpg" alt="The start screen empty and with four names, both with the tab bar, then round 1, and the table's name on Results with its die" loading="lazy" width="1542" height="820"><figcaption><b>The start and the first game.</b> Names, the table's House rules from the first moment, and a card that teaches the game until the first name is typed. Learn is also the tab. The D tag passes the deal, Roll for dealer picks for the table, every face opens the dress-up sheet. Dealing goes straight to round 1, at a table already dealt a name. On Results the name can be kept, rolled again with the die, or typed.</figcaption></figure>
       <figure class="rw-fig"><img src="ui-kit/rework/round.jpg" alt="The round with the leader crowned, a buy message, the score pad with card values, the impossible-score check and between rounds" loading="lazy" width="1930" height="820"><figcaption><b>The round loop.</b> The leader wears the crown, and the guide's book sits in the top bar of every game screen. A buy is confirmed above the faces with Undo. Faces sit in balanced rows for two to eight players. The score pad shows what each card is worth, and a score over what the hand could hold gets one question. Between rounds names the dealer and the cards to deal.</figcaption></figure>
-      <figure class="rw-fig"><img src="ui-kit/rework/finish.jpg" alt="A winner's own card, the results, scores by round, and the score sheet in the game menu" loading="lazy" width="1542" height="820"><figcaption><b>The finish.</b> Every winner gets a real card, with their initial or photo when they have no court card. Award lines are never cut off. Scores by round sits under Share and Rematch, and the same sheet opens mid-game from the menu, where a round's number fixes that round.</figcaption></figure>
-      <figure class="rw-fig"><img src="ui-kit/rework/home.jpg" alt="Home with a game going, Home idle, Learn, and a new table" loading="lazy" width="1542" height="820"><figcaption><b>Coming back.</b> Home has one main action. The crest steps back while a game is going so the tables stay in view. New table is a chip beside the heading. Learn carries only the lesson. A new table seats players first; its name can wait.</figcaption></figure>
+      <figure class="rw-fig"><img src="ui-kit/rework/headers.jpg" alt="The top of the round screen for each of the seven rounds" loading="lazy" width="1240" height="600"><figcaption><b>Every round's header.</b> Rounds with two melds keep their cards on one line. Rounds with three (4 to 7) lay them on two, two above and one tucked under, so each card's corner can be read. On a short phone they stay on one line so eight players still fit.</figcaption></figure>
+      <figure class="rw-fig"><img src="ui-kit/rework/finish.jpg" alt="A winner's own card, the results, scores by round, and the score sheet in the game menu" loading="lazy" width="1542" height="820"><figcaption><b>The finish.</b> Every winner gets a real card, with their initial or photo when they have no court card. Award lines are never cut off. Scores by round sits under Share and Rematch, with players down the side and the rounds across so eight players read as easily as three, and the same sheet opens mid-game from the menu, where a round's number fixes that round.</figcaption></figure>
+      <figure class="rw-fig"><img src="ui-kit/rework/home.jpg" alt="The opening with the crest, Play with nothing going, Play with a game going, and a new table" loading="lazy" width="1542" height="820"><figcaption><b>Opening the app.</b> The crest and its four cards open the app, with a loading line under them that fills as the lettering and the art arrive ("Shuffling the deck", "Dealing the cards", "Ready"). It lasts about a second and a half, once a visit, and a tap skips it. Then Play: the last game in one piece (its winner and its awards together), then the tables. With a game going, its card comes first and Resume is on it. A new table is the start screen's names list again.</figcaption></figure>
       <figure class="rw-fig"><img src="ui-kit/rework/tablet-round.jpg" alt="The tablet table view for four and eight players, portrait and landscape" loading="lazy" width="2173" height="760"><figcaption><b>A tablet on the table.</b> One screen the whole table can read: the goal in big cards, bigger faces, a running total under every name and the crown on the leader. Up to four players sit in a row; five to eight become a two-column list so everyone fits. Landscape puts the goal on the left.</figcaption></figure>
       <figure class="rw-fig"><img src="ui-kit/rework/tablet-finish.jpg" alt="Tablet score pad, standings in two columns, and the finish with the winner beside the standings" loading="lazy" width="2616" height="760"><figcaption><b>Tablet scoring and the finish.</b> Score rows a thumb can't miss. In landscape the standings split into two columns, and the winner's card stays on the left while the table and the score sheet scroll on the right.</figcaption></figure>
     </div>
@@ -3304,8 +3327,8 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
               <p class="gm-where">Round 4 of 7 · Three Sets · 6 playing</p>
               <div class="gm-list">
                 <button class="gm-row"><img src="../art/icons/friends.webp" alt=""><span class="gm-t"><b>Players</b><small>Seats, sitting out, adding someone</small></span><svg class="gm-chev" aria-hidden="true"><use href="#chevl"/></svg></button>
-                <button class="gm-row"><img src="../art/icons/rules.webp" alt=""><span class="gm-t"><b>Round guide</b><small>Three Sets, tips and the house rules</small></span><svg class="gm-chev" aria-hidden="true"><use href="#chevl"/></svg></button>
                 <button class="gm-row"><img src="../art/icons/scores.webp" alt=""><span class="gm-t"><b>Scores so far</b><small>Every round on one sheet, and fixing a score</small></span><svg class="gm-chev" aria-hidden="true"><use href="#chevl"/></svg></button>
+                <button class="gm-row"><img src="../art/icons/dealerschoice.webp" alt=""><span class="gm-t"><b>House rules</b><small>Aces 15 · Jokers wild · 3 buys a round</small></span><svg class="gm-chev" aria-hidden="true"><use href="#chevl"/></svg></button>
                 <button class="gm-row"><img src="../art/icons/settings.webp" alt=""><span class="gm-t"><b>Settings</b><small>Text size, sounds and the card scanner</small></span><svg class="gm-chev" aria-hidden="true"><use href="#chevl"/></svg></button>
               </div>
               <div class="gm-list gm-end">
@@ -3315,13 +3338,13 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
             <div class="foot gm-foot"><button class="link gm-danger">End without saving</button></div>
           </div>
         </div>
-        <p class="ph-cap"><b>The game menu, from the gear on the round screen.</b> Everything that isn't the round itself lives here, so the round screen keeps one job. Each row is the action's art, its name and what it does, with no boxes between them. Fix an earlier round reopens Score the round for that round. Finish now and count asks first (see Modals), and End without saving sits apart in red at the foot, with an Undo for a few seconds.</p>
+        <p class="ph-cap"><b>The game menu, from the gear on the round screen.</b> Everything that isn't the round itself lives here, so the round screen keeps one job. Each row is the action's art, its name and what it does, with no boxes between them. The round guide is not here: its book sits beside the gear on every game screen. House rules shows this game's rules in its second line and opens them to change. Fix an earlier round reopens Score the round for that round. Finish now and count asks first (see Modals), and End without saving sits apart in red at the foot, with an Undo for a few seconds.</p>
       </div>
       <div>
         <div class="ph tall" id="lr-guide" aria-label="Round guide">
           <div class="ph-nav"><button class="ib" aria-label="Back to the round"><svg><use href="#chevl"/></svg></button><span class="lbl">Round guide</span></div>
           <div class="ph-body rg-body">
-            <div class="kseg rg-tabs" role="group" aria-label="Guide section"><button aria-pressed="true">Rounds</button><button aria-pressed="false">Basics</button><button aria-pressed="false">Q&amp;A</button><button aria-pressed="false">House</button></div>
+            <div class="kseg rg-tabs" role="group" aria-label="Guide section"><button aria-pressed="false">Basics</button><button aria-pressed="true">Rounds</button></div>
             <div class="rg-pick" role="tablist" aria-label="Round"><button role="tab" aria-selected="false" class="done" aria-label="Round 1">1</button><button role="tab" aria-selected="false" class="done" aria-label="Round 2">2</button><button role="tab" aria-selected="false" class="done" aria-label="Round 3">3</button><button role="tab" aria-selected="true" class="" aria-label="Round 4">4</button><button role="tab" aria-selected="false" class="" aria-label="Round 5">5</button><button role="tab" aria-selected="false" class="" aria-label="Round 6">6</button><button role="tab" aria-selected="false" class="" aria-label="Round 7">7</button></div>
             <div class="rg-hero">
               <span class="lr-rn">Round 4 · playing now</span>
@@ -3337,8 +3360,9 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
             </div>
             <button class="link lb-center">Show pro tips</button>
           </div>
+          <div class="ph-dock"><button class="kb">Back to the round</button></div>
         </div>
-        <p class="ph-cap"><b>Round guide, from the goal on the round screen or the game menu.</b> A page, not a sheet, because it's for reading. Four sections up top; Rounds opens on the round being played, marked "playing now", with the other six one tap away (played rounds in gold). The goal is drawn in real cards with the three facts stacked under it, then Watch out, After you lay down and Tips, each with its own gold mark. Pro tips stay folded until asked for.</p>
+        <p class="ph-cap"><b>The guide: one page for everything there is to learn.</b> The Learn tab, the book in a game and How to play in Settings all show this same page, so nobody meets a second layout. As the Learn tab it has the tab bar. Opened from a game or from Settings it sits over that screen, and one button at the bottom says where it returns to. Two sections up top, Basics and Rounds. The questions people ask are answered in the step they belong to, and house rules live in the game menu. In a game Rounds opens on the round being played, marked "playing now", with the other six one tap away (played rounds in gold). The goal is drawn in real cards with the three facts stacked under it, then Watch out, After you lay down and Tips, each with its own gold mark. Pro tips stay folded until asked for.</p>
       </div>
     </div>
 
@@ -3531,7 +3555,7 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
         </ul>
         <h3 class="lay-h">Buttons</h3>
         <ul>
-          <li>Teal is the one next step on a screen. Cream is a second, equal choice (Share beside Rematch). A text link is the way back or the small fix (Undo, Nobody went out, Clear). Ruby only appears inside a menu, for Delete.</li>
+          <li>The main button is the one next step on a screen, and it always contrasts with what it sits on: cream on the water, the look's colour on a cream sheet. A second choice goes quiet: dark glass with a gold edge on the water (Share beside Rematch), cream on paper. A text link is the way back or the small fix (Undo, Nobody went out, Clear). Ruby only appears inside a menu, for Delete.</li>
         </ul>
         <h3 class="lay-h">Motion</h3>
         <ul>
@@ -3652,19 +3676,15 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
     <div class="lay-grid two">
       <div>
         <div class="ph tall" aria-label="Home">
-          <div class="ph-nav"><span class="sp"></span><button class="ib" aria-label="Settings"><svg><use href="#gear"/></svg></button></div>
+          <div class="ph-nav lc-brand"><img class="lc-mark" src="../art/logo-emblem.webp" alt=""><span class="lbl">May I?</span></div>
           <div class="ph-body lc-pad lc-home">
-            <div class="lc-hero">
-              <div class="lc-fan" aria-hidden="true">
-                <div data-c="spade-k" style="--r:-44deg"></div><div data-c="heart-q" style="--r:-24deg"></div><div data-c="diamond-j" style="--r:24deg"></div><div data-c="joker" style="--r:44deg"></div>
-              </div>
-              <img class="lc-crest" src="../art/logo-emblem.webp" alt="May I?">
-            </div>
-            <button class="now lc-now2" aria-label="Resume Grandma's Christmas Hayley rematch: round 4 of 7, Three Sets">
+            <button class="now lc-now2 has-card" aria-label="Resume Grandma's Christmas Hayley rematch: round 4 of 7, Three Sets">
               <span class="live">Playing now</span>
               <span class="name">Grandma's Christmas Hayley rematch</span>
               <span class="meta">Round 4 of 7 · <b>Three Sets</b></span>
-              <span class="foot"><span class="avs"><span class="av sm" data-p="dee"></span><span class="av sm" data-p="ben"></span><span class="av sm" data-p="cy"></span><span class="av sm" data-p="ana"></span></span><span class="grow"></span><span class="leads"><img src="../art/crown.webp" alt="">Rachel leads</span><svg class="chev lc-nowchev" aria-hidden="true" style="width:18px;height:18px;color:#FFE7A3"><use href="#chev"/></svg></span>
+              <span class="meta lc-nowlead"><img src="../art/crown.webp" alt="">Rachel leads</span>
+              <span class="lc-now-c" aria-hidden="true"><span data-c="heart-q"></span></span>
+              <span class="foot"><span class="avs"><span class="av sm" data-p="dee"></span><span class="av sm" data-p="ben"></span><span class="av sm" data-p="cy"></span><span class="av sm" data-p="ana"></span></span><span class="grow"></span><span class="lc-resume">Resume<svg class="chev" aria-hidden="true"><use href="#chev"/></svg></span></span>
             </button>
             <div class="lc-hact"><h3 class="lc-h">Tables</h3><button class="qp"><svg><use href="#plus"/></svg>New table</button></div>
             <div class="blocks lc-blocks">
@@ -3675,18 +3695,19 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
             <button class="link lc-join">Join a table with a code</button>
           </div>
           <div class="ph-dock lc-dock-home">
-            <button class="kb">Resume the game</button>
             <div class="tabbar" role="navigation" aria-label="Main">
               <button class="tab"><img src="../art/icons/rules.webp" alt="">Learn</button>
               <button class="tab" aria-current="page"><img src="../art/icons/play.webp" alt="">Play</button>
               <button class="tab"><img src="../art/icons/trophy.webp" alt="">Stats</button>
+              <button class="tab"><img src="../art/icons/settings.webp" alt="">Settings</button>
             </div>
           </div>
         </div>
-        <p class="ph-cap"><b>Home.</b> The crest is the hero, with four court cards fanned out behind it. The live game is the kit's Playing now card, kept to what you need to pick the game back up: the game name, the round and its goal. The dealer and the leader are on the round screen. Resume is the one primary. Last night's winner sits on the background under it: the trophy and one line, no box. Each table is a colour block with its champion's card and crown.</p>
+        <p class="ph-cap"><b>Play.</b> The crest opens the app and then settles into this screen's corner, so Play keeps only a small mark and gives its room to the table. A game in progress is the Playing now card, with Resume on it; the dock is just the tabs. With nothing in play, the top is Last game, kept in one piece: the winner's own card under the crown, how it was won, the table and the day, and then every award that game handed out in a row that scrolls sideways, each a small medal with the award's name and the face and name of who took it. The winner's line opens that game's results. Tables come next, each a colour block with its champion's card and crown. While a game is going, Last game waits under the tables. Each table's own page carries the same block for its own last game.</p>
       </div>
       <div>
-        <div class="ph" aria-label="First run">
+        <div class="ph tall" aria-label="The start screen">
+          <div class="ph-nav lc-brand"><img class="lc-mark" src="../art/logo-emblem.webp" alt=""><span class="lbl">May I?</span></div>
           <div class="ph-body lc-first started">
             <h3>Pull up a chair.</h3>
             <div class="lc-who">
@@ -3697,11 +3718,19 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
               <div class="lc-name lc-empty"><span class="lc-plus"><svg><use href="#plus"/></svg></span><span class="nm">Add a name</span></div>
               <p class="lc-facehint">Tap a face to change it, or the D to pass the deal.</p>
             </div>
-            <button class="lc-newto"><span class="lc-newto-art" aria-hidden="true"><img class="hand" src="../art/hero-hand.webp" alt=""><img class="q" src="../art/icons/mayi.webp" alt=""></span><span class="lc-newto-t"><b>New to May I?</b><small>Learn it in a minute</small></span><svg class="chev"><use href="#chev"/></svg></button>
+            <button class="lc-hrow lc-rulesrow"><img src="../art/icons/dealerschoice.webp" alt=""><span><b>House rules</b><small>Aces 15 · Jokers wild · 3 buys a round</small></span><svg class="chev" style="width:18px;height:18px;color:#FFE7A3"><use href="#chev"/></svg></button>
           </div>
-          <div class="ph-dock"><button class="kb">Deal the first hand</button></div>
+          <div class="ph-dock lc-dock-home">
+            <button class="kb">Deal the first hand</button>
+            <div class="tabbar" role="navigation" aria-label="Main">
+              <button class="tab"><img src="../art/icons/rules.webp" alt="">Learn</button>
+              <button class="tab" aria-current="page"><img src="../art/icons/play.webp" alt="">Play</button>
+              <button class="tab"><img src="../art/icons/trophy.webp" alt="">Stats</button>
+              <button class="tab"><img src="../art/icons/settings.webp" alt="">Settings</button>
+            </div>
+          </div>
         </div>
-        <p class="ph-cap"><b>First run.</b> Names and nothing else, so the first hand is dealt faster than ruling a score sheet. The first name typed deals; the D tag passes the deal one seat a tap, and Roll for dealer picks for the table. Every face opens the dress-up sheet. The table names itself after the day and asks for a real name on Results, after the first game. Learn is a banner with the cards and the question mark, never a text link. Nothing pops up when the hand is dealt: the round guide opens only when tapped, unless the table switches on Guide every round.</p>
+        <p class="ph-cap"><b>The start screen.</b> Names and nothing else, so the first hand is dealt faster than ruling a score sheet. The first name typed deals; the D tag passes the deal one seat a tap, and Roll for dealer picks for the table. Every face opens the dress-up sheet. The table is dealt a name and Results offers to change it, after the first game. This is the Play tab before any table exists, so it has the same frame as Home: one main button, then Learn, Play, Stats and Settings underneath. Learn is the tab; there is no second way to it. Once two names are in, a House rules line shows the table's rules in one sentence and opens them to change; the usual ones are already set, so most tables never touch it. Names typed here are kept through Learn, Stats, Settings and a reload. Nothing pops up when the hand is dealt: the round guide opens only when tapped, unless the table switches on Guide every round.</p>
       </div>
     </div>
 
@@ -3768,7 +3797,15 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
               <div><span class="tok" data-tok="ben"></span><b>Mon 27 Oct</b><small>Dino won by 14</small></div>
             </div>
           </div>
-          <div class="ph-dock"><button class="kb">New game at this table</button></div>
+          <div class="ph-dock lc-dock-home">
+            <button class="kb">New game at this table</button>
+            <div class="tabbar" role="navigation" aria-label="Main">
+              <button class="tab"><img src="../art/icons/rules.webp" alt="">Learn</button>
+              <button class="tab" aria-current="page"><img src="../art/icons/play.webp" alt="">Play</button>
+              <button class="tab"><img src="../art/icons/trophy.webp" alt="">Stats</button>
+              <button class="tab"><img src="../art/icons/settings.webp" alt="">Settings</button>
+            </div>
+          </div>
         </div>
         <p class="ph-cap"><b>Table page.</b> The champion's whole court card is the hero. The table's Leaderboard counts wins instead of points: most wins first. Records are square paper tiles on the grid; past games are a plain list with no panel.</p>
       </div>
@@ -3796,18 +3833,31 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
     <!-- Tables: new, settings, players -->
     <div class="lay-grid two">
       <div>
-        <div class="ph" id="lc-newtable" aria-label="New table">
+        <div class="ph tall" id="lc-newtable" aria-label="New table">
           <div class="ph-nav"><button class="ib" aria-label="Back to home"><svg><use href="#chevl"/></svg></button><span class="lbl">Home</span></div>
-          <div class="ph-body nt-body">
-            <div class="nt-head"><h3>A new table</h3><p>Seat everyone who plays here. The name can wait.</p></div>
-            <div class="nt-table" role="group" aria-label="Seats, 3 of 8 taken"><button class="nt-seat" style="left:50.0%;top:15.0%" aria-label="Rachel: change card, photo or colour"><span class="tok" data-tok="dee"></span><b>Rachel</b></button><button class="nt-seat" style="left:76.2%;top:25.3%" aria-label="Dino: change card, photo or colour"><span class="tok" data-tok="ben"></span><b>Dino</b></button><button class="nt-seat" style="left:87.0%;top:50.0%" aria-label="Chelsea: change card, photo or colour"><span class="tok" data-tok="ana"></span><b>Chelsea</b></button><span class="nt-seat empty" style="left:76.2%;top:74.7%" aria-hidden="true"><i><svg><use href="#plus"/></svg></i></span><span class="nt-seat empty" style="left:50.0%;top:85.0%" aria-hidden="true"><i><svg><use href="#plus"/></svg></i></span><span class="nt-seat empty" style="left:23.8%;top:74.7%" aria-hidden="true"><i><svg><use href="#plus"/></svg></i></span><span class="nt-seat empty" style="left:13.0%;top:50.0%" aria-hidden="true"><i><svg><use href="#plus"/></svg></i></span><span class="nt-seat empty" style="left:23.8%;top:25.3%" aria-hidden="true"><i><svg><use href="#plus"/></svg></i></span><span class="nt-mid"><b>3</b> of 8 seats</span></div>
-            <form class="nt-add" onsubmit="return false"><span class="pe-plus" aria-hidden="true"><svg><use href="#plus"/></svg></span><input value="Kai" maxlength="20" aria-label="New player's name" placeholder="Add a player"><button class="qp" type="submit">Seat</button></form>
-            <p class="nt-hint">Tap a face to pick their card, add a photo or change their colour.</p>
-            <div class="kfield kname"><label for="ntName">Table name, now or later</label><div class="kname-row"><input id="ntName" value="The Cheeky Jokers" maxlength="30" placeholder="Type one, or roll the die"><button type="button" class="ib cream kname-die" aria-label="Deal a name for the table"><svg><use href="#die5"/></svg></button></div></div>
+          <div class="ph-body lc-first started lc-sub">
+            <h3>A new table</h3>
+            <div class="lc-who">
+              <div class="lc-whoh"><h4>Who's playing?</h4><button class="qp"><svg><use href="#die"/></svg>Roll for dealer</button></div>
+              <div class="lc-name"><span class="lc-face"><span class="tok" data-tok="dee"></span><span class="pe-badge" aria-hidden="true"><svg><use href="#hanger"/></svg></span></span><span class="nm">Rachel</span><button class="lc-dtag" aria-label="Rachel deals first. Pass the deal to Dino"><span class="dl" aria-hidden="true">D</span>Deals first</button></div>
+              <div class="lc-name"><span class="lc-face"><span class="tok" data-tok="ben"></span><span class="pe-badge" aria-hidden="true"><svg><use href="#hanger"/></svg></span></span><span class="nm">Dino</span></div>
+              <div class="lc-name"><span class="lc-face"><span class="tok" data-tok="ana"></span><span class="pe-badge" aria-hidden="true"><svg><use href="#hanger"/></svg></span></span><span class="nm">Chelsea</span></div>
+              <div class="lc-name lc-empty"><span class="lc-plus"><svg><use href="#plus"/></svg></span><span class="nm">Add a name</span></div>
+              <p class="lc-facehint">Drag the dots to match the seats. Tap a face to change it, or the D to pass the deal.</p>
+            </div>
+            <button class="lc-hrow lc-rulesrow"><img src="../art/icons/dealerschoice.webp" alt=""><span><b>House rules</b><small>Aces 15 · Jokers wild · 3 buys a round</small></span><svg class="chev" style="width:18px;height:18px;color:#FFE7A3"><use href="#chev"/></svg></button>
           </div>
-          <div class="ph-dock"><button class="kb">Create table</button></div>
+          <div class="ph-dock lc-dock-home">
+            <button class="kb">Deal the first hand</button>
+            <div class="tabbar" role="navigation" aria-label="Main">
+              <button class="tab"><img src="../art/icons/rules.webp" alt="">Learn</button>
+              <button class="tab" aria-current="page"><img src="../art/icons/play.webp" alt="">Play</button>
+              <button class="tab"><img src="../art/icons/trophy.webp" alt="">Stats</button>
+              <button class="tab"><img src="../art/icons/settings.webp" alt="">Settings</button>
+            </div>
+          </div>
         </div>
-        <p class="ph-cap"><b>New table.</b> A full page, because it's the start of something. The name goes on top, then everyone takes a seat round the same oval table the round screen uses: each name typed fills the next chair with a face from the deck, and empty chairs wait with a plus. Two seated players and a name switch on Create table; until then the button says what's missing ("Name your table", "Seat one more").</p>
+        <p class="ph-cap"><b>New table.</b> The start screen again, with a way back: the same list of names, the same D tag and die, the same button. It deals straight into round one at a table that has been dealt a name, so a second group starts as fast as the first did. There is no separate seating page and no naming step.</p>
       </div>
       <div>
         <div class="ph" id="lc-tableset" aria-label="Table settings">
@@ -3856,8 +3906,8 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
         <h3 class="lay-h">Tables</h3>
         <ul>
           <li>A table is a group that plays together: its name, its players and every game they've finished. Most people have one or two.</li>
-          <li>New table is a page; Table settings and Players are sheets over the table page, because they're quick edits.</li>
-          <li>The same oval table appears wherever players are seated: New table and the round screen.</li>
+          <li>New table is the start screen with a way back. Table settings and Players are sheets over the table page, because they're quick edits.</li>
+          <li>Seating is one list everywhere: the first table and every table after it.</li>
           <li>Deleting is undone, not confirmed: the row disappears and an Undo shows for a few seconds. Only ending a game early or removing a player mid-game asks first.</li>
         </ul>
       </div>
@@ -3867,7 +3917,7 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
     <div class="lay-grid two">
       <div>
         <div class="ph tall" aria-label="Settings, accessibility">
-          <div class="ph-nav"><button class="ib" aria-label="Back"><svg><use href="#chevl"/></svg></button><span class="lbl">Settings</span></div>
+          <div class="ph-nav"><span class="lbl">Settings</span></div>
           <div class="ph-body lc-pad lc-set">
             <h3 class="lc-h">Text size</h3>
             <div class="kt lc-prev" id="lc-prev" aria-hidden="true"><img src="../art/crown.webp" alt=""><div><b>Rachel leads by 12</b><span>After round 4</span></div></div>
@@ -3886,11 +3936,11 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
             <div class="call"><span class="ci"><svg><use href="#bolt"/></svg></span><span><b>Calm already?</b><p>If your phone asks for less motion, May I? stays calm without this switch.</p></span></div>
           </div>
         </div>
-        <p class="ph-cap"><b>Settings, on the table.</b> No panels and no dividers: the kit's own rows, switches and segmented controls sit straight on the table under four plain headings. Text size grows a real banner as you pick. Every switch is 44px tall.</p>
+        <p class="ph-cap"><b>Settings, on the table.</b> No panels and no dividers: the kit's own rows, switches and segmented controls sit straight on the table under four plain headings. Text size grows a real banner as you pick. Every switch is 44px tall. Settings is the fourth tab, so it has no back arrow. Opened from a game's menu it sits over the game instead, with a way back and no tab bar.</p>
       </div>
       <div>
         <div class="ph tall" aria-label="Settings, scanner pass, tip jar and backup">
-          <div class="ph-nav"><button class="ib" aria-label="Back"><svg><use href="#chevl"/></svg></button><span class="lbl">Settings</span></div>
+          <div class="ph-nav"><span class="lbl">Settings</span></div>
           <div class="ph-body lc-pad lc-shop">
             <div class="blk sap lc-offer">
               <div class="lc-scan" aria-hidden="true">
@@ -3937,6 +3987,7 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
         <div class="ph tall" aria-label="How to play">
           <div class="ph-nav"><button class="ib" aria-label="Back"><svg><use href="#chevl"/></svg></button><span class="lbl">How to play</span></div>
           <div class="ph-body lc-pad lc-learn">
+            <div class="kseg rg-tabs" role="group" aria-label="Guide section" style="margin:0 auto"><button aria-pressed="true">Basics</button><button aria-pressed="false">Rounds</button></div>
             <div class="guides lc-guides" id="lc-scenes" tabindex="0" role="region" aria-label="How to play in 7 steps. Scroll sideways for the next step.">
               <article class="gcard" aria-label="Step 1 of 7"><span class="num">1</span><h3>Lowest score wins</h3>
                 <div class="lc-ill" aria-hidden="true">
@@ -3988,9 +4039,16 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
             <p class="lc-stepof" id="lc-stepof" aria-live="polite" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Step 1 of 7</p>
 
           </div>
-          <div class="ph-dock lc-dock2"><button class="kb">Start a game</button><button class="link">See the 7 rounds</button></div>
+          <div class="ph-dock lc-dock-home">
+            <div class="tabbar" role="navigation" aria-label="Main">
+              <button class="tab" aria-current="page"><img src="../art/icons/rules.webp" alt="">Learn</button>
+              <button class="tab"><img src="../art/icons/play.webp" alt="">Play</button>
+              <button class="tab"><img src="../art/icons/trophy.webp" alt="">Stats</button>
+              <button class="tab"><img src="../art/icons/settings.webp" alt="">Settings</button>
+            </div>
+          </div>
         </div>
-        <p class="ph-cap"><b>How to play, as a lesson.</b> Seven numbered round guide cards from the kit's Learn section, each with one picture made from real cards and one plain sentence. Swipe, or scroll with the keyboard; the step count is read aloud. Start a game is the one primary.</p>
+        <p class="ph-cap"><b>Basics, the first section of the guide.</b> Seven numbered cards, each with one picture made from real cards and one plain sentence. Swipe, or scroll with the keyboard; the step count is read aloud. Shown here as the Learn tab. Names typed on the start screen are still there when Play is tapped again. The seven rounds are the next section along, on the same page.</p>
       </div>
       <div class="lay-note">
         <h3 class="lay-h">The lesson, all seven steps</h3>
@@ -4056,7 +4114,7 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
     <p class="note">Stats shows who holds each award across every table, on the same shelves as the cabinet. Tap a player anywhere to open their profile.</p>
     <div class="cols">
       <div><div class="ph tall st-ph" aria-label="Stats"><div class="ph-body st-body">
-        <div class="navbar"><h3>Stats</h3><button class="ib" aria-label="Settings"><svg><use href="#gear"/></svg></button></div>
+        <div class="navbar"><h3>Stats</h3></div>
         <div class="st-hero"><img src="../art/crown.webp" alt=""><p>86 games across 2 tables, and 23&nbsp;of&nbsp;24 awards claimed</p></div>
         <div class="panel">
           <h3 class="panel-h">Tables</h3>
@@ -4075,6 +4133,7 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
           <button class="tab"><img src="../art/icons/rules.webp" alt="">Learn</button>
           <button class="tab"><img src="../art/icons/play.webp" alt="">Play</button>
           <button class="tab" aria-current="page"><img src="../art/icons/trophy.webp" alt="">Stats</button>
+          <button class="tab"><img src="../art/icons/settings.webp" alt="">Settings</button>
         </div>
       </div><p class="ph-cap"><b>Stats.</b> The crown and one line on top, straight on the teal. Tables are rows with the player who leads each one; the Hall of fame is the cabinet's shelves for everyone, each award showing who holds it. Tap any face to open their profile.</p></div>
       <div><div class="ph tall pf-ph" aria-label="Profile"><div class="ph-nav"><span class="lbl" style="opacity:.5">Stats</span></div><div class="lr-dim"></div><div class="ksheet profile" role="dialog" aria-label="Rachel's profile">
@@ -4313,7 +4372,7 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
       <span class="live">Playing now</span><span class="name">Friday night</span><span class="meta">Round 4 of 7 · <b>Three Sets</b> · Rachel leads by 9</span>
       <span class="foot"><span class="avs"><span class="av sm" data-p="dee"></span><span class="av sm" data-p="ben"></span><span class="av sm" data-p="cy"></span><span class="av sm" data-p="ana"></span></span><span class="grow"></span><span class="kb sm">Resume</span></span>
     </button>
-    <div class="dk-hero2"><div class="lc-hero"><div class="lc-fan" aria-hidden="true"><div data-c="spade-k" style="--r:-44deg"></div><div data-c="heart-q" style="--r:-24deg"></div><div data-c="diamond-j" style="--r:24deg"></div><div data-c="joker" style="--r:44deg"></div></div><img class="lc-crest" src="../art/logo-emblem.webp" alt=""></div></div>
+    <div class="dk-hero2"><div class="lc-hero"><div class="lc-fan" aria-hidden="true"><div data-c="spade-k" style="--r:-50deg"></div><div data-c="heart-q" style="--r:-17deg"></div><div data-c="diamond-j" style="--r:17deg"></div><div data-c="joker" style="--r:50deg"></div></div><img class="lc-crest" src="../art/logo-emblem.webp" alt=""></div></div>
     <section class="dk-card dk-tabs3"><h4 class="dk-ih">Your tables</h4><table class="sgrid dk-list"><thead><tr><th class="l">Table</th><th class="l">Holds it</th><th>Wins</th><th>Games</th><th class="l">Last played</th></tr></thead><tbody><tr><td class="l"><span class="dk-wn"><span class="lc-champ-c dk-mini" data-c="heart-q" aria-hidden="true"></span>Friday night</span></td><td class="l"><span class="dk-wn"><span class="tok" data-tok="dee"></span>Rachel</span></td><td>12</td><td>31</td><td class="l">Fri 14 Nov</td></tr><tr><td class="l"><span class="dk-wn"><span class="lc-champ-c dk-mini" data-c="spade-k" aria-hidden="true"></span>The cousins</span></td><td class="l"><span class="dk-wn"><span class="tok" data-tok="cy"></span>Ada</span></td><td>7</td><td>34</td><td class="l">Sun 9 Nov</td></tr><tr><td class="l"><span class="dk-wn"><span class="lc-champ-c dk-mini" data-c="club-j" aria-hidden="true"></span>Holiday cabin</span></td><td class="l"><span class="dk-wn"><span class="tok" data-tok="ana"></span>Chelsea</span></td><td>2</td><td>4</td><td class="l">Sat 1 Nov</td></tr></tbody></table><button class="link dk-addt">New table</button></section>
     <section class="dk-card dk-recent"><h4 class="dk-ih">Recent games</h4>
       <table class="sgrid dk-list"><thead><tr><th class="l">Date</th><th class="l">Table</th><th class="l">Winner</th><th>Score</th><th>Margin</th></tr></thead><tbody>
@@ -4376,7 +4435,7 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
     <p class="bf-cap"><b>Desktop · New game.</b> The kit's paper sheet, centred, with the rail visible behind the dim.</p>
     <div class="bf-wrap"><div class="bf desk" data-fit="1440" data-max="1" style="--w:1440;--h:900" aria-label="Desktop, Learn"><div class="bf-screen bs-desk dk dk-learn"><nav class="bs-rail dk-rail" aria-label="May I?"><img class="logo" src="../art/logo-wordmark-v2.webp" alt="May I?"><div class="dk-railmid"><div class="bs-nav"><a href="#"><img src="../art/icons/play.webp" alt="">Play</a><a href="#" aria-current="page"><img src="../art/icons/rules.webp" alt="">Learn</a><a href="#"><img src="../art/icons/trophy.webp" alt="">Stats</a></div><div class="bs-nav"><h4>Tables</h4><a href="#"><span class="dk-tn">Friday night<span class="dk-live">Playing now</span></span><span class="avs2"><span class="tok" data-tok="dee"></span><span class="tok" data-tok="ben"></span><span class="tok" data-tok="cy"></span></span></a><a href="#"><span class="dk-tn">The cousins</span><span class="avs2"><span class="tok" data-tok="cy"></span><span class="tok" data-tok="ana"></span></span></a><a href="#"><span class="dk-tn">Holiday cabin</span><span class="avs2"><span class="tok" data-tok="ana"></span><span class="tok" data-tok="dee"></span></span></a><a href="#" class="dk-add"><span class="lc-plus"><svg><use href="#plus"/></svg></span>New table</a></div></div><div class="bs-nav"><a href="#"><img src="../art/icons/settings.webp" alt="">Settings</a></div></nav>
 <div class="bs-main">
-  <div class="bf-bar dk-bar"><h3 class="dk-h">Learn</h3><span class="sp"></span><div class="kseg rg-tabs dk-tabs" role="group" aria-label="Guide section"><button aria-pressed="true">Rounds</button><button aria-pressed="false">Basics</button><button aria-pressed="false">Q&amp;A</button><button aria-pressed="false">House</button></div></div>
+  <div class="bf-bar dk-bar"><h3 class="dk-h">Learn</h3><span class="sp"></span><div class="kseg rg-tabs dk-tabs" role="group" aria-label="Guide section"><button aria-pressed="false">Basics</button><button aria-pressed="true">Rounds</button></div></div>
   <div class="dk-body dk-lgrid">
     <div class="panel dk-rlist" role="tablist" aria-label="Round"><button class="prow"><span class="dk-rn done">1</span><span class="grow"><b>Two Sets</b><small>10 cards</small></span></button><button class="prow"><span class="dk-rn done">2</span><span class="grow"><b>Set &amp; Run</b><small>10 cards</small></span></button><button class="prow"><span class="dk-rn done">3</span><span class="grow"><b>Two Runs</b><small>10 cards</small></span></button><button class="prow dk-cur" aria-current="true"><span class="dk-rn">4</span><span class="grow"><b>Three Sets</b><small>12 cards · playing now</small></span></button><button class="prow"><span class="dk-rn">5</span><span class="grow"><b>Two Sets &amp; a Run</b><small>12 cards</small></span></button><button class="prow"><span class="dk-rn">6</span><span class="grow"><b>Set &amp; Two Runs</b><small>12 cards</small></span></button><button class="prow"><span class="dk-rn">7</span><span class="grow"><b>Three Runs</b><small>12 cards · no final discard</small></span></button></div>
     <div class="rg-body dk-guide">

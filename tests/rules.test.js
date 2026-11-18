@@ -136,12 +136,17 @@ test("removed players keep their name in old games", () => {
 });
 
 // ── Coaching content ──────────────────────────────────────────────
-test("coaching content is complete and its example cards are real", () => {
-  assert.strictEqual(M.QUICK_START.length, 5);
+test("coaching content is complete, and the questions it answers are in place", () => {
   assert.ok(M.TURN_STEPS.length >= 4);
   assert.ok(M.MAYI_STEPS.some(s => s.d.includes("{limit}")), "May I? steps lost the buy-limit placeholder");
-  M.FAQ.forEach(f => assert.ok(f.q.endsWith("?") && f.a.length > 20, f.q));
-  M.GLOSSARY.forEach(g => (g.ex || []).forEach(c => assert.match(c, CARD, g.term + ": " + c)));
+  // The guide has no separate Q&A: each answer lives in the step it belongs to.
+  const turn = M.TURN_STEPS.map(s => s.t + " " + s.d).join(" "), mayi = M.MAYI_STEPS.map(s => s.t + " " + s.d).join(" ");
+  assert.match(turn, /set of four or a run of six still counts/, "longer melds");
+  assert.match(turn, /Waiting is allowed/, "going down is optional");
+  assert.match(turn, /only after going down/i, "laying off needs going down first");
+  assert.match(turn, /a meld is a set or run/, "meld is defined where it is first used");
+  assert.match(mayi, /first refusal/, "two callers");
+  assert.match(M.ROUNDS[6].watch + " " + M.ROUNDS[6].tip, /no final discard/i, "round 7");
 });
 
 // ── A whole game ──────────────────────────────────────────────────
