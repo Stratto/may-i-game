@@ -2605,8 +2605,31 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
   background: linear-gradient(180deg, var(--paper-hi) 0%, var(--paper) 58%, var(--paper-lo) 100%) padding-box, var(--rim) border-box; box-shadow: inset 0 -3px 0 #D9BE86, inset 0 1.5px 0 #fff; }
 :is(.ph, .gw) .kb:not(.cream, .sapphire, .ruby, :disabled, .ksheet .kb, .km .kb):is(:active, .pressed) { box-shadow: inset 0 -1.5px 0 #D9BE86, inset 0 3px 6px rgba(110, 74, 16, .18); }
 :is(.ph, .gw) .kb.sm:not(.cream, .sapphire, .ruby, :disabled, .ksheet .kb, .km .kb) { box-shadow: inset 0 -2.5px 0 #D9BE86, inset 0 1.5px 0 #fff; }
-:is(.ph, .gw) .kb.cream:not(:disabled, .ksheet .kb, .km .kb) { color: var(--on-bg); border-color: rgba(255, 233, 166, .6); background-image: none; background-color: rgba(3, 38, 46, .42); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1); }
+:is(.ph, .gw) .kb.cream:not(:disabled, .ksheet .kb, .km .kb) { color: var(--on-bg); border-color: rgba(255, 233, 166, .55); background-image: none; background-color: rgba(3, 38, 46, .48); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12), inset 0 -2px 0 rgba(0, 0, 0, .25); }
+:is(.ph, .gw) .kb.cream:not(:disabled, .ksheet .kb, .km .kb)::before,
+:is(.ph, .gw) .kb.cream:not(:disabled, .ksheet .kb, .km .kb)::after { display: none; }
 :is(.ph, .gw) .kb.cream:not(:disabled, .ksheet .kb, .km .kb) svg { color: #FFE7A3; }
+/* Compact Up-Next contract card for Between Rounds (never clips behind the dock). */
+.gcard-compact { display: flex; align-items: center; justify-content: space-between; gap: 14px; max-width: 460px; padding: 14px 16px; border-radius: 20px; border: 2.5px solid transparent; color: var(--ink);
+  background: radial-gradient(120% 90% at 50% 0%, var(--paper-hi), var(--paper) 64%, var(--paper-lo)) padding-box, var(--rim) border-box; box-shadow: var(--lift); }
+.gcard-compact .cap { font: 800 .72rem/1 var(--label); letter-spacing: .14em; text-transform: uppercase; color: #8B5A12; }
+.gcard-compact b { display: block; margin-top: 3px; font: 800 1.25rem/1.1 var(--display); color: var(--ink); }
+.gcard-compact small { display: block; margin-top: 3px; font-size: .86rem; color: var(--ink2); }
+/* Live "In the chase" awards ribbon for Between Rounds (gives every seat a moment, including last place). */
+.chase-strip { display: flex; gap: 10px; overflow-x: auto; padding: 2px 0 4px; max-width: 560px; }
+.chase-chip { flex: none; display: flex; align-items: center; gap: 10px; padding: 8px 13px 8px 10px; border-radius: 18px; border: 1.5px solid var(--hair); background: var(--panel); color: var(--on-bg); cursor: pointer; text-align: left; }
+.chase-chip[aria-pressed="true"] { border-color: var(--gold-hi); background: rgba(233, 180, 76, .2); }
+.chase-chip > img { width: 32px; height: 32px; object-fit: contain; flex: none; filter: drop-shadow(0 3px 4px rgba(0, 0, 0, .35)); }
+.chase-chip b { display: block; font: 700 .92rem/1.15 var(--display); color: #FFE7A3; }
+.chase-chip small { display: flex; align-items: center; gap: 5px; margin-top: 3px; font-size: .8rem; color: var(--on-bg2); }
+/* 5th Moment of Fun: Card scan reveal */
+.m-scan .vf { position: relative; width: 168px; height: 96px; border-radius: 16px; display: grid; place-items: center; overflow: hidden;
+  background: radial-gradient(circle at 50% 45%, rgba(20, 104, 116, .6), rgba(3, 28, 36, .92)); border: 1px solid rgba(255, 233, 166, .26); }
+.m-scan .vf::before { content: ""; position: absolute; inset: 8px; border-radius: 10px; border: 2px dashed rgba(255, 237, 176, .55); pointer-events: none; }
+.m-scan .vf img { width: 46px; height: 46px; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, .45)); }
+.m-scan .sweep { position: absolute; left: 10px; right: 10px; height: 3px; border-radius: 99px; background: linear-gradient(90deg, transparent, #6CE9BF, #FFEDB0, transparent);
+  box-shadow: 0 0 12px #6CE9BF; animation: k-sweep 2.2s ease-in-out infinite; }
+@keyframes k-sweep { 0%, 100% { top: 18%; opacity: .3; } 50% { top: 78%; opacity: 1; } }
 .gw { display: contents; }
 .gp { display: inline-flex; gap: 30px; padding: 14px 24px; border-radius: 20px; background: linear-gradient(180deg, var(--paper-hi), var(--paper)); }
 /* Home's game card: the leader's card sits on the corner, and Resume is the one way back in. */
@@ -2836,14 +2859,13 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
   <!-- ═══ Looks ═══ -->
   <section class="stack">
     <h2 class="rule" id="looks">Looks</h2>
-    <p class="note">Lagoon is the house look. The others recolour every screen in this kit and keep the same layout, art and type. Each one is checked screen by screen before the app ships.</p>
+    <p class="note">Lagoon is the house look. The others recolour every screen in this kit and keep the same layout, art and type — all on rich deep grounds so the gilt and deck art stay crisp. Bright outdoor light is handled by the Sunlight contrast switch in Settings.</p>
     <div>
-            <div class="looks" role="radiogroup" aria-label="Look">
+      <div class="looks" role="radiogroup" aria-label="Look">
         <button class="look" role="radio" aria-checked="true" style="--c2:#3DBDB1;--c3:#1C8E9D;--c5:#0B5866"><img src="../art/crown.webp" alt=""><span class="tick"><svg><use href="#tick"/></svg></span><b>Lagoon</b><small>The house look</small></button>
         <button class="look" role="radio" aria-checked="false" style="--c2:#6F96FF;--c3:#3463D8;--c5:#17337E"><img src="../art/jewel-spade.webp" alt=""><span class="tick"><svg><use href="#tick"/></svg></span><b>Sapphire</b><small>Deep royal blue</small></button>
         <button class="look" role="radio" aria-checked="false" style="--c2:#A8DB62;--c3:#458F25;--c5:#1F5212"><img src="../art/jewel-club.webp" alt=""><span class="tick"><svg><use href="#tick"/></svg></span><b>Jade</b><small>A garden table</small></button>
         <button class="look" role="radio" aria-checked="false" style="--c2:#F07080;--c3:#C42645;--c5:#680D26"><img src="../art/jewel-heart.webp" alt=""><span class="tick"><svg><use href="#tick"/></svg></span><b>Ruby</b><small>Warm cherry red</small></button>
-        <button class="look day" role="radio" aria-checked="false"><img src="../art/jewel-diamond.webp" alt=""><span class="tick"><svg><use href="#tick"/></svg></span><b>Daylight</b><small>For playing outside</small></button>
       </div>
     </div>
   </section>
@@ -2856,11 +2878,12 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
     <p class="note">Everything from here down responds. Hover, press and tap it the way you would in the app: the score pad types, the hand deals, the dealer rolls.</p>
     <div>
       <h3 class="sub">Buttons</h3>
+      <p class="note">Locked hierarchy: cream with aqua gems is the one primary action on water; quiet glass (no gems) is secondary on water. On cream paper sheets, teal with gems is primary and cream is secondary.</p>
       <div class="row">
-        <div class="gw"><div class="state"><button class="kb">Start game<svg class="chev"><use href="#chev"/></svg></button>Main, on the water</div>
+        <div class="gw"><div class="state"><button class="kb">Start game<svg class="chev"><use href="#chev"/></svg></button>Primary, on water</div>
         <div class="state"><button class="kb pressed">Start game<svg class="chev"><use href="#chev"/></svg></button>Pressed</div>
-        <div class="state"><button class="kb cream">Share</button>Second, on the water</div></div>
-        <div class="state"><span class="gp"><button class="kb">Deal round 1</button><button class="kb cream">Stay</button></span>Main and second, on paper</div>
+        <div class="state"><button class="kb cream">Share</button>Secondary, on water (no gems)</div></div>
+        <div class="state"><span class="gp"><button class="kb">Deal round 1</button><button class="kb cream">Stay</button></span>Primary &amp; secondary, on paper</div>
         <div class="state"><button class="kb sapphire">May I?</button>Call</div>
         <div class="state"><button class="kb ruby">Delete game</button>Careful</div>
         <div class="state"><button class="kb" disabled>Score round</button>Not yet</div>
@@ -2870,10 +2893,9 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
       <div>
         <h3 class="sub">Small, icon and quiet</h3>
         <div class="row" style="gap:16px 22px">
-          <button class="kb sm">Resume</button>
-          <button class="kb sm cream">Undo</button>
+          <div class="gw"><button class="kb sm">Resume</button><button class="kb sm cream">Undo</button></div>
           <button class="ib" aria-label="Back"><svg><use href="#chevl"/></svg></button>
-          <button class="ib" aria-label="Settings"><svg><use href="#gear"/></svg></button>
+          <button class="ib" aria-label="Game menu"><span style="font:800 13px/1 var(--font);letter-spacing:1px">•••</span></button>
           <button class="ib cream" aria-label="Share the results"><svg><use href="#share"/></svg></button>
           <button class="ib" aria-label="Close"><svg><use href="#xmark"/></svg></button>
           <button class="qp"><svg><use href="#die"/></svg>Roll for dealer</button>
@@ -2892,7 +2914,7 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
       <div class="stack" style="gap:18px">
         <div>
           <h3 class="sub">Segmented</h3>
-          <div class="kseg" role="group" aria-label="How to enter"><button aria-pressed="true">Type points</button><button aria-pressed="false">Tap cards</button><button aria-pressed="false">Photo</button></div>
+          <div class="kseg" role="group" aria-label="How to enter"><button aria-pressed="true">Keypad</button><button aria-pressed="false">Tap cards</button><button aria-pressed="false">Photo</button></div>
         </div>
         <div>
           <h3 class="sub">Stepper</h3>
@@ -2910,17 +2932,17 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
   <!-- ═══ Pickers ═══ -->
   <section class="stack">
     <h2 class="rule" id="pickers">Pickers</h2>
-    <p class="note">Big tappable choices. Table blocks are Home's tables and the shop's offer cards; choice tiles answer one question.</p>
+    <p class="note">Big tappable choices. Table blocks are Home's tables; choice tiles live inside Settings (never as an onboarding popup).</p>
     <div class="cols">
       <div>
-        <h3 class="sub">Choice tiles · Have you played before?</h3>
+        <h3 class="sub">Choice tiles · Coaching (Settings)</h3>
         <div class="choices" role="radiogroup" aria-label="Coaching">
           <button class="choice" role="radio" aria-checked="true"><img src="../art/icons/rules.webp" alt=""><span><b>I'm still learning</b><small>A short guide opens at the start of every round.</small></span><span class="tick"><svg><use href="#tick"/></svg></span></button>
           <button class="choice" role="radio" aria-checked="false"><img src="../art/icons/crown.webp" alt=""><span><b>I know the game</b><small>Guides stay out of the way. Tap the round's goal for one.</small></span><span class="tick"><svg><use href="#tick"/></svg></span></button>
         </div>
       </div>
       <div>
-        <h3 class="sub">Table blocks · New game</h3>
+        <h3 class="sub">Table blocks · Home &amp; New game</h3>
         <div class="blocks">
           <button class="blk teal"><span><b>Friday night</b><small>Rachel has 7 wins</small></span><span class="avs"><span class="av sm" data-p="dee"></span><span class="av sm" data-p="ben"></span><span class="av sm" data-p="cy"></span><span class="av sm" data-p="ana"></span></span></button>
           <button class="blk sap"><span><b>The cousins</b><small>12 games</small></span><span class="avs"><span class="av sm" data-p="cy"></span><span class="av sm" data-p="ana"></span><span class="av sm" data-p="ben"></span></span></button>
@@ -2953,11 +2975,11 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
         </div>
       </div>
       <div class="stack" style="gap:18px">
-        <h3 class="sub">Tap cards</h3>
-        <p class="note">Counting a hand: every rank is a key, 2 to 9 at face value, 10 J Q K at 10, Ace and Joker at the house value (15).</p>
+        <h3 class="sub">Scoring dock · Keypad, Tap cards &amp; Photo</h3>
+        <p class="note">One thumb-reachable dock on Score Entry (no OS keyboard jump). Switch freely between Keypad, Tap cards (every rank at house value), and Photo (card scanner).</p>
         <div class="ksheet">
           <div class="body" style="padding-top:16px">
-            <h3 class="sub">Tap cards</h3>
+            <div class="kseg" role="group" aria-label="Scoring mode" style="margin:0 auto 10px"><button aria-pressed="false">Keypad</button><button aria-pressed="true">Tap cards</button><button aria-pressed="false">Photo</button></div>
             <div class="plaque"><b>27</b><small>4 cards left in hand</small></div>
             <div class="tapped">
               <button class="hc" style="--r:-8deg" aria-label="Remove King"><b>K</b><small>10</small></button>
@@ -2993,13 +3015,26 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
     </div>
     <div>
       <h3 class="sub">Round guide cards</h3>
-      <p class="note">How to play, and the next round between rounds. Swipe sideways; start the strip at any round.</p>
+      <p class="note">Full cards live in Learn and Round guide. Between rounds uses the compact Up next card (<code>.gcard-compact</code>) so it never clips behind the bottom dock.</p>
+      <div class="gcard-compact" style="margin-bottom:16px">
+        <div><span class="cap">Up next · Round 5 of 7</span><b>Two Sets &amp; a Run</b><small>12 cards dealt · 10 in contract</small></div>
+        <span class="melds" style="gap:6px"><span class="meld"><span class="pc"><b>6</b><i>♠</i></span><span class="pc h"><b>6</b><i>♥</i></span><span class="pc c"><b>6</b><i>♣</i></span></span></span>
+      </div>
       <div class="guides" id="guides"></div>
     </div>
     <div>
       <h3 class="sub">Leaderboard</h3>
-      <p class="note">Who's leading, between rounds, on the TV, in Results (from 2nd) and on the table page. Position, face, name, the round's highlight and the total; the leader is crowned in gold, ties share. No panel and no rules: the rows sit on the teal.</p>
-      <div class="kit-ldr"><ol class="ldr" aria-label="Leaderboard specimen: standings after round 4" data-deal="cy" data-rows="dee|45||crown|Still leading, 5 in hand; ben|80|W2|rollercoaster|Caught with 25; cy|72|U1|out|Went out first; ana|71|U1|mayi|Two buys, up to 2nd; eve|111|W1|heavy|Biggest hand, 30; fin|95|U1|upfrombottom|Off the bottom"></ol></div>
+      <p class="note">Who's leading, between rounds, on the TV, in Results (from 2nd) and on the table page. Every seat — including whoever is in last — gets an upbeat highlight moment with a 3D icon.</p>
+      <div class="kit-ldr"><ol class="ldr" aria-label="Leaderboard specimen: standings after round 4" data-deal="cy" data-rows="dee|45||crown|Still leading, 5 in hand; ben|80|W2|rollercoaster|Caught with 25; cy|72|U1|out|Went out first; ana|71|U1|mayi|Two buys, up to 2nd; eve|111|W1|goodsport|Bargain hunter · 0 buys · still in it!; fin|95|U1|upfrombottom|Off the bottom"></ol></div>
+    </div>
+    <div>
+      <h3 class="sub">In the chase · live awards strip</h3>
+      <p class="note">Sits under the standings between rounds once two rounds are played, so every player (even 4th place) can see an award they are leading or close to winning.</p>
+      <div class="chase-strip" role="group" aria-label="Live awards in the chase">
+        <button class="chase-chip" aria-pressed="true"><img src="../art/icons/mayi.webp" alt=""><span><b>Bargain hunter</b><small><span class="av sm" data-p="ana" style="--s:18px;border-width:1.5px"></span>Chelsea · 0 buys</small></span></button>
+        <button class="chase-chip" aria-pressed="false"><img src="../art/icons/comeback.webp" alt=""><span><b>Comeback kid</b><small><span class="av sm" data-p="cy" style="--s:18px;border-width:1.5px"></span>Ada · up 1</small></span></button>
+        <button class="chase-chip" aria-pressed="false"><img src="../art/icons/wiretowire.webp" alt=""><span><b>Wire to wire</b><small><span class="av sm" data-p="dee" style="--s:18px;border-width:1.5px"></span>Rachel · 4/4</small></span></button>
+      </div>
     </div>
     <div>
       <h3 class="sub">Award cards</h3>
@@ -3033,21 +3068,22 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
       <div class="sgrid-wrap"><table class="sgrid kidx">
         <thead><tr><th class="l">Piece</th><th class="l">Class</th><th class="l">Use it for</th><th class="l">Specimen</th></tr></thead>
         <tbody>
-          <tr><td class="l">Buttons</td><td class="l"><code>.kb</code> <code>.kb.cream</code> <code>.link</code></td><td class="l">Teal for the one main action, cream for the second, a text link for the rest</td><td class="l"><a href="#controls">Controls</a></td></tr>
-          <tr><td class="l">Toggles, segmented, stepper</td><td class="l"><code>.ksw</code> <code>.kseg</code></td><td class="l">Settings, entry modes, house rules</td><td class="l"><a href="#controls">Controls</a></td></tr>
-          <tr><td class="l">Live card</td><td class="l"><code>.now</code></td><td class="l">The game in progress on Home</td><td class="l"><a href="#components">Cards and pieces</a></td></tr>
-          <tr><td class="l">Table blocks</td><td class="l"><code>.blk</code></td><td class="l">Home's tables, the shop's offers</td><td class="l"><a href="#pickers">Pickers</a></td></tr>
+          <tr><td class="l">Buttons</td><td class="l"><code>.kb</code> <code>.kb.cream</code> <code>.link</code></td><td class="l">On water: cream (with gems) for the one primary action, quiet glass (no gems) for secondary. On paper: teal (with gems) for primary, cream for secondary.</td><td class="l"><a href="#controls">Controls</a></td></tr>
+          <tr><td class="l">Toggles, segmented, stepper</td><td class="l"><code>.ksw</code> <code>.kseg</code></td><td class="l">Settings, 3-mode scoring dock (Keypad / Tap cards / Photo), house rules</td><td class="l"><a href="#controls">Controls</a></td></tr>
+          <tr><td class="l">Live card</td><td class="l"><code>.now</code></td><td class="l">The game in progress on Home, with round progress and who leads</td><td class="l"><a href="#components">Cards and pieces</a></td></tr>
+          <tr><td class="l">Table blocks</td><td class="l"><code>.blk</code></td><td class="l">Home's tables with balanced density and 1-tap Deal</td><td class="l"><a href="#pickers">Pickers</a></td></tr>
           <tr><td class="l">Rows</td><td class="l"><code>.prow</code></td><td class="l">Settings, the players sheet, new game. No dividers inside layouts</td><td class="l"><a href="#system">Sheets &amp; system</a></td></tr>
-          <tr><td class="l">Bottom sheet</td><td class="l"><code>.ksheet</code></td><td class="l">Players, Tap cards, new game</td><td class="l"><a href="#system">Sheets &amp; system</a></td></tr>
-          <tr><td class="l">Round guide card</td><td class="l"><code>.gcard</code></td><td class="l">How to play, the round's rules, the next round between rounds</td><td class="l"><a href="#components">Cards and pieces</a></td></tr>
-          <tr><td class="l">Tap cards keys</td><td class="l"><code>.ckeys</code> <code>.ck</code></td><td class="l">Counting one hand</td><td class="l"><a href="#components">Cards and pieces</a></td></tr>
-          <tr><td class="l">Score row</td><td class="l"><code>.ls-row</code></td><td class="l">Score the round, one row per player</td><td class="l"><a href="#layout-flow-h">The game, start to finish</a></td></tr>
+          <tr><td class="l">Bottom sheet</td><td class="l"><code>.ksheet</code></td><td class="l">Players, House rules, New game</td><td class="l"><a href="#system">Sheets &amp; system</a></td></tr>
+          <tr><td class="l">Round guide &amp; Up next card</td><td class="l"><code>.gcard</code> <code>.gcard-compact</code></td><td class="l">Full card in Learn &amp; Round guide; compact Up next card between rounds (never clips)</td><td class="l"><a href="#components">Cards and pieces</a></td></tr>
+          <tr><td class="l">Scoring dock &amp; Tap cards</td><td class="l"><code>.ckeys</code> <code>.ck</code> <code>.kseg</code></td><td class="l">One-handed Keypad, Tap cards &amp; Photo card scanner on Score Entry</td><td class="l"><a href="#components">Cards and pieces</a></td></tr>
+          <tr><td class="l">Score row</td><td class="l"><code>.ls-row</code></td><td class="l">Score the round, one row per player with live projected totals</td><td class="l"><a href="#layout-flow-h">The game, start to finish</a></td></tr>
+          <tr><td class="l">In the chase strip</td><td class="l"><code>.chase-strip</code> <code>.chase-chip</code></td><td class="l">Live awards race between rounds so every seat (including last place) has a fun moment</td><td class="l"><a href="#components">Cards and pieces</a></td></tr>
           <tr><td class="l">Award card and medallion</td><td class="l"><code>.award</code> <code>.med</code></td><td class="l">The finale's awards and the cabinet. On the leaderboard the award art shrinks to a 24px highlight icon</td><td class="l"><a href="#components">Cards and pieces</a></td></tr>
           <tr><td class="l">Banner, callout, pill</td><td class="l"><code>.kt</code> <code>.call</code> <code>.won</code></td><td class="l">Last night's winner on Home, tips, "Ada went out first". News during play uses the toast</td><td class="l"><a href="#moments">Moments of fun</a></td></tr>
-          <tr><td class="l">Player token with jewels</td><td class="l"><code>.lr-b</code> <code>.jp</code></td><td class="l">May I? buys on the round screen and the TV: filled jewels are buys used</td><td class="l"><a href="#layout">The round screen</a></td></tr>
-          <tr><td class="l">Leaderboard</td><td class="l"><code>.ldr</code> <code>.ldr.big</code></td><td class="l">Who's leading: between rounds, the TV, Results from 2nd, the table page. Never during a round</td><td class="l"><a href="#components">Cards and pieces</a></td></tr>
+          <tr><td class="l">Player token with jewels</td><td class="l"><code>.lr-b</code> <code>.jp</code></td><td class="l">May I? buys and live running totals on the round screen: filled jewels are buys used</td><td class="l"><a href="#layout">The round screen</a></td></tr>
+          <tr><td class="l">Leaderboard</td><td class="l"><code>.ldr</code> <code>.ldr.big</code></td><td class="l">Who's leading: between rounds (with per-seat moments), the TV, Results from 2nd, the table page</td><td class="l"><a href="#components">Cards and pieces</a></td></tr>
           <tr><td class="l">Finale stage</td><td class="l"><code>.finale</code></td><td class="l">The winner crowned, then everyone</td><td class="l"><a href="#layout-flow-h">The game, start to finish</a></td></tr>
-          <tr><td class="l">Toast with Undo</td><td class="l"><code>.lr-toast</code></td><td class="l">A recorded buy, five seconds to take it back</td><td class="l"><a href="#layout">The round screen</a></td></tr>
+          <tr><td class="l">Toast with Undo</td><td class="l"><code>.lr-toast</code></td><td class="l">A recorded buy in a fixed-height strip (zero layout jump), five seconds to take it back</td><td class="l"><a href="#layout">The round screen</a></td></tr>
         </tbody>
       </table></div>
     </div>
@@ -3055,15 +3091,15 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
 
   <section class="stack">
     <h2 class="rule" id="moments">Moments of fun</h2>
-    <p class="note">Four moments, each tied to the screen it plays on and built from that screen's own pieces. Each plays once, on the event, and is skipped when the phone asks for reduced motion.</p>
+    <p class="note">Five moments, each tied to the screen it plays on and built from that screen's own pieces. Each plays once, on the event, and is skipped when the phone asks for reduced motion.</p>
     <div class="moments">
       <div class="moment m-buy" id="mBuy">
         <div class="stage"><span class="flycard"></span><span class="lr-b mo-tok pop" data-k="ben" data-buys="2" aria-hidden="true"></span><button type="button" tabindex="-1" class="lr-toast mo-toast"><img src="../art/icons/mayi.webp" alt=""><span><b>Dino</b> bought a card · 2nd of 3<em>Tap to undo</em></span><svg class="lr-undo" aria-hidden="true"><use href="#again"/></svg></button></div>
-        <div class="cap2"><span><b>May I? bought</b><small>The card flies in, a jewel lights, Undo for five seconds</small><em>The round screen</em></span><button class="replay" data-replay="mBuy" aria-label="Replay May I? bought"><svg><use href="#again"/></svg></button></div>
+        <div class="cap2"><span><b>May I? bought</b><small>The card flies in, a jewel lights, Undo for five seconds (zero layout jump)</small><em>The round screen</em></span><button class="replay" data-replay="mBuy" aria-label="Replay May I? bought"><svg><use href="#again"/></svg></button></div>
       </div>
       <div class="moment m-out" id="mOut">
         <div class="stage"><span class="mo-face"><span class="tok" data-tok="dee"></span></span><span class="sparks"><i style="--k:0"></i><i style="--k:1"></i><i style="--k:2"></i><i style="--k:3"></i><i style="--k:4"></i><i style="--k:5"></i><i style="--k:6"></i><i style="--k:7"></i></span><span class="stampout">Out!</span></div>
-        <div class="cap2"><span><b>Someone went out</b><small>A hop, crystal sparks, a gold stamp</small><em>Score the round, on Out</em></span><button class="replay" data-replay="mOut" aria-label="Replay going out"><svg><use href="#again"/></svg></button></div>
+        <div class="cap2"><span><b>Someone went out</b><small>A hop, crystal sparks, a gold stamp — triggered right from the round</small><em>The round → Score entry</em></span><button class="replay" data-replay="mOut" aria-label="Replay going out"><svg><use href="#again"/></svg></button></div>
       </div>
       <div class="moment m-lead" id="mLead">
         <div class="stage"><img class="crownfall" src="../art/crown.webp" alt=""><span class="mo-face"><span class="tok" data-tok="cy"></span></span><p class="mo-line"><b>Ada takes the lead</b><span>2 points clear</span></p></div>
@@ -3071,7 +3107,11 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
       </div>
       <div class="moment m-tick" id="mTick">
         <div class="stage"><span class="plus">+12</span><span class="big" data-count="24">24</span><span class="mo-cap">Dino's total</span></div>
-        <div class="cap2"><span><b>Totals land</b><small>Each total counts up as the round saves</small><em>Between rounds</em></span><button class="replay" data-replay="mTick" aria-label="Replay score count"><svg><use href="#again"/></svg></button></div>
+        <div class="cap2"><span><b>Totals land</b><small>Each total counts up alongside every seat's personal round moment</small><em>Between rounds</em></span><button class="replay" data-replay="mTick" aria-label="Replay score count"><svg><use href="#again"/></svg></button></div>
+      </div>
+      <div class="moment m-scan" id="mScan">
+        <div class="stage"><div class="vf"><span class="sweep"></span><img src="../art/icons/camera.webp" alt=""></div><span class="mo-cap">Read 6 cards · 47 pts</span></div>
+        <div class="cap2"><span><b>Card scan reveal</b><small>Light sweeps the viewfinder, then lands in Tap cards with a receipt</small><em>Score entry · Photo</em></span><button class="replay" data-replay="mScan" aria-label="Replay card scan"><svg><use href="#again"/></svg></button></div>
       </div>
     </div>
   </section>
@@ -4464,7 +4504,6 @@ main { max-width: 1520px; padding: 0 24px 140px; gap: 0; }
         <button class="look" role="radio" aria-checked="false" style="--c2:#6F96FF;--c3:#3463D8;--c5:#17337E"><img src="../art/jewel-spade.webp" alt=""><span class="tick"><svg><use href="#tick"/></svg></span><b>Sapphire</b><small>Deep royal blue</small></button>
         <button class="look" role="radio" aria-checked="false" style="--c2:#A8DB62;--c3:#458F25;--c5:#1F5212"><img src="../art/jewel-club.webp" alt=""><span class="tick"><svg><use href="#tick"/></svg></span><b>Jade</b><small>A garden table</small></button>
         <button class="look" role="radio" aria-checked="false" style="--c2:#F07080;--c3:#C42645;--c5:#680D26"><img src="../art/jewel-heart.webp" alt=""><span class="tick"><svg><use href="#tick"/></svg></span><b>Ruby</b><small>Warm cherry red</small></button>
-        <button class="look day" role="radio" aria-checked="false"><img src="../art/jewel-diamond.webp" alt=""><span class="tick"><svg><use href="#tick"/></svg></span><b>Daylight</b><small>For playing outside</small></button>
       </div></div>
     <div>
       <h3 class="lc-h">Text size</h3>
