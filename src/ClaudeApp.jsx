@@ -2193,21 +2193,26 @@ function Recap({ s, game, go, setToast, rematch, onDelete, onReopen, onTable, se
   const ranked = rankOf(game), best = ranked[0].total, top = ranked.filter(t => t.total === best);
   const fresh = game.endedAt && now() - game.endedAt < 8000, roundsN = ROUNDS.filter((_, i) => roundDone(game, i)).length;
   const place = t => 1 + ranked.filter(q => q.total < t.total).length;
+  const shareRows = () => ranked.map(t => ({ ...pl(t.id), total: t.total, place: place(t) }));
+  const shareText = () => "May I? · " + group.name + "\n" + ranked.map(t => place(t) + ". " + pl(t.id).name + " · " + t.total).join("\n");
+  const pic = useRef(null);
+  useEffect(() => { let on = true; pic.current = null;
+    resultsImage(group.name, shareRows(), game.endedAt, tableLook(group)).then(b => { if (on && b) pic.current = new File([b], "may-i-results.png", { type: "image/png" }); });
+    return () => { on = false; }; }, [game.id, game.updatedAt, group.look]);
+  // Nothing is awaited before navigator.share: Safari only opens the share sheet straight after the tap.
   async function share() {
-    const text = "May I? · " + group.name + "\n" + ranked.map(t => place(t) + ". " + pl(t.id).name + " · " + t.total).join("\n");
+    const text = shareText(), file = pic.current;
     try {
-      const blob = await resultsImage(group.name, ranked.map(t => ({ ...pl(t.id), total: t.total, place: place(t) })), game.endedAt);
-      const file = blob && new File([blob], "may-i-results.png", { type: "image/png" });
       if (file && navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: "May I? results", text }); return; }
       if (navigator.share) { await navigator.share({ title: "May I? results", text }); return; }
       throw new Error("no share");
     } catch (e) {
       if (e && e.name === "AbortError") return; // the player closed the share sheet
-      // Fallback: copy the text and save the picture.
+      // No share sheet (most desktops): copy the text and save the picture.
       const copied = await copyText(text);
-      try { const blob = await resultsImage(group.name, ranked.map(t => ({ ...pl(t.id), total: t.total, place: place(t) })), game.endedAt);
-        if (blob) { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "may-i-results.png"; document.body.appendChild(a); a.click(); a.remove(); } } catch (e2) {}
-      setToast({ text: copied ? "Results copied and picture saved" : "Results picture saved" });
+      const blob = file || await resultsImage(group.name, shareRows(), game.endedAt, tableLook(group)).catch(() => null);
+      if (blob) { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "may-i-results.png"; document.body.appendChild(a); a.click(); a.remove(); }
+      setToast({ text: copied && blob ? "Results copied and picture saved" : copied ? "Results copied" : blob ? "Results picture saved" : "Couldn't share. Try again." });
     }
   }
   const sameTable = game.players.filter(id => group.players.some(p => p.id === id)).length >= 2;
@@ -2334,30 +2339,34 @@ function nightHighlights(game, pl, facts) {
   });
   return out;
 }
-function resultsImage(name, rows, endedAt) {
+// The results picture, drawn in the table's look with the app's own fonts. Recap draws it as soon as
+// it opens, so a tap on Share can open the share sheet straight away (Safari refuses it after a delay).
+function resultsImage(name, rows, endedAt, look) {
   const load = src => new Promise(r => { if (!src) return r(null); const im = new Image(); if (/^https:/.test(src)) im.crossOrigin = "anonymous"; im.onload = () => r(im); im.onerror = () => r(null); im.src = src; });
-  return Promise.all(rows.map(r => load(avatarSrc(avOf(r.avatar, r.name))))).then(imgs => new Promise(res => { try {
-    const css = getComputedStyle(document.documentElement), band = css.getPropertyValue("--band").trim() || "#17644A", band2 = css.getPropertyValue("--band2").trim() || "#0B3D2B";
+  const fonts = document.fonts ? Promise.all(["800 104px Fraunces", "700 48px 'Barlow Semi Condensed'", "700 34px 'Barlow Condensed'"].map(f => document.fonts.load(f).catch(() => null))) : Promise.resolve();
+  return Promise.all([fonts, load("art/logo-emblem.webp"), ...rows.map(r => load(avatarSrc(avOf(r.avatar, r.name))))]).then(([, crest, ...imgs]) => new Promise(res => { try {
+    const T = LOOK_TILE[look] || LOOK_TILE.midnight, [hi, mid, deep] = T.c, gold = "#E2BE6E", cream = "#FFF6E0", cream2 = "rgba(255,246,224,.72)";
     const W = 1080, H = 1350, c = document.createElement("canvas"); c.width = W; c.height = H; const x = c.getContext("2d");
-    const g = x.createRadialGradient(W * .3, 0, 50, W * .5, H * .4, H); g.addColorStop(0, band); g.addColorStop(1, band2);
+    const g = x.createRadialGradient(W * .5, H * .12, 40, W * .5, H * .45, H * .95); g.addColorStop(0, mid); g.addColorStop(1, deep);
     x.fillStyle = g; x.fillRect(0, 0, W, H);
-    x.strokeStyle = "rgba(226,190,110,.6)"; x.lineWidth = 3; x.strokeRect(40, 40, W - 80, H - 80); x.strokeRect(54, 54, W - 108, H - 108);
-    const serif = '"Fraunces", Georgia, serif', sans = '-apple-system, "SF Pro Text", system-ui, sans-serif';
-    const light = band.toUpperCase() === "#FFFFFF", ink = light ? "#000" : "#fff", ink2 = light ? "#333" : "rgba(255,255,255,.75)";
-    x.textAlign = "center"; x.fillStyle = "#C99A2E"; x.font = "700 34px " + sans; x.fillText("MAY I?  ·  " + name.toUpperCase(), W / 2, 150);
+    x.strokeStyle = gold; x.globalAlpha = .7; x.lineWidth = 3; x.strokeRect(40, 40, W - 80, H - 80); x.globalAlpha = .35; x.strokeRect(54, 54, W - 108, H - 108); x.globalAlpha = 1;
+    const serif = '"Fraunces", Georgia, serif', label = '"Barlow Condensed", "Arial Narrow", sans-serif', num = '"Barlow Semi Condensed", "Barlow Condensed", sans-serif';
+    if (crest) { const h = 150, w = crest.width * h / crest.height; x.drawImage(crest, (W - w) / 2, 84, w, h); }
+    x.textAlign = "center"; x.fillStyle = gold; x.font = "700 34px " + label; x.fillText(name.toUpperCase(), W / 2, 284);
     const win = rows.filter(r => r.place === 1);
-    x.fillStyle = ink; x.font = "800 104px " + serif; x.fillText(win.map(r => r.name).join(" & "), W / 2, 300, W - 160);
-    x.font = "500 44px " + sans; x.fillStyle = ink2; x.fillText(win.length > 1 ? "share the win" : "wins the game", W / 2, 370);
-    const rowH = Math.min(110, 760 / Math.max(rows.length, 1)), top = 520 + (760 - rowH * rows.length) / 2;
-    rows.forEach((r, i) => { const y = top + i * rowH, p = peg(r.color);
-      x.fillStyle = i % 2 ? "rgba(255,255,255,0)" : "rgba(128,128,128,.1)"; x.fillRect(110, y - rowH * .62, W - 220, rowH);
-      x.textAlign = "left"; x.fillStyle = ink2; x.font = "700 40px " + sans; x.fillText(r.place, 140, y);
-      x.beginPath(); x.arc(240, y - 14, 30, 0, 7); x.fillStyle = p.c; x.fill();
-      if (imgs[i]) { x.save(); x.beginPath(); x.arc(240, y - 14, 30, 0, 7); x.clip(); x.drawImage(imgs[i], 210, y - 44, 60, 60); x.restore(); } if (r.place === 1) { x.lineWidth = 6; x.strokeStyle = "#D9A63A"; x.beginPath(); x.arc(240, y - 14, 39, 0, 7); x.stroke(); }
-      x.fillStyle = ink; x.font = "700 48px " + sans; x.fillText(r.name, 300, y, 480);
-      x.textAlign = "right"; x.font = "800 56px " + sans; x.fillText(r.total, W - 140, y); });
-    x.textAlign = "center"; x.fillStyle = ink2; x.font = "500 32px " + sans;
-    x.fillText((endedAt ? new Date(endedAt).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" }) + "  ·  " : "") + "Seven rounds of May I?", W / 2, H - 120);
+    x.fillStyle = cream; x.font = "800 100px " + serif; x.fillText(win.map(r => r.name).join(" & "), W / 2, 400, W - 160);
+    x.font = "600 42px " + num; x.fillStyle = cream2; x.fillText(win.length > 1 ? "share the win" : "wins the game", W / 2, 462);
+    const rowH = Math.min(104, 700 / Math.max(rows.length, 1)), top = 560 + (700 - rowH * rows.length) / 2;
+    rows.forEach((r, i) => { const y = top + i * rowH + rowH * .5, p = peg(r.color), first = r.place === 1;
+      x.fillStyle = first ? "rgba(226,190,110,.16)" : i % 2 ? "rgba(0,0,0,0)" : "rgba(255,246,224,.06)"; x.beginPath(); x.roundRect ? x.roundRect(110, y - rowH * .44, W - 220, rowH * .88, 24) : x.rect(110, y - rowH * .44, W - 220, rowH * .88); x.fill();
+      x.textAlign = "left"; x.textBaseline = "middle"; x.fillStyle = first ? gold : cream2; x.font = "700 40px " + num; x.fillText(r.place, 146, y);
+      x.beginPath(); x.arc(250, y, 32, 0, 7); x.fillStyle = p.c; x.fill();
+      if (imgs[i]) { x.save(); x.beginPath(); x.arc(250, y, 32, 0, 7); x.clip(); x.drawImage(imgs[i], 218, y - 32, 64, 64); x.restore(); }
+      if (first) { x.lineWidth = 5; x.strokeStyle = gold; x.beginPath(); x.arc(250, y, 39, 0, 7); x.stroke(); }
+      x.fillStyle = cream; x.font = "700 48px " + num; x.fillText(r.name, 312, y, 470);
+      x.textAlign = "right"; x.font = "800 56px " + num; x.fillStyle = first ? gold : cream; x.fillText(r.total, W - 146, y); });
+    x.textBaseline = "alphabetic"; x.textAlign = "center"; x.fillStyle = cream2; x.font = "600 32px " + label;
+    x.fillText(((endedAt ? new Date(endedAt).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" }) + "  ·  " : "") + "May I?").toUpperCase(), W / 2, H - 104);
     c.toBlob(b => res(b), "image/png");
   } catch (e) { res(null); } }));
 }

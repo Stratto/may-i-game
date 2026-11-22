@@ -167,6 +167,16 @@ def returning(br):
             if t in rows: fail("results: award " + repr(t) + " also named in the standings")
         covered_controls(p, "results")
         if look() != "lime": fail("results: Friday night's game should wear its table's look, got " + repr(look()))
+        # Share: Safari only opens the share sheet straight after a tap, so the picture must be ready before it.
+        p.wait_for_timeout(1500)
+        p.evaluate("""() => { window.__shares = []; navigator.canShare = () => true;
+          navigator.share = async d => { window.__shares.push({ files: (d.files || []).length, size: d.files && d.files[0] ? d.files[0].size : 0, ms: performance.now() - window.__tapAt }); };
+          document.addEventListener('pointerdown', () => { window.__tapAt = performance.now(); }, true); }""")
+        if tap(p, p.get_by_role("button", name="Share", exact=True), "share results"):
+            p.wait_for_timeout(400); sh = p.evaluate("window.__shares")
+            if not sh: fail("results: Share did not open the share sheet")
+            elif sh[0]["files"] != 1 or sh[0]["size"] < 20000: fail("results: the share sheet got no picture " + repr(sh[0]))
+            elif sh[0]["ms"] > 150: fail("results: the share sheet opened %dms after the tap (Safari refuses it)" % sh[0]["ms"])
     ctx.close()
 
 with sync_playwright() as pw:
