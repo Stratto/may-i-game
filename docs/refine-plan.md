@@ -63,7 +63,10 @@ Each phase is its own thread, in this order.
 - The pill acts as the quick start, so there is no separate quick-start card.
 - `npm run e2e` seeds a returning player with two tables (`tests/e2e/seed.js`). It checks the order, the pill, that "New game at Friday night" appears only once, and that tapping a card opens the table.
 
-**P3. Between rounds and results.** Cut repeated text and give the awards their moment.
+**P3. Between rounds and results — between rounds done 22 Nov**
+- Lines no longer repeat the total beside them. Round 1 speaks in words, and a line appears only once down the standings.
+- The heading reads "Ana went out" (not "went out first"). The leader's line drops its second crown.
+- Results: looked at, nothing broken. Still open, and worth a fresh look in its own thread: give the awards a bigger moment than the single line under the winner.
 
 **P4. Your decisions, then build**
 - Looks per table.

@@ -2151,19 +2151,25 @@ function roundHighlights(game, R) {
   ids.forEach(id => {
     const v = rs[id], b = buys[id] || 0, mv = fresh ? 0 : before[id] - after[id], wasLast = !fresh && before[id] === Math.max(...ids.map(o => before[o])), isLast = after[id] === Math.max(...ids.map(o => after[o]));
     let h;
-    if (after[id] === 1 && (fresh || before[id] !== 1)) h = ["crown", fresh ? "In the lead" : "Takes the lead"];
-    else if (after[id] === 1) h = ["crown", v > 0 ? "Still leading, " + v + " in hand" : "Still leading"];
-    else if (v > 0 && v === big && bigOne && n > 2) h = ["heavy", "Biggest hand, " + v];
+    // The total sits beside every line, so a line never repeats it. After round 1 the total is the round's score, so round 1 speaks in words.
+    // The leader's face already wears the crown, so their line carries other art.
+    const lead = v === 0 ? "out" : "steady";
+    if (after[id] === 1 && (fresh || before[id] !== 1)) h = [lead, fresh ? "In the lead" : "Takes the lead"];
+    else if (after[id] === 1) h = [lead, v > 0 ? "Still leading, " + v + " in hand" : "Still leading"];
+    else if (v > 0 && v === big && bigOne && n > 2) h = ["heavy", fresh ? "Biggest hand" : "Biggest hand, " + v];
     else if (wasLast && !isLast) h = ["upfrombottom", "Off the bottom"];
     else if (b > 0 && mv > 0) h = ["mayi", (NUM_WORD[b] || b) + (b === 1 ? " buy" : " buys") + ", up to " + after[id] + ordOf(after[id])];
     else if (mv > 0) h = ["comeback", "Up to " + after[id] + ordOf(after[id])];
     else if (v === 0) h = ["out", "Went out"];
-    else if (v > 0 && v === small && smallOne) h = ["steady", "Only " + v + " in hand"];
-    else if (v >= 25) h = ["rollercoaster", "Caught with " + v];
+    else if (v > 0 && v === small && smallOne) h = ["steady", fresh ? "Lightest hand" : "Only " + v + " in hand"];
     else if (b > 1) h = ["mayi", (NUM_WORD[b] || b) + " buys this round"];
-    else h = ["steady", v + " in hand"];
+    else if (v >= 25) h = ["rollercoaster", fresh ? "Got caught" : "Caught with " + v];
+    else h = ["steady", fresh ? "Close behind" : v + " in hand"];
     out[id] = { ic: h[0], hl: h[1], mv };
   });
+  // A line says something once: read down the standings, and a row whose line was already said stays quiet.
+  const said = new Set();
+  [...ids].sort((a, b) => after[a] - after[b]).forEach(id => { const o = out[id]; if (said.has(o.hl)) { o.ic = null; o.hl = ""; } else said.add(o.hl); });
   return out;
 }
 // The kit's round guide card (docs/ui-kit.html .gcard), from the app's own seven rounds.
@@ -2191,7 +2197,7 @@ function BetweenScreen({ game, pl, from, onPlay, onUndo, onMenu, onRules }) {
   const race = live ? gameAwards(game).filter(a => a.id && AWARDS[a.key]).slice(0, 3) : [];
   if (outId && hls[outId] && hls[outId].ic === "out") hls[outId].hl = "Went out";
   useEffect(() => { if (!speakOn || !window.speechSynthesis) return; const r = [...totals].sort((a, b) => a.total - b.total);
-    const say = "After round " + (from + 1) + ". " + (outId ? pl(outId).name + " went out first. " : "") + r.map((t, i) => pl(t.id).name + ", " + t.total + (i === 0 ? ", leading" : "")).join(". ") + ".";
+    const say = "After round " + (from + 1) + ". " + (outId ? pl(outId).name + " went out. " : "") + r.map((t, i) => pl(t.id).name + ", " + t.total + (i === 0 ? ", leading" : "")).join(". ") + ".";
     const u = new SpeechSynthesisUtterance(say); u.rate = .95; speechSynthesis.cancel(); speechSynthesis.speak(u); return () => speechSynthesis.cancel(); }, []);
   return onTop(ce("div", { className: "kit kscreen kbetween", role: "dialog", "aria-modal": true, "aria-label": "After round " + (from + 1), onScroll: navBack },
     ce("div", { className: "lb-glow", "aria-hidden": true }),
@@ -2201,7 +2207,7 @@ function BetweenScreen({ game, pl, from, onPlay, onUndo, onMenu, onRules }) {
       onRules && kGuideBtn(onRules),
       ce("button", { className: "ib", onClick: onMenu, "aria-label": "Game menu" }, kIcon("gear"))),
     ce("main", { className: "ph-body lb-between" },
-      ce("h1", { className: "won lb-won" }, ce("img", { src: "art/icons/" + (outId ? "out" : "steady") + ".webp", alt: "" }), outId ? pl(outId).name + " went out first" : "Nobody went out"),
+      ce("h1", { className: "won lb-won" }, ce("img", { src: "art/icons/" + (outId ? "out" : "steady") + ".webp", alt: "" }), outId ? pl(outId).name + " went out" : "Nobody went out"),
       ce(Leaderboard, { rows, deal: nd, dealIn: true, label: "Standings after round " + (from + 1) }),
       next < 7 && ce("p", { className: "lb-dealline" }, ce("span", { className: "dl", "aria-hidden": true }, "D"), ce("span", null, ce("b", null, pl(nd).name), " deals " + ROUNDS[next].cards + " each · ", ce("b", null, pl(ns).name), " goes first")),
       race.length > 0 && ce("section", { className: "lb-race" }, ce("h2", null, "The chase"),
