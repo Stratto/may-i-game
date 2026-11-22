@@ -3604,6 +3604,67 @@ html.calm .kit.kfirst:not(.ksub) .lc-first { transition: none; }
 .kit .lc-tnew svg { width: 16px; height: 16px; }
 .kit .lc-tnew:active { translate: 0 2px; box-shadow: inset 0 -1px 0 rgba(168, 111, 27, .35); }
 .kit .khome .lc-lastgame { margin-top: 8px; }
+
+/* The round's players, in turn order (owner, 22 Nov: the oval table did not show the order or scale with the count).
+   A plain list: 1 goes first, the dealer (D) plays last. One column up to four; two columns for five to eight, read down. */
+.kit.kround .lr-may::before { display: none; }
+.kit.kround .lr-may { padding: 14px 0 6px; gap: 6px; }
+.kit.kround .lr-may .lr-mayh, .kit.kround .lr-may .lr-mayp { justify-content: flex-start; text-align: left; }
+.kit.kround .lr-may ol.lr-order { list-style: none; margin: 4px 0 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.kit.kround .lr-may ol.lr-order.two { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-flow: column; grid-template-rows: repeat(var(--rows), auto); column-gap: 10px; }
+.kit.kround .lr-may ol.lr-order > li { display: block; min-width: 0; grid-column: auto; }
+.kit.kround .lr-may ol.lr-order .lr-b { width: 100%; min-height: 62px; display: grid; grid-template-columns: 24px 48px minmax(0, 1fr) auto; grid-template-areas: "no t mid tot"; grid-template-rows: auto;
+  align-items: center; justify-items: start; gap: 10px; padding: 6px 14px 6px 8px; border-radius: 18px; text-align: left;
+  background: rgba(3, 38, 46, .42); border: 1px solid rgba(255, 233, 166, .16); box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .14); }
+.kit.kround .lr-may ol.lr-order .lr-b:active { translate: 0 1px; box-shadow: none; }
+.kit.kround .lr-may ol.lr-order .lr-b.spent { opacity: .55; }
+.kit.kround .lr-may ol.lr-order .lr-no { grid-area: no; justify-self: center; font: 800 1.05rem/1 var(--label); color: #FFE7A3; }
+.kit.kround .lr-may ol.lr-order .lr-b.deal .lr-no { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; font-size: .85rem; color: var(--paper-ink, #0F3247); background: var(--paper, #FBF0D6); border: 1.5px solid var(--gold, #E9B44C); }
+.kit.kround .lr-may ol.lr-order .lr-t { grid-area: t; position: relative; width: 48px; height: 48px; }
+.kit.kround .lr-may ol.lr-order .lr-t .tok { width: 48px; height: 48px; }
+.kit.kround .lr-may ol.lr-order .lr-crown { left: 50%; top: -11px; width: 22px; }
+.kit.kround .lr-may ol.lr-order .lr-mid { grid-area: mid; display: grid; gap: 4px; min-width: 0; }
+.kit.kround .lr-may ol.lr-order .lr-mid b { font: 800 1.12rem/1.1 var(--display); color: var(--on-bg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.kit.kround .lr-may ol.lr-order .lr-sub { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.kit.kround .lr-may ol.lr-order .lr-role { font: 700 .78rem/1 var(--label); letter-spacing: .06em; text-transform: uppercase; color: rgba(255, 247, 226, .78); white-space: nowrap; }
+.kit.kround .lr-may ol.lr-order .lr-tot { grid-area: tot; justify-self: end; margin: 0; font: 700 1.5rem/1 var(--num); font-variant-numeric: tabular-nums; color: var(--on-bg); }
+.kit.kround .lr-may ol.lr-order .lr-b:has(.lr-crown) .lr-tot { color: #FFE7A3; }
+.kit.kround .lr-may ol.lr-order.two .lr-b { min-height: 58px; grid-template-columns: 16px 38px minmax(0, 1fr) auto; gap: 7px; padding: 5px 10px 5px 6px; border-radius: 16px; }
+.kit.kround .lr-may ol.lr-order.two .lr-t, .kit.kround .lr-may ol.lr-order.two .lr-t .tok { width: 38px; height: 38px; }
+.kit.kround .lr-may ol.lr-order.two .lr-mid b { font-size: 1rem; }
+.kit.kround .lr-may ol.lr-order.two .lr-tot { font-size: 1.2rem; }
+.kit.kround .lr-may ol.lr-order.two .lr-role { display: none; }
+.kit.kround .lr-may ol.lr-order.two .lr-b.deal .lr-no { width: 20px; height: 20px; font-size: .72rem; margin-left: -2px; }
+.kit.kround .lr-may ol.lr-order.two .jp i { width: 9px; height: 9px; }
+@media (min-width: 700px) and (min-height: 600px) {
+  .kit.kround .lr-may ol.lr-order, .kit.kround .lr-may ol.lr-order.two { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-flow: column; grid-template-rows: repeat(var(--rows2), auto); gap: 12px 16px; }
+  .kit.kround .lr-may ol.lr-order .lr-b, .kit.kround .lr-may ol.lr-order.two .lr-b { min-height: 80px; grid-template-columns: 30px 60px minmax(0, 1fr) auto; gap: 14px; padding: 8px 20px 8px 10px; }
+  .kit.kround .lr-may ol.lr-order .lr-t, .kit.kround .lr-may ol.lr-order .lr-t .tok, .kit.kround .lr-may ol.lr-order.two .lr-t, .kit.kround .lr-may ol.lr-order.two .lr-t .tok { width: 60px; height: 60px; }
+  .kit.kround .lr-may ol.lr-order .lr-mid b, .kit.kround .lr-may ol.lr-order.two .lr-mid b { font-size: 1.35rem; }
+  .kit.kround .lr-may ol.lr-order .lr-tot, .kit.kround .lr-may ol.lr-order.two .lr-tot { font-size: 2.1rem; }
+  .kit.kround .lr-may ol.lr-order.two .lr-role { display: inline; }
+  .kit.kround .lr-may ol.lr-order:not(.two) { grid-template-columns: minmax(0, 1fr); grid-auto-flow: row; grid-template-rows: none; width: min(100%, 620px); margin-inline: auto; }
+  .kit.kround .lr-may .lr-mayh { justify-content: center; }
+  .kit.kround .lr-may .lr-mayp { text-align: center; }
+  .kit.kround .lr-may ol.lr-order .jp i { width: 15px; height: 15px; }
+  .kit.kround .lr-may ol.lr-order .lr-sub { gap: 12px; }
+}
+
+/* Fit at Safari's height: the list carries the "May I?" job itself, so the heading row goes on phones and the rows tighten. */
+@media (max-width: 699px), (max-height: 599px) {
+  .kit.kround .lr-may .lr-mayh { display: none; }
+  .kit.kround .lr-may { padding-top: 6px; }
+  .kit.kround .lr-may .lr-mayp { margin: 0; font-size: .88rem; }
+  .kit.kround .lr-may ol.lr-order .lr-b { min-height: 56px; padding-top: 4px; padding-bottom: 4px; }
+  .kit.kround .lr-may ol.lr-order .lr-t, .kit.kround .lr-may ol.lr-order .lr-t .tok { width: 44px; height: 44px; }
+  .kit.kround .lr-may ol.lr-order.two .lr-b { min-height: 52px; }
+  .kit.kround .lr-may ol.lr-order.two .lr-t, .kit.kround .lr-may ol.lr-order.two .lr-t .tok { width: 36px; height: 36px; }
+}
+@media (max-width: 699px) and (max-height: 720px) {
+  .kit.kround .lr-may ol.lr-order { gap: 5px; }
+  .kit.kround .lr-may ol.lr-order:not(.two) .lr-b { min-height: 53px; }
+  .kit.kround .lr-head h1 { font-size: 1.7rem; }
+}
 </style>
 </head>
 <body>

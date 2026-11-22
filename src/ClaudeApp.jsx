@@ -1870,28 +1870,34 @@ function BuyTable({ game, pl, rs, limit, dealer, firstId, many, cards, changeBuy
           ce("img", { src: "art/icons/mayi.webp", alt: "" }),
           ce("span", null, ce("b", null, pl(toast.id).name), (limit !== Infinity && toast.n >= limit ? "'s last buy · " : " bought a card · ") + (["", "1st", "2nd", "3rd"][toast.n] || toast.n + "th") + (limit === Infinity ? "" : " of " + limit)),
           ce("em", null, kIcon("again", "lr-undo"), "Undo"))
-      : ce("p", { className: "lr-mayp" }, scoring ? "Tap a face to change a score." : "Tap a face when someone wins a buy." + each)),
-    ce("div", { className: "lr-buys" + (many ? " dense" : ""), "data-n": game.players.length }, game.players.map((id, k) => {
+      : ce("p", { className: "lr-mayp" }, scoring ? "Tap a player to change their score." : "In turn order. Tap a player when they win a buy." + each)),
+    // Players in the order they play: whoever goes first is 1, the dealer plays last. Up to four sit in one column; five to eight in two, read down.
+    ce("ol", { className: "lr-buys lr-order" + (many ? " dense" : "") + (game.players.length > 4 ? " two" : ""), "data-n": game.players.length, "aria-label": "Players in turn order",
+        style: { "--rows": Math.ceil(game.players.length / (game.players.length > 4 ? 2 : 1)), "--rows2": Math.ceil(game.players.length / 2) } }, (() => {
+      const fi = Math.max(0, game.players.indexOf(firstId)); return [...game.players.slice(fi), ...game.players.slice(0, fi)]; })().map((id, o) => {
+      const k = game.players.indexOf(id);
       const p = pl(id), n = (game.buys[game.round] && game.buys[game.round][id]) || 0, left = limit === Infinity ? Infinity : limit - n;
       const deal = id === dealer, first = id === firstId && !deal, v = rs[id], has = typeof v === "number";
-      const spent = !scoring && left <= 0, role = deal ? ", dealt this round" : first ? ", plays first" : "";
+      const spent = !scoring && left <= 0, role = deal ? ", deals, plays last" : first ? ", plays first" : ", plays " + (o + 1) + ordOf(o + 1);
       const label = scoring ? (has ? p.name + (v === 0 ? " went out" : " scored " + v) + ". Change the score" : "Score " + p.name)
-        : spent ? p.name + role + " has no buys left" : p.name + role + ", record a May I? buy. " + n + (limit === Infinity ? " so far" : " of " + limit + " used") + (totals ? ". On " + totals[id] + (id === leadId ? ", in the lead" : "") : "");
-      return ce("button", { key: id, className: "lr-b" + (spent ? " spent" : "") + (pop === id ? " pop" : ""), disabled: spent, "aria-label": label,
+        : spent ? p.name + role + " has no buys left" : p.name + role + ". Record a May I? buy. " + n + (limit === Infinity ? " so far" : " of " + limit + " used") + (totals ? ". On " + totals[id] + (id === leadId ? ", in the lead" : "") : "");
+      return ce("li", { key: id }, ce("button", { className: "lr-b" + (spent ? " spent" : "") + (pop === id ? " pop" : "") + (deal ? " deal" : ""), disabled: spent, "aria-label": label,
           onAnimationEnd: () => setPop(null),
           onClick: () => {
             if (scoring) return onScore(k);
             changeBuy(id, 1); setPop(id); setBuyToast({ id, n: n + 1, k: Date.now() });
           } },
-        ce("span", { className: "lr-t" }, ce(Tok, { p }), id === leadId && ce("img", { className: "lr-crown", src: "art/crown.webp", alt: "" }),
-          deal && ce("span", { className: "dl", title: "Dealt this round" }, "D"), first && ce("span", { className: "fst", title: "Plays first" }, "1st")),
-        ce("b", null, p.name),
-        totals && ce("span", { className: "lr-tot", "aria-hidden": true }, totals[id]),
-        scoring ? ce("span", { className: "lr-sc" + (v === 0 ? " out" : "") }, has ? (v === 0 ? "Out" : "+" + v) : "To score")
-          : spent ? ce("span", { className: "lr-none" }, "No buys left")
-          : limit === Infinity || limit > 6 ? ce("span", { className: "lr-none" }, n ? n + (n === 1 ? " buy" : " buys") : "No buys yet")
-          : ce("span", { className: "jp", "aria-hidden": true }, Array.from({ length: limit }, (_, j) => ce("i", { key: j, className: j < n ? "on" : "" }))),
-        !scoring && (deal ? ce("span", { className: "lr-role" }, "Deals " + cards + " each") : first ? ce("span", { className: "lr-role" }, "Goes first") : null));
+        ce("span", { className: "lr-no", "aria-hidden": true }, deal ? "D" : o + 1),
+        ce("span", { className: "lr-t" }, ce(Tok, { p }), id === leadId && ce("img", { className: "lr-crown", src: "art/crown.webp", alt: "" })),
+        ce("span", { className: "lr-mid" },
+          ce("b", null, p.name),
+          ce("span", { className: "lr-sub" },
+            scoring ? ce("span", { className: "lr-sc" + (v === 0 ? " out" : "") }, has ? (v === 0 ? "Out" : "+" + v) : "To score")
+              : spent ? ce("span", { className: "lr-none" }, "No buys left")
+              : limit === Infinity || limit > 6 ? ce("span", { className: "lr-none" }, n ? n + (n === 1 ? " buy" : " buys") : "No buys yet")
+              : ce("span", { className: "jp", "aria-hidden": true }, Array.from({ length: limit }, (_, j) => ce("i", { key: j, className: j < n ? "on" : "" }))),
+            !scoring && deal && ce("span", { className: "lr-role" }, "Deals " + cards))),
+        totals && ce("span", { className: "lr-tot", "aria-hidden": true }, totals[id])));
     })));
 }
 const dealerName = (n, c) => n + " deals " + c;
