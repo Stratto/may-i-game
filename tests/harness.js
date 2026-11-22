@@ -1,4 +1,4 @@
-// Loads the real app script out of index.html and returns its pure functions,
+// Loads the real app module (src/ClaudeApp.jsx) and returns its pure functions,
 // so the tests check the code that ships rather than a copy of it.
 // The browser is stubbed: React renders nothing and nothing touches the DOM.
 const fs = require("node:fs");
@@ -27,13 +27,10 @@ function anything() {
 }
 
 function load() {
-  const html = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
-  const blocks = [...html.matchAll(/<script(?![^>]*src)[^>]*>([\s\S]*?)<\/script>/g)].map(m => m[1]);
-  const app = blocks.find(b => b.includes('ReactDOM.createRoot(document.getElementById("root"))'));
-  if (!app) throw new Error("App script not found in index.html");
-  const mount = 'ReactDOM.createRoot(document.getElementById("root")).render(ce(App));';
-  if (!app.includes(mount)) throw new Error("Mount line changed; update tests/harness.js");
-  const code = app.replace(mount, "globalThis.__mayi = { " + EXPORTS.join(", ") + " };");
+  const src = fs.readFileSync(path.join(__dirname, "..", "src", "ClaudeApp.jsx"), "utf8");
+  // Drop the module lines; React and ReactDOM are supplied as globals below.
+  const code = src.split("\n").filter(l => !/^(import |export )/.test(l)).join("\n")
+    + "\nglobalThis.__mayi = { " + EXPORTS.join(", ") + " };";
 
   const memory = {};
   const React = { createElement: () => null, Fragment: "f", useState: v => [typeof v === "function" ? v() : v, () => {}],
@@ -49,7 +46,7 @@ function load() {
   };
   window.window = window; window.globalThis = window; window.self = window;
   const ctx = vm.createContext(window);
-  vm.runInContext(code, ctx, { filename: "index.html#app" });
+  vm.runInContext(code, ctx, { filename: "src/ClaudeApp.jsx" });
   const out = window.__mayi;
   if (!out) throw new Error("App script ran but exported nothing");
   for (const k of EXPORTS) if (out[k] === undefined) throw new Error("Missing export: " + k);

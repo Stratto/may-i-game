@@ -2,3 +2,14 @@
 .claude/
 .impeccable/config.local.json
 .impeccable/review/
+node_modules/
+dist/
+# local tooling, not part of the app
+.agents/
+.codex/
+skills-lock.json
+.impeccable/references/
+art/_preview-fan.png
+art/fan-aces.webp
+docs/ui-kit/c-*.webp
+tests/e2e/shots/

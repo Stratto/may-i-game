@@ -1,8 +1,20 @@
 {
   "name": "may-i-game",
   "private": true,
-  "description": "May I? score keeper. A single-file PWA; no build step.",
+  "description": "May I? score keeper and companion. A React PWA built with Vite and published to GitHub Pages.",
   "scripts": {
-    "test": "node --test tests/*.test.js"
+    "dev": "vite --port 8743",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node --test tests/*.test.js",
+    "e2e": "python3 tests/e2e/tap.py"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^6.2.0"
   }
 }

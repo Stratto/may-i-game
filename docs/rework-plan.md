@@ -234,6 +234,36 @@ The owner asked for fresh thinking on the Play screen: what is the context, the 
   - "New game" names the table it is for ("New game at Friday night"). New game is another game for a table that exists; New table is a different group of people.
 - **Not done:** bigger table cards, a callout for what is close to being won, and anything on Play for a table's own look. The space is there for them.
 
+### What the checks missed, and how they changed (2026-11-18, after the push)
+
+The owner found on the live site: dead tabs on the start screen, broken toggles in House rules, and a start screen that no longer felt premium. All three had passed every check.
+
+**Why the checks passed**
+
+| What I did | Why it hid the fault |
+|---|---|
+| Pressed buttons by script | A script press works even when the button cannot receive a tap. The tab bar's buttons had taps switched off by an old page-level rule everywhere except Home and the Learn/Stats bar; I added the bar to three more screens and never tapped it for real. |
+| Tested at 390 by 844 | That is the whole phone. Safari shows about 660px. At that height the round screen hid its second row of faces under the main button. |
+| Looked at whole-screen pictures, shrunk | The switch knobs were 6px off-centre and too small for their pill. It is invisible at a quarter size and obvious at full size. |
+| Tested in Chrome's engine only | The phone runs Safari's. |
+| Trusted my own change | I reported the background lights as moved "on every screen". A later rule in the page still overrode it on most screens; only three had changed. |
+
+**What changed in the checks**
+
+- Every press in the regression suite is now a real, hit-tested tap: the control is scrolled into view, the browser is asked what is under its middle, and the click lands at that point. A covered control is reported as COVERED.
+- A second walk (`qa/real/audit.py`) runs in Safari's engine at iPhone 13's Safari size, 390 by 664, with real taps only, through every screen. At each stop every control in the top layer is hit-tested, and the round must fit without scrolling.
+- Components are looked at full size in that engine, not as thumbnails.
+- These are still not a phone. A real iPhone remains the only place the feel can be judged.
+
+**What was fixed**
+
+- The tab bar takes taps on every screen it appears on.
+- One switch size everywhere (84 by 44) with a knob that fits it.
+- House rules is set as a list of decisions: each rule has room around it, its control close under its name, one quiet line for what the choice means, and "Why?" opens a short note.
+- The start screen has the large crest again and no teaching card. The opening's crest settles onto it.
+- The round fits Safari's height: four players sit in one row there, the goal cards are a little smaller and the "Round guide" link (a second way to the book in the top bar) is dropped at that height. Eight players fit with nothing under the button.
+- The lights are two still pools of the look's colour in opposite corners, on every screen this time.
+
 **Decisions waiting on the owner (raised 2026-11-18)**
 
 - **Looks per table.** Recommended: yes. A look belongs to a table (its block on Home, its page, its games) and Play, Learn, Stats and Settings stay on the lagoon. No light mode: the art is drawn for a deep ground, and the need it would serve (reading in a bright room) is the Sunlight contrast switch that already exists. Not built.

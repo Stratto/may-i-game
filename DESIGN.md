@@ -1,6 +1,6 @@
 # Design: May I? · "Lagoon"
 
-Mode: Operate. A premium family card game in your pocket: deep teal water under a faint suit pattern, cream paper sheets, enamel buttons in gilt rims, and 3D icons for the moments that matter. Warm and crafted, never a casino. The reference for every screen is the kit at `docs/ui-kit.html`; this file records what has been built into `index.html`.
+Mode: Operate. A premium family card game in your pocket: deep teal water under a faint suit pattern, cream paper sheets, enamel buttons in gilt rims, and 3D icons for the moments that matter. Warm and crafted, never a casino. The reference for every screen is the kit at `docs/ui-kit.html`; this file records what has been built into the app (`index.html` holds the styles and SVG sprite, `src/ClaudeApp.jsx` the React app).
 
 **Rollout complete.** Every screen was rebuilt from the kit in five phases: (1) foundations, (2) Home and New game, (3) table, score pad and between rounds, (4) finale and results, (5) Learn, Stats, profile and cabinet, Settings, dressing room and Players. Lagoon, Game night, Lime and Cherry are mapped onto the kit's materials (`MAPPED_LOOKS`); Daylight shows Lagoon until it is mapped too.
 
@@ -101,8 +101,18 @@ Content max 720px. At 900px and up the game shows seats on the left and the roun
 ## Motion
 `--out-e: cubic-bezier(.16,.84,.3,1)` and `--spring: cubic-bezier(.34,1.3,.64,1)`. Seats rise in a stagger, totals count up, the intro card is dealt in with a spring and flips face up, May I? bumps and flies a card to the caller, points float up as they land, the out player's card hops with sparks, buttons press down, and the finale's fireworks and confetti play on a fresh finish or Replay only. Everything collapses under `prefers-reduced-motion`.
 
+## Files and build
+- `index.html`: the page, the kit styles (`<style id="kit">`, `<style id="kit-app">`) and the SVG sprite. It loads `src/main.jsx`.
+- `src/ClaudeApp.jsx`: the whole React app, with rules, scoring and stats inside it. `src/main.jsx` mounts it and registers the service worker.
+- `art/`: the one folder for images. The app asks for `art/...` at run time; the build copies it as-is.
+- `public/`: icons, `manifest.json` and `sw.js`, copied to the root of the build. Each build gives the service worker a new cache name, so there is nothing to bump by hand.
+- `npm run dev` serves on port 8743. `npm run build` writes `dist/`. Pushing to `main` runs `.github/workflows/pages.yml`, which tests, builds and publishes `dist/` to GitHub Pages.
+
 ## Testing
-`npm test` runs unit tests against the real script in index.html (rules, scoring, stats, coaching content). `tests/lab.html` plays scripted scenarios at small phone, phone, tablet portrait, tablet landscape and TV sizes, and checks for sideways scrolling, clipped text and tap targets under 44px.
+- `npm test` runs unit tests against the real app module (`src/ClaudeApp.jsx`): rules, scoring, stats and coaching content.
+- `npm run e2e` (with `npm run dev` running) walks the app in Safari's engine at 390 by 664, an iPhone's Safari height. Every press is a real tap at the point the browser says is on top. It checks that every visible control can be tapped, that each tab works, that a House rules switch changes, and that the round fits without scrolling. Screenshots go to `tests/e2e/shots/`.
+- `tests/lab.html` plays scripted scenarios at five sizes and checks for sideways scrolling, clipped text and tap targets under 44px.
+- None of these replaces a real phone: check each phase once on an iPhone.
 
 ## Don't
 Two controls for one action. Deep, offset or zero-blur shadows on buttons. Felt or velvet, poker terms, bets, coins, gems as currency, levels or rewards as currency: the gold and gems are trim, never money. Busy layouts. Anything childish. Gradient text. Eyebrow labels above headings. Modals where a sheet or inline state will do. Emoji icons in the interface. Fonts beyond Fraunces, Barlow and SF. Copying another game's branding, characters or art. Colour that isn't a material, a look token, a player or a state.
