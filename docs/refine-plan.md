@@ -53,11 +53,10 @@ Each phase is its own thread, in this order.
 - The tap checks now live in the repo: `npm run e2e` (`tests/e2e/tap.py`). The old scratch scripts were lost when the scratchpad was cleared.
 - DESIGN.md is restored, with Files and build and Testing sections added. A README has been added. The UI kit is published (version 68).
 
-**P1. The round (the moment used most)**
-- Add 2- and 8-player fits to `tests/e2e/tap.py`.
-- The score pad: keyboard support, skipping to the next unscored player, opaque sheets.
-- Check that the round fits at 664 px with 2, 4 and 8 players.
-- Buying ("May I?") and undo: tested with real taps.
+**P1. The round — done 22 Nov**
+- Already in the app: Enter in a score box jumps to the next empty box, marking someone Out moves the keyboard to the first empty hand, and you can type to count cards. Sheets were already opaque.
+- `npm run e2e` now plays a round with real taps, for 2, 4 and 8 players: buy, undo the buy from the toast, mark Out, type the scores, save, start round 2. It checks that each round screen fits at 390 by 664.
+- New: phones show each player's running total under their face once a round is scored, with the leader's in gold. On a short screen with eight players, the "Deals 10 each" and "Goes first" words give way to the totals (the D and 1st badges stay).
 
 **P2. Play / Home.** This needs your call on two questions:
 - Should the screen lead with the table or with the night?

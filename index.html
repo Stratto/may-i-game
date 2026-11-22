@@ -2909,6 +2909,12 @@ body:has(.kresults) .toast { top: auto; bottom: calc(20px + env(safe-area-inset-
 .kit .lr-crown { position: absolute; left: 50%; top: -13px; width: 28px; translate: -50% 0; rotate: -8deg; filter: drop-shadow(0 3px 3px rgba(0, 0, 0, .4)); pointer-events: none; animation: k-crownin .5s var(--spring) both; }
 .kit .lr-buys.dense .lr-crown { width: 22px; top: -10px; }
 @media (prefers-reduced-motion: reduce) { .kit .lr-crown { animation: none; } }
+
+/* P1: on a phone too, each face carries its running total once a round is scored, so standings read at a glance without opening the scores. Tablets keep their larger figure (below). */
+.kit.kround .lr-tot { display: block; margin-top: -2px; font: 700 1.05rem/1 var(--num); font-variant-numeric: tabular-nums; color: var(--on-bg2, #D9F3EC); }
+.kit.kround .lr-b:has(.lr-crown) .lr-tot { color: #FFE7A3; }
+/* Eight at a table on a short screen: once totals show, the D and 1st badges carry the deal, so the words under the faces give way to the numbers. */
+@media (max-height: 720px) { .kit.kround .lr-buys.dense .lr-b:has(.lr-tot) .lr-role { display: none; } .kit.kround .lr-buys.dense .lr-tot { font-size: .95rem; margin-top: -4px; } .kit.kround .lr-buys.dense .lr-b:has(.lr-tot) { min-height: 78px; } }
 @media (min-width: 700px) and (min-height: 600px) {
   .kit.kscreen.kround, .kit.kscreen.kround .ph-dock { max-width: 1180px; }
   .kit.kround > .ph-nav { padding-inline: 28px; }

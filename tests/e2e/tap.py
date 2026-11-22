@@ -31,6 +31,10 @@ def tap(p, loc, what):
     if not b: return fail(what + ": not visible")
     x, y = b["x"] + b["width"] / 2, b["y"] + b["height"] / 2
     ok = p.evaluate("([x, y, el]) => { const t = document.elementFromPoint(x, y); return !!t && (t === el || el.contains(t)); }", [x, y, loc.element_handle()])
+    if not ok:   # maybe only scrolled under a floating bar: bring it to the middle and look again
+        loc.evaluate("el => el.scrollIntoView({ block: 'center' })"); p.wait_for_timeout(150)
+        b = loc.bounding_box(); x, y = b["x"] + b["width"] / 2, b["y"] + b["height"] / 2
+        ok = p.evaluate("([x, y, el]) => { const t = document.elementFromPoint(x, y); return !!t && (t === el || el.contains(t)); }", [x, y, loc.element_handle()])
     if not ok: return fail(what + ": COVERED at its centre")
     p.mouse.click(x, y); p.wait_for_timeout(350)
     return True
@@ -54,6 +58,72 @@ def fits(p, where):
         who = p.evaluate("""() => { let best = null, b = 0; for (const el of document.body.querySelectorAll('*')) { const r = el.getBoundingClientRect(); if (r.bottom > b + 1 && r.height) { b = r.bottom; best = el; } }
           return best ? best.tagName.toLowerCase() + '.' + String(best.className).split(' ').join('.') + ' bottom ' + Math.round(b) : ''; }""")
         fail(where + ": " + str(over) + "px taller than the screen (lowest: " + who + ")")
+
+
+NAMES = ["Ana", "Ben", "Cy", "Di", "Eve", "Fin", "Gus", "Hal"]
+
+def fresh(br):
+    ctx = br.new_context(viewport={"width": 390, "height": 664}, device_scale_factor=2)
+    p = ctx.new_page()
+    p.on("pageerror", lambda e: errors.append(str(e)))
+    p.on("console", lambda m: m.type == "error" and errors.append(m.text))
+    p.add_init_script("sessionStorage.setItem('mayi:intro', '1')")
+    p.goto(URL); p.wait_for_timeout(1200)
+    return ctx, p
+
+def dock(p):
+    return p.locator(".ph-dock button:visible:not(.tab)").first
+
+def game(br, n, full):
+    print("round for %d" % n)
+    ctx, p = fresh(br)
+    box = p.get_by_role("textbox", name="Add a player's name")
+    tap(p, box, "name box")                     # one tap; Enter keeps the field focused, as on a phone
+    for name in NAMES[:n]:
+        p.keyboard.type(name); p.keyboard.press("Enter"); p.wait_for_timeout(120)
+    p.keyboard.press("Escape")
+    tap(p, dock(p), "deal button"); p.wait_for_timeout(900)
+    for label in ["I know the game", "Let's play", "Skip"]:
+        b = p.get_by_role("button", name=label)
+        if b.count() and b.first.is_visible(): tap(p, b, label); p.wait_for_timeout(700)
+    shot(p, "05-round-%d" % n)
+    if not p.locator(".kround").count(): fail("round %d: did not reach the round screen" % n); ctx.close(); return
+    fits(p, "round with %d" % n); covered_controls(p, "round with %d" % n)
+    if not full: ctx.close(); return
+
+    if n == 4:
+     print("  buy and undo")
+     face = p.locator(".lr-buys .lr-b").nth(1)
+     before = face.get_attribute("aria-label") or ""
+     tap(p, face, "buy on " + NAMES[1]); p.wait_for_timeout(300)
+     after = face.get_attribute("aria-label") or ""
+     if after == before: fail("buy: face label did not change after a tap (" + before + ")")
+     shot(p, "06-after-buy"); fits(p, "after a buy")
+     toast = p.locator(".lr-toast")
+     if not toast.count(): fail("buy: no toast with undo")
+     else:
+         tap(p, toast, "undo toast"); p.wait_for_timeout(300)
+         if (face.get_attribute("aria-label") or "") != before: fail("undo: buy was not taken back")
+
+    print("  score the round")
+    tap(p, dock(p), "score button"); p.wait_for_timeout(700); shot(p, "07-score-pad")
+    outs = p.locator(".ls-out")
+    if not outs.count(): fail("score pad: no Out buttons"); ctx.close(); return
+    tap(p, outs.first, "Out for " + NAMES[0])
+    for i, v in enumerate([str(5 + 10 * j) for j in range(n - 1)]):
+        inp = p.locator(".ls-in").nth(i + 1)
+        tap(p, inp, "score box"); p.keyboard.type(v); p.keyboard.press("Enter")
+    p.wait_for_timeout(300); shot(p, "08-scores-in")
+    btns = [b.inner_text().strip() for b in p.locator("button:visible").all() if b.inner_text().strip()]
+    save = p.get_by_role("button", name=re.compile("^(Save|Done|Next round|Finish round)", re.I))
+    if not save.count(): fail("score pad: no save button among " + repr(btns[-6:])); ctx.close(); return
+    tap(p, save, "save scores"); p.wait_for_timeout(1200); shot(p, "09-after-save")
+    nxt = p.get_by_role("button", name=re.compile("Start round 2|Let's play", re.I))
+    if nxt.count(): tap(p, nxt, "start round 2"); p.wait_for_timeout(1200)
+    shot(p, "10-round-2-%d" % n)
+    if not p.get_by_text("Round 2 of 7").count(): fail("did not reach round 2")
+    else: fits(p, "round 2 with %d" % n)
+    ctx.close()
 
 with sync_playwright() as pw:
     br = pw.webkit.launch()
@@ -87,21 +157,9 @@ with sync_playwright() as pw:
         closer = p.get_by_role("button", name=re.compile("^(Done|Close)$"))
         if closer.count() and closer.first.is_visible(): tap(p, closer, "close house rules")
 
-    print("deal a game for four")
-    box = p.get_by_role("textbox", name="Add a player's name")
-    for n in ["Ana", "Ben", "Cy", "Di"]:
-        tap(p, box, "name box"); p.keyboard.type(n); p.keyboard.press("Enter"); p.wait_for_timeout(150)
-    p.keyboard.press("Escape"); shot(p, "04-names")
-    deal = p.locator(".ph-dock button").first
-    print("  main button: " + repr(deal.inner_text().strip()))
-    tap(p, deal, "main button")
-    p.wait_for_timeout(900)
-    for label in ["I know the game", "Let's play", "Skip"]:          # coaching question / intro card, if shown
-        b = p.get_by_role("button", name=label)
-        if b.count() and b.first.is_visible(): tap(p, b, label); p.wait_for_timeout(700)
-    shot(p, "05-round")
-    if not p.locator(".kround, .kscore").count(): fail("round: did not reach the round screen")
-    fits(p, "round with 4"); covered_controls(p, "round")
+    br_ctx = (br, ctx)
+    for n in (4, 2, 8):
+        game(br, n, full=(n != 2))
 
     print("errors")
     for e in errors: fail("page error: " + e[:160])
