@@ -2269,12 +2269,14 @@ function Recap({ s, game, go, setToast, rematch, onDelete, onReopen, onTable, se
   }
   const sameTable = game.players.filter(id => group.players.some(p => p.id === id)).length >= 2;
   const [take, setTake] = useState(fresh ? 1 : 0), [more, setMore] = useState(false);
-  const hl = nightHighlights(game, pl), winners = top.map(t => pl(t.id));
+  const hl = nightHighlights(game, pl, true), winners = top.map(t => pl(t.id));
   const names = winners.map(p => p.name), title = names.length > 1 ? names.slice(0, -1).join(", ") + " and " + names[names.length - 1] + " win!" : names[0] + " wins!";
   const winCard = p => { const av = avOf(p.avatar, p.name), c = av.type === "card" && cardOfAv(av.card);
     return c ? (c.key === "joker" ? ce(DeckCard, { joker: true }) : ce(DeckCard, { rank: c.rank.toUpperCase(), suit: c.suit }))
       : ce(DeckCard, { mono: (p.name || "?").trim().charAt(0).toUpperCase(), photo: av.type === "photo" ? av.src : null, color: peg(p.color).c }); };
-  const wh = hl[top[0].id];
+  // Every award the game handed out, rarest first, each with who took it. They get their own section, so the rows above say something else.
+  const aws = gameAwards(game).filter(a => a.id && AWARDS[a.key]).sort((x, y) => AWARDS[y.key].r - AWARDS[x.key].r).map(a => ({ a, A: AWARDS[a.key], p: pl(a.id) }));
+  const wh = !aws.length && hl[top[0].id];
   const [ask, setAsk] = useState(() => {
     if (!fresh || game.status !== "done" || !settings) return null;
     if (group.auto && onTable) return "name";
@@ -2304,6 +2306,19 @@ function Recap({ s, game, go, setToast, rematch, onDelete, onReopen, onTable, se
       take > 0 && ce(FinaleFX)),
     fresh && ce(PlayOnce, { fn: () => sound("win") }),
     rest.length > 0 && ce(Leaderboard, { rows: rest, from: 1 + top.length, dealIn: fresh, label: "The rest of the table" }),
+    aws.length > 0 && ce("section", { className: "lb-aws" + (fresh && !reducedMotion() ? " in" : ""), "aria-labelledby": "lbAwsH" },
+      ce("h2", { id: "lbAwsH" }, "Awards", ce("small", null, stPlural(aws.length, "award") + " handed out")),
+      // The four rarest are big, with how they were won; any more sit in a smaller row underneath so a big night stays one screen of medals.
+      ce("ul", null, aws.slice(0, 4).map(({ a, A, p }, i) => ce("li", { key: a.key + ":" + a.id, style: { "--i": i } },
+        ce("span", { className: "lb-medal", "aria-hidden": true }, ce("img", { src: "art/icons/" + A.art + ".webp", alt: "" })),
+        ce("b", { className: "lb-awt" }, A.t),
+        ce("span", { className: "lb-awwho" }, ce(Tok, { p }), p.name),
+        ce("small", null, (a.d || A.how || "").replace(/\.$/, ""))))),
+      aws.length > 4 && ce("ul", { className: "lb-awsm" }, aws.slice(4).map(({ a, A, p }, i) => ce("li", { key: a.key + ":" + a.id, style: { "--i": i + 4 } },
+        ce("span", { className: "lb-medal", "aria-hidden": true }, ce("img", { src: "art/icons/" + A.art + ".webp", alt: "" })),
+        ce("b", { className: "lb-awt" }, A.t),
+        ce("span", { className: "lb-awwho" }, ce(Tok, { p }), p.name),
+        ce("span", { className: "vh" }, ". " + (a.d || A.how || "")))))),
     leftRows.length > 0 && ce("section", { className: "lb-left", "aria-label": "Left early" }, ce("h2", null, "Left early"),
       ce("ul", null, leftRows.map(r => ce("li", { key: r.id }, ce(Tok, { p: r.p }), ce("span", null, ce("b", null, r.p.name), ce("small", null, r.from != null ? "Sat out from round " + (r.from + 1) : "Left the game")), ce("em", null, r.total))))),
     ce("div", { className: "lb-sect lb-endsect" },
@@ -2363,8 +2378,9 @@ function ScoreSheet({ game, pl, onRound, fixable, plain }) {
     late.map(id => ce("p", { key: id, className: "ss-note" }, pl(id).name + " joined in round " + (game.joined[id] + 1) + ", starting on " + rounds.filter(i => i < game.joined[id]).reduce((t, i) => t + (num(i, id) || 0), 0) + ".")));
 }
 // Every player's highlight of the night, from the game's awards; nobody gets a blank row, and last place gets a kind one.
-function nightHighlights(game, pl) {
-  const out = {}, aw = [...gameAwards(game)].sort((x, y) => AWARDS[y.key].r - AWARDS[x.key].r);
+// With facts set, it skips the awards (Results shows those in their own section) and gives every player a plain fact from the scores.
+function nightHighlights(game, pl, facts) {
+  const out = {}, aw = facts ? [] : [...gameAwards(game)].sort((x, y) => AWARDS[y.key].r - AWARDS[x.key].r);
   aw.forEach(a => { if (a.id && !out[a.id] && AWARDS[a.key]) out[a.id] = { ic: AWARDS[a.key].art || a.key, hl: AWARDS[a.key].t + " · " + (a.d || AWARDS[a.key].how || "").replace(/^./, c => c.toLowerCase()) }; });
   game.players.forEach(id => {
     if (out[id]) return;

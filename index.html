@@ -2286,6 +2286,28 @@ if (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIn
 .kit.kresults .fin-confetti { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
 .kit .gm-sheet .gm-danger { justify-self: center; }
 .kit.kresults .lb-endsect { padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px)); }
+/* Results: the awards, one round medal each, two across on a phone. No boxes: the gold ring is the frame. */
+.kit .lb-aws { padding: 28px 16px 0; display: grid; gap: 16px; }
+.kit .lb-aws h2 { margin: 0; display: flex; align-items: baseline; gap: 10px; font: 800 1.25rem/1.1 var(--display); color: var(--on-bg); }
+.kit .lb-aws h2 small { font: 600 .86rem/1 var(--font); color: var(--on-bg2); }
+.kit .lb-aws ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px 14px; }
+.kit .lb-aws li { display: grid; justify-items: center; align-content: start; gap: 5px; text-align: center; min-width: 0; }
+.kit .lb-medal { width: 92px; height: 92px; border-radius: 50%; display: grid; place-items: center; margin-bottom: 4px;
+  background: radial-gradient(circle at 50% 38%, rgba(108, 233, 191, .28), rgba(var(--k-panel), .85) 70%);
+  box-shadow: 0 0 0 3px #E9C46A, 0 0 0 5px rgba(122, 90, 30, .55), 0 10px 22px rgba(0, 0, 0, .28), inset 0 2px 0 rgba(255, 255, 255, .18); }
+.kit .lb-medal img { width: 68px; height: 68px; object-fit: contain; filter: drop-shadow(0 3px 4px rgba(0, 0, 0, .3)); }
+.kit .lb-awt { font: 800 1.05rem/1.15 var(--display); color: #FFE7A3; text-wrap: balance; }
+.kit .lb-awwho { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; font: 700 .92rem/1.2 var(--font); color: var(--on-bg); }
+.kit .lb-awwho .tok { width: 24px; height: 24px; flex: none; }
+.kit .lb-aws li small { font: 500 .82rem/1.3 var(--font); color: var(--on-bg2); text-wrap: pretty; }
+.kit .lb-aws.in li { animation: pop .5s cubic-bezier(.3, 1.5, .5, 1) both; animation-delay: calc(1.1s + var(--i) * .14s); }
+.kit .lb-aws ul.lb-awsm { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px 8px; margin-top: 6px; }
+.kit .lb-awsm .lb-medal { width: 58px; height: 58px; margin-bottom: 2px; box-shadow: 0 0 0 2px #E9C46A, 0 0 0 3.5px rgba(122, 90, 30, .55), 0 6px 14px rgba(0, 0, 0, .24); }
+.kit .lb-awsm .lb-medal img { width: 42px; height: 42px; }
+.kit .lb-awsm .lb-awt { font-size: .8rem; }
+.kit .lb-awsm .lb-awwho { font-size: .76rem; gap: 4px; }
+.kit .lb-awsm .lb-awwho .tok { width: 18px; height: 18px; }
+@media (min-width: 700px) { .kit .lb-aws ul.lb-awsm { grid-template-columns: repeat(6, minmax(0, 1fr)); } .kit .lb-aws ul { grid-template-columns: repeat(4, minmax(0, 1fr)); } .kit .lb-medal { width: 112px; height: 112px; } .kit .lb-medal img { width: 84px; height: 84px; } }
 .kit .lb-wtok { box-shadow: 0 0 0 4px var(--gold, #E4C27A), 0 14px 28px rgba(0, 0, 0, .38); }
 
 /* ── Home (app) ── */

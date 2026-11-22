@@ -145,6 +145,15 @@ def returning(br):
     if p.get_by_role("button", name="New game at Friday night").count() != 1: fail("play: expected exactly one 'New game at Friday night' (the dock)")
     tap(p, p.locator(".lc-tcard .blk").nth(1), "Friday night card"); p.wait_for_timeout(700); shot(p, "13-table-friday")
     if p.locator(".khome").count(): fail("table card: tap did not open the table")
+    # Results: the awards have their own section, and the rows above never repeat an award's name.
+    p.goto(URL); p.wait_for_timeout(1300)
+    if tap(p, p.locator(".lc-moment"), "last game"):
+        p.wait_for_timeout(900); shot(p, "14-results")
+        if not p.locator(".lb-aws li").count(): fail("results: no awards section")
+        titles = p.locator(".lb-awt").all_inner_texts(); rows = " ".join(p.locator(".ldr").all_inner_texts() + p.locator(".finale").all_inner_texts())
+        for t in titles:
+            if t in rows: fail("results: award " + repr(t) + " also named in the standings")
+        covered_controls(p, "results")
     ctx.close()
 
 with sync_playwright() as pw:
