@@ -125,6 +125,28 @@ def game(br, n, full):
     else: fits(p, "round 2 with %d" % n)
     ctx.close()
 
+def returning(br):
+    print("returning player (two tables)")
+    ctx = br.new_context(viewport={"width": 390, "height": 664}, device_scale_factor=2)
+    p = ctx.new_page()
+    p.on("pageerror", lambda e: errors.append(str(e)))
+    seed = open(os.path.join(HERE, "seed.js")).read()
+    p.add_init_script(seed + "\nsessionStorage.setItem('mayi:intro','1'); if (!sessionStorage.getItem('seeded')) { __mayiSeed({}); sessionStorage.setItem('seeded','1'); }")
+    p.goto(URL); p.wait_for_timeout(1300); shot(p, "11-play-returning")
+    covered_controls(p, "play (returning)")
+    first = p.locator(".lc-tables .lc-tcard").first
+    if "Family" not in first.inner_text(): fail("play: the first table card is not Family: " + repr(first.inner_text()[:40]))
+    pill = p.get_by_role("button", name="New game at Family")
+    if not pill.count(): fail("play: no New game pill on Family")
+    elif tap(p, pill, "New game at Family"):
+        p.wait_for_timeout(600); shot(p, "12-new-game-family")
+        if not p.get_by_text("Family").count(): fail("new game sheet: Family not shown")
+        p.keyboard.press("Escape"); p.wait_for_timeout(500)
+    if p.get_by_role("button", name="New game at Friday night").count() != 1: fail("play: expected exactly one 'New game at Friday night' (the dock)")
+    tap(p, p.locator(".lc-tcard .blk").nth(1), "Friday night card"); p.wait_for_timeout(700); shot(p, "13-table-friday")
+    if p.locator(".khome").count(): fail("table card: tap did not open the table")
+    ctx.close()
+
 with sync_playwright() as pw:
     br = pw.webkit.launch()
     ctx = br.new_context(viewport={"width": 390, "height": 664}, device_scale_factor=2, has_touch=False)
@@ -158,6 +180,7 @@ with sync_playwright() as pw:
         if closer.count() and closer.first.is_visible(): tap(p, closer, "close house rules")
 
     br_ctx = (br, ctx)
+    returning(br)
     for n in (4, 2, 8):
         game(br, n, full=(n != 2))
 

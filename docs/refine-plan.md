@@ -58,9 +58,10 @@ Each phase is its own thread, in this order.
 - `npm run e2e` now plays a round with real taps, for 2, 4 and 8 players: buy, undo the buy from the toast, mark Out, type the scores, save, start round 2. It checks that each round screen fits at 390 by 664.
 - New: phones show each player's running total under their face once a round is scored, with the leader's in gold. On a short screen with eight players, the "Deals 10 each" and "Goes first" words give way to the totals (the D and 1st badges stay).
 
-**P2. Play / Home.** This needs your call on two questions:
-- Should the screen lead with the table or with the night?
-- Do you want a quick-start card?
+**P2. Play / Home — done 22 Nov (owner chose: lead with the table)**
+- Tables come first, and the last game moves under them. Each table card shows who holds it, who won last, its faces, and a one-tap New game pill (except the table the dock button already names).
+- The pill acts as the quick start, so there is no separate quick-start card.
+- `npm run e2e` seeds a returning player with two tables (`tests/e2e/seed.js`). It checks the order, the pill, that "New game at Friday night" appears only once, and that tapping a card opens the table.
 
 **P3. Between rounds and results.** Cut repeated text and give the awards their moment.
 

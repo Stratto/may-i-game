@@ -1332,22 +1332,25 @@ function Home({ s, open, go, sync, onFirst }) {
           lcard && ce("span", { className: "lc-now-c", "aria-hidden": true }, ce(DeckCard, faceProps(lav.card))),
           ce("span", { className: "foot" }, ce("span", { className: "avs" }, game.players.slice(0, 6).map(id => ce(Tok, { key: id, p: pl(id) }))), ce("span", { className: "grow" }),
             ce("span", { className: "lc-resume" }, "Resume", kIcon("chev", "chev")))); }),
-      // Nothing in play: the last game leads. While a game is going it waits under the tables.
-      !lives.length && last && ce(LastGame, { s, game: last, go, withTable: true, activeGroup: null }),
+      // Tables lead (owner's call, 22 Nov): a returning table finds itself first. The last game sits under the tables.
       ce("div", { className: "lc-hact" }, ce("h2", { className: "lc-h" }, groups.length === 1 ? "The table" : "Tables"),
         ce("button", { className: "qp", onClick: () => go({ at: "newtable" }) }, kIcon("plus"), "New table")),
-      ce("div", { className: "blocks lc-blocks" },
+      ce("div", { className: "lc-tables" },
         groups.map((g, i) => { const st = groupStats(s, g.id), board = Object.entries(st.wins).sort((a, b) => b[1] - a[1]);
           const champ = board[0] && !(board[1] && board[1][1] === board[0][1]) && g.players.find(p => p.id === board[0][0]);
           const av = champ && avOf(champ.avatar, champ.name), card = av && av.type === "card" && cardOfAv(av.card);
-          const line = champ ? champ.name + " holds it · " + stPlural(board[0][1], "win") : st.games.length ? stPlural(st.games.length, "game") + " · all square" : st.live ? "First game under way" : stPlural(g.players.length, "player") + " · no games yet";
-          return ce("button", { key: g.id, className: "blk " + BLK[i % BLK.length], onClick: () => go({ at: "group", groupId: g.id }), "aria-label": g.name + ": " + line },
-            ce("span", null, ce("b", null, g.name), ce("small", null, line)),
-            ce("span", { className: "avs" }, g.players.slice(0, 3).map(p => ce(Tok, { key: p.id, p }))),
-            champ && (card ? ce("span", { className: "lc-champ-c", "aria-hidden": true }, ce(DeckCard, faceProps(av.card))) : ce(Tok, { p: champ, cls: "lc-champ-t" })),
-            champ && ce("img", { className: "lc-crown", src: "art/crown.webp", alt: "" })); }),
-        null),
-      lives.length > 0 && last && ce(LastGame, { s, game: last, go, withTable: true, activeGroup: cur ? cur.g : null }),
+          const line = champ ? champ.name + " holds it · " + stPlural(board[0][1], "win") : st.games.length ? stPlural(st.games.length, "game") + " · all square" : st.live ? "First game under way" : stPlural(g.players.length, "player");
+          const lastG = Object.values(s.games).filter(x => x.groupId === g.id && x.status === "done").sort((a, b) => b.endedAt - a.endedAt)[0];
+          const lw = lastG && (() => { const r = rankOf(lastG), top = r.filter(x => x.total === r[0].total), lp = plOf(g, lastG); return (top.length > 1 ? "Shared last game" : lp(top[0].id).name + " won last") + " · " + ago(lastG.endedAt); })();
+          const playing = lives.some(x => x.g.id === g.id), isDock = !lives.length && nextT && nextT.id === g.id;
+          return ce("div", { key: g.id, className: "lc-tcard" },
+            ce("button", { className: "blk " + BLK[i % BLK.length], onClick: () => go({ at: "group", groupId: g.id }), "aria-label": g.name + ": " + line + (lw ? ". " + lw : "") + ". Open the table" },
+              ce("span", { className: "lc-tt" }, ce("b", null, g.name), ce("small", null, line), lw && ce("small", { className: "lc-tlast" }, lw)),
+              ce("span", { className: "avs" }, g.players.slice(0, 4).map(p => ce(Tok, { key: p.id, p }))),
+              champ && (card ? ce("span", { className: "lc-champ-c", "aria-hidden": true }, ce(DeckCard, faceProps(av.card))) : ce(Tok, { p: champ, cls: "lc-champ-t" })),
+              champ && ce("img", { className: "lc-crown", src: "art/crown.webp", alt: "" })),
+            !playing && !isDock && ce("button", { className: "lc-tnew", onClick: () => { haptic(8); open("newgame", { groupId: g.id }); }, "aria-label": "New game at " + g.name }, kIcon("plus"), "New game")); })),
+      last && ce(LastGame, { s, game: last, go, withTable: true, activeGroup: cur ? cur.g : null }),
       syncOn && ce("button", { className: "link lc-join", onClick: () => open("join") }, "Join a table with a code")),
     ce("div", { className: "ph-dock lc-dock-home" + (lives.length ? " bare" : "") },
       // One main action: while a game is going, its card is the way back in, so the dock is only the tabs. Otherwise: start one.

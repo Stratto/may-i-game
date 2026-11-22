@@ -3585,6 +3585,25 @@ html.calm .kit.kfirst:not(.ksub) .lc-first { transition: none; }
 /* The lights are still: two soft pools of the look's colour in opposite corners, painted as plain gradients. No blur layer and no movement, so nothing can smear or glitch behind the content, and it costs no battery. */
 .ground::before, .kit.kscreen.kscore::before, .kit.kscreen.kbetween::before, .kit.kport.kpage::before { inset: 0; filter: none; animation: none; will-change: auto; transform: none; opacity: 1;
   background: radial-gradient(120% 62% at 0% 0%, rgba(var(--orb1, 126,238,204), .3), transparent 62%), radial-gradient(110% 52% at 100% 100%, rgba(var(--orb1, 126,238,204), .14), transparent 62%); }
+
+/* P2, tables first: each table is a full-width enamel card. Name, who holds it, who won last, the faces, and a cream New game pill
+   (the table the dock button names goes without, so there is never a second button for the same thing). */
+.kit .lc-tables { display: grid; gap: 14px; }
+.kit .lc-tcard { position: relative; }
+.kit .lc-tcard .blk { width: 100%; min-height: 0; padding: 16px 112px 16px 18px; display: grid; gap: 12px; align-content: start; color: var(--on-bg); overflow: hidden; }
+.kit .lc-tcard .blk .lc-tt, .kit .lc-tcard .blk .avs { position: relative; z-index: 1; }
+.kit .lc-tcard .blk b { font-size: 1.4rem; }
+.kit .lc-tcard .blk small { margin-top: 4px; font-size: .95rem; }
+.kit .lc-tcard .blk .lc-tlast { margin-top: 2px; color: rgba(255, 247, 226, .74); }
+.kit .lc-tcard .blk:has(+ .lc-tnew) { padding-bottom: 66px; }
+.kit .lc-tcard .lc-champ-c { right: 6px; bottom: auto; top: 14px; width: 84px; rotate: 9deg; }
+.kit .lc-tcard .lc-crown { right: 44px; top: 4px; bottom: auto; }
+.kit .lc-tnew { position: absolute; left: 18px; bottom: 14px; z-index: 2; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 18px 0 14px; border-radius: 999px;
+  font: 800 1rem/1 var(--display); color: var(--paper-ink, #0F3247); background: linear-gradient(180deg, var(--paper-hi, #FFFBEF), var(--paper, #FBF0D6)); border: 2px solid var(--gold, #E9B44C);
+  box-shadow: inset 0 -3px 0 rgba(168, 111, 27, .35); }
+.kit .lc-tnew svg { width: 16px; height: 16px; }
+.kit .lc-tnew:active { translate: 0 2px; box-shadow: inset 0 -1px 0 rgba(168, 111, 27, .35); }
+.kit .khome .lc-lastgame { margin-top: 8px; }
 </style>
 </head>
 <body>
