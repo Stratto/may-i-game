@@ -19,5 +19,5 @@ Pushing to `main` tests, builds and publishes to GitHub Pages (`.github/workflow
 ## Where things are
 
 - `DESIGN.md`: the design as built. `docs/ui-kit.html`: the UI kit and screens.
-- `docs/rework-plan.md`: decisions and history. `docs/refine-plan.md`: what's next.
+- `docs/refine-plan.md`: what's done, what's next and the open backlog. Older plans are in git history.
 - `index.html`: styles and sprite. `src/ClaudeApp.jsx`: the app. `art/`: all images. `public/`: icons, manifest, service worker.

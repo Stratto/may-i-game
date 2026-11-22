@@ -95,7 +95,7 @@ Three faces from Google Fonts plus the system face. **Fraunces** (`--display`, 6
 - **Player editor:** rows with a 46px avatar wearing a teal hanger badge (opens the dressing room), the name on a dotted line that turns into a rimmed field when focused, and a cream round bin. The add row is a dashed circle, "Add a player" and an Add pill. New table names use a labelled field with a soft rim.
 - **Credits:** the end of Settings credits Fraunces (Undercase Type) and Barlow (Jeremy Tribby), both OFL.
 - **Ground:** a fixed layer behind everything: a radial teal gradient, two soft lights orbiting slowly (still under reduced motion), and the suit tile (`art/suit-tile.webp`) as an 11% mask. Only `<html>` paints a colour, so nothing covers it.
-- **Sharing (paused):** Share and Join are hidden until the sync server is switched on; no control leads to a dead end.
+- **Sharing (parked):** there is no Share or Join. The merge rules for two copies of a table (`mergeGame`, `applyDoc`) stay, tested, for if it comes back.
 
 ## Layout
 Content max 720px. At 900px and up the game shows seats on the left and the round grid on the right, the Rules sheet lists the rounds by name beside the guide, and Home and the table page widen to 1040px in two columns: Home's hero spans both and sits side by side (wordmark, status and New game on the left, the hand on the right), then Playing now beside Tables, and Standings beside Records. Scoreboard mode fills the screen with the band and large seats.

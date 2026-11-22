@@ -25,8 +25,6 @@ const ce = React.createElement;
    ================================================================ */
 
 // ── Live sharing (Supabase). Leave blank to run on this device only. ─
-const SUPABASE_URL = "";
-const SUPABASE_ANON_KEY = "";
 const SUPPORT_URL = "https://ko-fi.com/mayigame";
 
 // ── Storage ───────────────────────────────────────────────────────
@@ -946,15 +944,8 @@ function useStore() {
   return [s, api];
 }
 
-// ── Sync: one document per group, last write wins ─────────────────
-const syncOn = !!(SUPABASE_URL && SUPABASE_ANON_KEY);
-let sbPromise = null;
-function sb() {
-  if (!syncOn) return Promise.resolve(null);
-  if (!sbPromise) sbPromise = import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm").then(m => m.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)).catch(() => null);
-  return sbPromise;
-}
-const docOf = (s, gid) => ({ group: s.groups[gid], games: Object.values(s.games).filter(g => g.groupId === gid), updatedAt: s.groups[gid].updatedAt });
+// ── Merging two copies of a table ─────────────────────────────────
+// Not used while live sharing is parked; kept (and tested) for when it comes back.
 // Two phones scoring the same game: the newer copy wins a clash, but a score,
 // buy or counted hand that only one side has is kept, so no round is lost.
 function mergeGame(a, b) {
@@ -971,55 +962,6 @@ function applyDoc(x, doc) {
   const group = cur && cur.updatedAt >= doc.updatedAt ? cur : doc.group;
   return { ...x, groups: { ...x.groups, [gid]: group }, games, groupOrder: x.groupOrder.includes(gid) ? x.groupOrder : [...x.groupOrder, gid] };
 }
-function useSync(s, api) {
-  const [status, setStatus] = useState(syncOn ? "connecting" : "local");
-  const chans = useRef({}), sent = useRef({});
-  useEffect(() => {
-    if (!syncOn) return;
-    sb().then(c => {
-      if (!c) { setStatus("offline"); return; }
-      s.groupOrder.forEach(gid => {
-        const code = s.groups[gid] && s.groups[gid].code; if (!code || chans.current[gid] || s.groups[gid].local) return;
-        const ch = c.channel("mayi-" + code, { config: { broadcast: { self: false } } });
-        ch.on("broadcast", { event: "doc" }, m => api.set(x => applyDoc(x, m.payload))).subscribe(st => st === "SUBSCRIBED" && setStatus("live"));
-        chans.current[gid] = ch;
-        c.rpc("mayi_get_group", { p_code: code }).then(({ data }) => { if (data) api.set(x => applyDoc(x, data)); });
-      });
-    });
-  }, [s.groupOrder.join()]);
-  // Push changes; a failed push is forgotten so it retries on the next change, the next 15s tick, or when the phone comes back online.
-  const [tick, setTick] = useState(0);
-  useEffect(() => {
-    if (!syncOn) return;
-    const on = () => setTick(t => t + 1), off = () => setStatus("offline");
-    addEventListener("online", on); addEventListener("offline", off);
-    const iv = setInterval(() => status === "offline" && on(), 15000);
-    return () => { removeEventListener("online", on); removeEventListener("offline", off); clearInterval(iv); };
-  }, [status]);
-  useEffect(() => {
-    if (!syncOn) return;
-    const t = setTimeout(() => sb().then(c => {
-      if (!c) return;
-      s.groupOrder.forEach(gid => {
-        const g = s.groups[gid]; if (!g || g.local || sent.current[gid] === g.updatedAt) return;
-        sent.current[gid] = g.updatedAt; const doc = docOf(s, gid);
-        c.rpc("mayi_put_group", { p_code: g.code, p_doc: doc }).then(({ error }) => { if (error) { delete sent.current[gid]; setStatus("offline"); } else setStatus("live"); }, () => { delete sent.current[gid]; setStatus("offline"); });
-        chans.current[gid] && chans.current[gid].send({ type: "broadcast", event: "doc", payload: doc });
-      });
-    }), 350);
-    return () => clearTimeout(t);
-  }, [s, tick]);
-  return status;
-}
-async function joinByCode(code, api) {
-  const c = await sb(); if (!c) return "Live sharing isn't switched on in this copy of the app yet.";
-  const { data, error } = await c.rpc("mayi_get_group", { p_code: code.toUpperCase() });
-  if (error) return "Couldn't reach the server. Check the connection and try again.";
-  if (!data) return "No group uses the code " + code.toUpperCase() + ". Check the letters and try again.";
-  api.set(x => applyDoc({ ...x, groups: { ...x.groups, [data.group.id]: undefined } }, { ...data, updatedAt: Infinity }));
-  return null;
-}
-
 /* ================================================================
    v7 "Game Night": iOS chrome, dotted band, seats, looks
    ================================================================ */
@@ -1191,7 +1133,6 @@ function List({ header, footer, children }) {
    ================================================================ */
 function App() {
   const [raw, api] = useStore(), s = useMemo(() => dealFaces(raw), [raw]);
-  const sync = useSync(s, api);
   const wide = useMedia("(min-width: 900px)"), desk = useMedia("(min-width: 1100px)");
   const [settings, setSettings] = useState(loadSettings);
   useEffect(() => { saveJSON(SETTINGS_KEY, settings); soundOn = settings.sound !== false;
@@ -1220,7 +1161,6 @@ function App() {
   };
   // Rematch: same players and rules, the deal moves one seat left.
   const rematch = g => { const ids = g.players.filter(id => s.groups[g.groupId].players.some(p => p.id === id)); if (ids.length < 2) return open("newgame", { groupId: g.groupId, rules: g.rules }); startGame(g.groupId, ids, (g.dealer + 1) % ids.length, g.rules); };
-  useEffect(() => { const q = new URLSearchParams(location.search).get("join"); if (q) { history.replaceState(null, "", location.pathname); setSheet({ type: "join", code: q }); } }, []);
   useEffect(() => { scrollTo(0, 0); }, [view.at, view.groupId, view.gameId]);
   // Headers sit on the background; once the page scrolls under one it frosts over.
   useEffect(() => { const f = () => document.documentElement.classList.toggle("scrolled", scrollY > 8); addEventListener("scroll", f, { passive: true }); f(); return () => removeEventListener("scroll", f); }, []);
@@ -1238,8 +1178,8 @@ function App() {
 
   let screen;
   const g = view.gameId && s.games[view.gameId], grp = view.groupId && s.groups[view.groupId];
-  if (view.at === "group" && grp) screen = ce(GroupPage, { s, group: grp, open, go, sync });
-  else if (view.at === "newtable") screen = ce(FirstRun, { onDeal: firstGame, go, open, sync, sub: true, taken: Object.values(s.groups).map(x => x.name) });
+  if (view.at === "group" && grp) screen = ce(GroupPage, { s, group: grp, open, go });
+  else if (view.at === "newtable") screen = ce(FirstRun, { onDeal: firstGame, go, open, sub: true, taken: Object.values(s.groups).map(x => x.name) });
   else if (view.at === "game" && g) screen = ce(GameScreen, { s, api, game: g, open, go, wide, setToast, level: settings.level, fixAsk: view.fix != null ? view.fix + ":" + view.k : null });
   else if (view.at === "recap" && g) screen = ce(Recap, { s, game: g, go, setToast, rematch, settings, setSettings, onTable: patch => api.group(g.groupId, x => ({ ...x, ...patch })),
     onReopen: g.status === "done" && !Object.values(s.games).some(x => x.groupId === g.groupId && x.status === "live") ? () => {
@@ -1250,16 +1190,14 @@ function App() {
     onRestore: st => withUndo("Backup loaded", () => api.set(() => st)) });
   else if (view.at === "learn") screen = ce(LearnPage, { s, open, go });
   else if (view.at === "stats") screen = ce(StatsPage, { s, open, go });
-  else screen = ce(Home, { s, open, go, sync, onFirst: firstGame });
+  else screen = ce(Home, { s, open, go, onFirst: firstGame });
   const topLevel = !(view.at === "group" && grp) && !(view.at === "game" && g) && !(view.at === "recap" && g);
 
   let sheetEl = null;
   if (sheet) {
     const sg = sheet.gameId && s.games[sheet.gameId];
 
-    if (sheet.type === "join") sheetEl = ce(JoinSheet, { onClose: close, initial: sheet.code, api, onJoined: () => { close(); setToast({ text: "Joined. The table is on the list." }); go({ at: "home" }); } });
     if (sheet.type === "players" && s.groups[sheet.groupId]) sheetEl = ce(PlayersSheet, { onClose: close, group: s.groups[sheet.groupId], api, s });
-    if (sheet.type === "share" && s.groups[sheet.groupId]) sheetEl = ce(ShareSheet, { onClose: close, group: s.groups[sheet.groupId], setToast });
     if (["newgame", "start", "quick"].includes(sheet.type) && s.groupOrder.some(id => s.groups[id])) sheetEl = ce(NewGameSheet, { s, groupId: sheet.groupId, rules: sheet.rules, onClose: close,
       onStart: (gid, players, dealer, rules) => startGame(gid, players, dealer, rules),
       onResume: gm => { close(); go({ at: "game", gameId: gm.id }); },
@@ -1267,7 +1205,7 @@ function App() {
       onAddPlayer: addToTable, onFace: (gid, pid, color, avatar) => api.group(gid, x => ({ ...x, players: x.players.map(q => q.id === pid ? { ...q, color, avatar } : q) })) });
     if (sheet.type === "table") { const tg = s.groups[sheet.groupId]; sheetEl = tg && ce(TableSheet, { onClose: close, group: tg, games: Object.values(s.games).filter(x => x.groupId === tg.id && x.status !== "abandoned").length,
       onRename: name => api.group(tg.id, x => ({ ...x, name, auto: false })), onLook: look => api.group(tg.id, x => ({ ...x, look })),
-      onPlayers: () => open("players", { groupId: tg.id }), onInvite: () => open("share", { groupId: tg.id }),
+      onPlayers: () => open("players", { groupId: tg.id }),
       onDelete: () => { close(); withUndo(tg.name + " deleted", () => { api.set(x => { const groups = { ...x.groups }, games = { ...x.games }; delete groups[tg.id];
         Object.values(games).forEach(gm => { if (gm.groupId === tg.id) delete games[gm.id]; }); return { ...x, groups, games, groupOrder: x.groupOrder.filter(i => i !== tg.id) }; }); go({ at: "home" }); }); } }); }
     if (sheet.type === "profile" && s.groups[sheet.groupId]) sheetEl = ce(ProfileSheet, { onClose: close, s, group: s.groups[sheet.groupId], playerId: sheet.playerId,
@@ -1307,10 +1245,6 @@ function App() {
       toast.sub ? ce("span", null, ce("b", null, toast.text), ce("small", null, toast.sub)) : ce("span", null, toast.text),
       toast.undo && ce("button", { className: "toast-undo", onClick: toast.undo }, "Undo"))));
 }
-function SyncPill({ sync }) {
-  if (sync === "local") return null;
-  return ce("span", { className: "sync " + sync, role: "status" }, ce("i"), { live: "Live", connecting: "Connecting", offline: "Offline" }[sync]);
-}
 
 // ── Home ──────────────────────────────────────────────────────────
 function groupStats(s, gid) {
@@ -1321,9 +1255,9 @@ function groupStats(s, gid) {
 }
 const ago = t => { if (!t) return ""; const d = Math.floor((now() - t) / 864e5); return d < 1 ? "today" : d === 1 ? "yesterday" : d < 7 ? d + " days ago" : new Date(t).toLocaleDateString(undefined, { day: "numeric", month: "short" }); };
 function Avatars({ players, size }) { return ce("span", { className: "avs" }, players.slice(0, 4).map(p => ce(Peg, { key: p.id, color: p.color, name: p.name, av: p.avatar, size: size || 30 }))); }
-function Home({ s, open, go, sync, onFirst }) {
+function Home({ s, open, go, onFirst }) {
   const groups = s.groupOrder.map(id => s.groups[id]).filter(Boolean);
-  if (!groups.length) return ce(FirstRun, { onDeal: onFirst, go, open, sync });
+  if (!groups.length) return ce(FirstRun, { onDeal: onFirst, go, open });
   const lives = groups.map(g => ({ g, game: groupStats(s, g.id).live })).filter(x => x.game);
   const cur = lives.slice().sort((a, b) => (b.game.updatedAt || 0) - (a.game.updatedAt || 0))[0];
   const doneGames = Object.values(s.games).filter(g => g.status === "done" && s.groups[g.groupId]).sort((a, b) => b.endedAt - a.endedAt);
@@ -1332,7 +1266,7 @@ function Home({ s, open, go, sync, onFirst }) {
   // "New game" is another game for a table that already exists, so the button names the table: the one played at most recently.
   const lastAny = Object.values(s.games).filter(g => s.groups[g.groupId]).sort((a, b) => (b.updatedAt || b.endedAt || 0) - (a.updatedAt || a.endedAt || 0))[0], nextT = lastAny ? s.groups[lastAny.groupId] : groups[groups.length - 1];
   return ce("div", { className: "kit kscreen khome" },
-    ce("div", { className: "ph-nav lc-brand" }, ce("img", { className: "lc-mark", src: "art/logo-emblem.webp", alt: "", decoding: "async" }), ce("h1", { className: "lbl" }, "May I?"), ce("span", { className: "sp" }), ce(SyncPill, { sync })),
+    ce("div", { className: "ph-nav lc-brand" }, ce("img", { className: "lc-mark", src: "art/logo-emblem.webp", alt: "", decoding: "async" }), ce("h1", { className: "lbl" }, "May I?")),
     ce("main", { className: "ph-body lc-pad lc-home" + (lives.length ? " busy" : "") },
       lives.map(({ g, game }) => { const pl = plOf(g, game), tt = ROUNDS.some((_, i) => roundDone(game, i)) ? [...totalsOf(game)].sort((a, b) => a.total - b.total) : [], lead = tt[0] && !(tt[1] && tt[1].total === tt[0].total) ? pl(tt[0].id) : null;
         const lav = lead && avOf(lead.avatar, lead.name), lcard = lav && lav.type === "card" && cardOfAv(lav.card);
@@ -1362,8 +1296,7 @@ function Home({ s, open, go, sync, onFirst }) {
               champ && (card ? ce("span", { className: "lc-champ-c", "aria-hidden": true }, ce(DeckCard, faceProps(av.card))) : ce(Tok, { p: champ, cls: "lc-champ-t" })),
               champ && ce("img", { className: "lc-crown", src: "art/crown.webp", alt: "" })),
             !playing && !isDock && ce("button", { className: "lc-tnew", onClick: () => { haptic(8); open("newgame", { groupId: g.id }); }, "aria-label": "New game at " + g.name }, kIcon("plus"), "New game")); })),
-      last && ce(LastGame, { s, game: last, go, withTable: true, activeGroup: cur ? cur.g : null }),
-      syncOn && ce("button", { className: "link lc-join", onClick: () => open("join") }, "Join a table with a code")),
+      last && ce(LastGame, { s, game: last, go, withTable: true, activeGroup: cur ? cur.g : null }),),
     ce("div", { className: "ph-dock lc-dock-home" + (lives.length ? " bare" : "") },
       // One main action: while a game is going, its card is the way back in, so the dock is only the tabs. Otherwise: start one.
       !lives.length && ce("button", { className: "kb", onClick: () => open("newgame", { groupId: nextT.id }) }, nextT.name.length <= 15 ? "New game at " + nextT.name : "New game"),
@@ -1470,7 +1403,7 @@ function KTabs({ at, go, sub }) {
 // Seating a table: names, and a face dealt the moment each is typed. The Play tab shows this until a table exists;
 // "New table" is the same screen with a way back. Either way it deals straight into round one.
 const FIRST_KEY = "mayi:first";
-function FirstRun({ onDeal, go, open, sync, sub, taken }) {
+function FirstRun({ onDeal, go, open, sub, taken }) {
   // Names typed so far are kept for the visit, so the guide, a reload or a wrong turn never costs them.
   const saved = useRef(null);
   if (!saved.current) { try { const v = JSON.parse(sessionStorage.getItem(FIRST_KEY) || "null"), ps = v && Array.isArray(v.players) ? v.players.filter(p => p && p.id && typeof p.name === "string").slice(0, MAX_PLAYERS) : []; saved.current = { players: ps, deal: v && ps.some(p => p.id === v.deal) ? v.deal : null, rules: v && v.rules && typeof v.rules === "object" ? v.rules : null }; } catch (e) { saved.current = { players: [], deal: null, rules: null }; } }
@@ -1504,7 +1437,7 @@ function FirstRun({ onDeal, go, open, sync, sub, taken }) {
   const start = () => { try { sessionStorage.removeItem(FIRST_KEY); } catch (e) {} onDeal(dealTableName(taken), ready.map(({ keep, ...p }) => ({ ...p, name: p.name.trim() })), Math.max(0, ready.indexOf(dealer)), rules); };
   return ce("div", { className: "kit kscreen kfirst" + (sub ? " ksub" : "") },
     sub ? ce("div", { className: "ph-nav" }, ce("button", { className: "ib", onClick: () => go({ at: "home" }), "aria-label": "Back to home" }, kIcon("chevl")), ce("span", { className: "lbl" }, "Home"))
-      : syncOn && ce("div", { className: "ph-nav lc-homenav" }, ce("span", { className: "sp" }), ce(SyncPill, { sync })),
+      : null,
     ce("main", { className: "ph-body lc-pad lc-first" + (players.length ? " started" : "") },
       !sub && ce(HomeHero),
       ce(sub ? "h1" : "h2", { className: "lc-firsth" }, sub ? "A new table" : "Pull up a chair."),
@@ -1529,8 +1462,7 @@ function FirstRun({ onDeal, go, open, sync, sub, taken }) {
         players.length > 0 && ce("p", { className: "lc-facehint" }, two ? "Drag the dots to match the seats. Tap a face to change it, or the D to pass the deal." : "Tap a face to change it.")),
       // The table's rules, agreed before the first deal as they would be at the table. The usual ones are already set.
       ce("button", { type: "button", className: "lc-hrow lc-rulesrow", onClick: () => setHouse(true) }, ce("img", { src: "art/icons/dealerschoice.webp", alt: "" }),
-        ce("span", null, ce("b", null, "House rules"), ce("small", null, rulesShort(rules))), kIcon("chev")),
-      syncOn && !sub && ce("div", { className: "lc-firstlinks" }, ce("button", { className: "link", onClick: () => open("join") }, "Join a table with a code"))),
+        ce("span", null, ce("b", null, "House rules"), ce("small", null, rulesShort(rules))), kIcon("chev")),),
     ce("div", { className: "ph-dock lc-dock-home" }, ce("button", { className: "kb", disabled: !two || rolling, onClick: start }, label),
       ce(KTabs, { at: "home", go, sub })),
     house && ce(HouseSheet, { onClose: () => setHouse(false), rules, setRules, note: "These are this table's rules. They can still change during a game, from its menu." }),
@@ -1643,7 +1575,7 @@ const ROUND_SUITS = ["heart", "spade", "diamond", "club"];
 const HERO_HAND = [["7", "heart"], ["7", "spade"], ["7", "club"], null];
 
 // ── Table (group) page ────────────────────────────────────────────
-function GroupPage({ s, group, open, go, sync }) {
+function GroupPage({ s, group, open, go }) {
   const liveG = Object.values(s.games).find(x => x.groupId === group.id && x.status === "live");
   const st = groupStats(s, group.id), games = st.games;
   const per = group.players.map(p => { const played = games.filter(g => g.players.includes(p.id)), tot = played.map(g => totalsOf(g).find(x => x.id === p.id).total);
@@ -1679,8 +1611,7 @@ function GroupPage({ s, group, open, go, sync }) {
   return ce("div", { className: "kit kscreen ktable" },
     ce("div", { className: "ph-nav" },
       ce("button", { className: "ib", onClick: () => go({ at: "home" }), "aria-label": "Back to home" }, kIcon("chevl")),
-      ce("span", { className: "lbl" }, group.name), ce("span", { className: "sp" }), ce(SyncPill, { sync }),
-      syncOn && ce("button", { className: "ib", onClick: () => open("share", { groupId: group.id }), "aria-label": "Invite to " + group.name }, kIcon("share")),
+      ce("span", { className: "lbl" }, group.name), ce("span", { className: "sp" }),
       ce("button", { className: "ib", onClick: () => open("table", { groupId: group.id }), "aria-label": "Table settings" }, kIcon("gear"))),
     ce("main", { className: "ph-body lc-pad lt-body" },
       ce("section", { className: "lc-champ" + (champ ? "" : " none") },
@@ -2719,37 +2650,8 @@ function AddPlayerSheet({ game, group, who, onBack, onClose, onAdd }) {
 function KSeg({ label, value, onChange, options }) {
   return ce("div", { className: "kseg", role: "group", "aria-label": label }, options.map(([v, t]) => ce("button", { key: v, type: "button", "aria-pressed": value === v, onClick: () => { haptic(6); onChange(v); } }, t)));
 }
-// Live sharing needs the sync server, which isn't switched on yet. The screens stay in the
-// design so people know it's coming, and say plainly that it arrives in the next release.
-const Soon = () => ce("span", { className: "soon" }, "Next release");
-function ShareSheet({ onClose, group, setToast }) {
-  const link = location.origin + location.pathname + "?join=" + group.code, code = group.code.slice(0, 3) + " " + group.code.slice(3);
-  const copy = async t => setToast({ text: (await copyText(t)) ? "Copied" : "Couldn't copy. Press and hold the code to select it." });
-  const send = () => navigator.share ? navigator.share({ title: "Join " + group.name + " on May I?", url: link }).catch(e => e && e.name !== "AbortError" && copy(link)) : copy(link);
-  return ce(KSheet, { title: "Invite to " + group.name, heading: "Join " + group.name, onClose, cls: "lc-invite",
-      foot: syncOn ? ce(Fragment, null, ce("button", { className: "kb cream", onClick: () => copy(group.code) }, "Copy code"), ce("button", { className: "kb", onClick: send }, kIcon("share"), "Send link"))
-        : ce("button", { className: "kb", onClick: () => copy(group.code) }, "Copy code") },
-    ce("div", { className: "lc-qr" },
-      ce("img", { className: "lc-qrart", src: "art/icons/emblem.webp", alt: "" }),
-      ce("span", { className: "lc-code", "aria-label": "Code " + group.code.split("").join(" ") }, code),
-      ce("p", null, syncOn ? "Everyone at the table can type this code on Join to follow the scores and add their own on their phone. Share it with this table's players only."
-        : "Soon everyone at the table can type this code to follow the scores on their own phone. That arrives in the next release; the code stays the same.")));
-}
-function JoinSheet({ onClose, initial, api, onJoined }) {
-  const [code, setCode] = useState((initial || "").toUpperCase()), [err, setErr] = useState(null), [busy, setBusy] = useState(false);
-  const clean = code.replace(/[^A-Z0-9]/gi, "").toUpperCase().slice(0, 6);
-  const go = async () => { setBusy(true); setErr(null); const e = await joinByCode(clean, api); setBusy(false); if (e) setErr(e); else onJoined(); };
-  if (!syncOn) return ce(KSheet, { title: "Join a table", onClose, foot: ce("button", { className: "kb cream", onClick: onClose }, "OK") },
-    ce("div", { className: "jn-soon" }, ce("img", { src: "art/logo-emblem.webp", alt: "" }),
-      ce("p", null, ce("b", null, "Join a friend's table"), "Type a table's 6-character code to follow the game and score from another phone. Joining arrives in the next release.")));
-  return ce(KSheet, { title: "Join a table", onClose,
-      foot: ce("button", { className: "kb", disabled: clean.length !== 6 || busy, onClick: go }, busy ? "Looking…" : "Join") },
-    ce("label", { className: "kfield jn-code" }, ce("span", null, "Table code"),
-      ce("input", { value: clean, placeholder: "ABC123", autoCapitalize: "characters", autoComplete: "off", spellCheck: false, onChange: e => setCode(e.target.value), autoFocus: !initial })),
-    err ? ce("p", { className: "jn-err", role: "alert" }, err) : ce("p", { className: "jn-hint" }, "Ask whoever made the table for its 6-character code."));
-}
 // Tables wear the four enamels in turn.
-function TableSheet({ onClose, group, onRename, onLook, onDelete, onPlayers, onInvite, games }) {
+function TableSheet({ onClose, group, onRename, onLook, onDelete, onPlayers, games }) {
   const [name, setName] = useState(group.name), [asking, setAsking] = useState(false);
   const save = () => { const n = name.trim(); if (n && n !== group.name) onRename(n.slice(0, 30)); onClose(); };
   return ce(KSheet, { title: "Table settings", onClose, cls: "gm-sheet ts-sheet", foot: ce("button", { className: "kb", disabled: !name.trim(), onClick: save }, "Save") },
@@ -2761,9 +2663,7 @@ function TableSheet({ onClose, group, onRename, onLook, onDelete, onPlayers, onI
           onClick: () => { if (!on) { haptic(8); onLook(k); } } }, ce("img", { src: "art/" + T.art + ".webp", alt: "" }), ce("span", { className: "tick", "aria-hidden": true }, kIcon("check")), ce("b", null, LOOKS[k].name)); }))),
     ce("div", { className: "gm-list" },
       ce("button", { className: "gm-row", onClick: onPlayers }, ce("span", { className: "ts-faces", "aria-hidden": true }, group.players.slice(0, 3).map(p => ce(Tok, { key: p.id, p }))),
-        ce("span", { className: "gm-t" }, ce("b", null, "Players"), ce("small", null, stPlural(group.players.length, "player") + " at this table · names and faces")), kIcon("chevl", "gm-chev")),
-      syncOn && ce("button", { className: "gm-row", onClick: onInvite }, ce("img", { src: "art/icons/emblem.webp", alt: "" }),
-        ce("span", { className: "gm-t" }, ce("b", null, "Invite to the table"), ce("small", null, "The table's join code, for phones")), kIcon("chevl", "gm-chev"))),
+        ce("span", { className: "gm-t" }, ce("b", null, "Players"), ce("small", null, stPlural(group.players.length, "player") + " at this table · names and faces")), kIcon("chevl", "gm-chev"))),
     asking ? ce("div", { className: "ts-ask", role: "group", "aria-label": "Delete " + group.name + "?" },
         ce("p", null, ce("b", null, "Delete " + group.name + "?"), " " + (games ? stPlural(games, "game") + " and every award won here go with it." : "Its players go with it.")),
         ce("div", { className: "lc-bkp" }, ce("button", { className: "kb sm cream", onClick: () => setAsking(false) }, "Keep it"), ce("button", { className: "kb sm ruby", onClick: onDelete }, "Delete")))
@@ -3245,9 +3145,6 @@ input { caret-color: var(--accent); }
 .large-title { font: 800 2.3rem/1.04 var(--display); font-variation-settings: "SOFT" 50; letter-spacing: -.015em; margin: 4px 4px 16px; text-wrap: balance; }
 .lede { display: flex; align-items: center; gap: 8px; margin: -6px 4px 6px; color: var(--ink2); }
 .lede svg { color: var(--gold-ring); flex: none; }
-.sync { display: inline-flex; align-items: center; gap: 7px; padding: 7px 12px; border-radius: 99px; border: 1.5px solid var(--gline2); background: var(--fill);
-  font: 700 .76rem/1 var(--label); letter-spacing: .12em; text-transform: uppercase; color: var(--ink2); }
-.sync i { width: 7px; height: 7px; border-radius: 50%; background: var(--ink3); } .sync.live i { background: var(--out); } .sync.offline i { background: var(--red); }
 
 /* Inset grouped lists */
 .group { margin-top: 26px; }
@@ -3484,10 +3381,6 @@ html.locked, html.locked body { overflow: hidden; overscroll-behavior: none; }
 .level:active { transform: scale(.98); }
 
 /* Card scanner and hand coach */
-.soon { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 99px; background: var(--gold-soft); color: var(--ink); font: 650 .72rem/1.3 inherit; letter-spacing: .02em; white-space: nowrap; }
-.soon-panel { display: grid; justify-items: center; text-align: center; gap: 8px; padding: 22px 18px; border-radius: 16px; background: var(--surface); box-shadow: 0 0 0 var(--hair) var(--line); }
-.soon-panel > b { font: 700 1.15rem var(--display); } .soon-panel > p { margin: 0; color: var(--ink2); font-size: .92rem; line-height: 1.45; max-width: 36ch; }
-.soon-ic { width: 56px; height: 56px; border-radius: 18px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); }
 .code-box.idle { cursor: default; }
 @keyframes pulse { 50% { transform: scale(.92); opacity: .7; } }
 .scan-msg { margin: 0; font-size: .86rem; color: var(--ink2); text-align: center; line-height: 1.35; } .scan-msg.err { color: var(--red); }

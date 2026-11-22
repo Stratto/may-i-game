@@ -82,6 +82,34 @@ Each phase is its own thread, in this order.
 1. **Put P0–P4 live.** Set repo Settings → Pages → Source: GitHub Actions, push, then check each phase once on a real iPhone.
 2. **Card scanner on the owner's account.** A small Cloudflare Worker holds the owner's Anthropic key as a secret; the app sends the photo with a scanner code the owner gives family (daily cap per code, plus a monthly limit in the Anthropic account). This replaces each player pasting their own key. The owner's part: `npx wrangler login` once, then `npx wrangler secret put ANTHROPIC_API_KEY` typed by the owner, so the key is never seen in a session.
 
+## Open backlog
+
+Carried over on 22 Nov from the 16 Nov play-test backlog and the rework plan, which are now deleted (both are in git history). Items that later work finished or made moot were dropped: totals on the round screen (P1), the oval seating (the round now lists players in turn order), and the Invite and Join screens (removed with the switched-off Supabase code).
+
+**Before launch**
+- **Tip jar:** `SUPPORT_URL` is a placeholder Ko-fi link. Swap in the real one.
+- **Phone Back button** leaves the app mid-flow (T2-11). Add a history entry per view and sheet, and close the top one on Back.
+- **Screen readers:** announce a saved round on Between rounds (T4-06). After "End without saving", move focus to Undo (T4-05).
+- **Real-device checks:** VoiceOver, large text, sunlight contrast and offline play on an iPhone; tablet sizes and the background glows' battery use on an iPad.
+
+**Next release**
+- **Late joiners:** their catch-up points are stored as real round scores, so they feed stats (T2-12, T2-08). Keep a separate carry total.
+- **Rules changed mid-game:** a counted hand keeps the old ace or joker value (T2-10).
+- **Score field:** reject anything that isn't whole digits (T2-09); confirm hands above about 200 (T1-07); after "Use 56 for Ada", focus the next empty hand (T1-08).
+- **Round-by-round scorecard** on Results and past games (T1-I2).
+- **Rematch:** offer the player who sat out back in with one tap, "Hayley sat out · Add back" (R-09, owner said yes).
+- **Tablet round:** extend the two-column layout down to 768px (T4-15).
+- **Stats:** "No games yet" while a game is live, and table counts (T3-13). Beginner's luck says "Not yet" when it can't be earned; Dynasty and Untouchable could show progress (T3-12). Break leaderboard ties by average finish (T1-14).
+- **Small screens:** at 320 with Largest text, leaderboard names are cut off (R-07). Results badge lines end in "…" at 390 (R-08).
+
+**Later**
+- The "1st" badge reads as a ranking (T2-13). The add-player preview face differs from the saved one (T2-17). Long table names need a counter (T2-15).
+- A confirm for End without saving and Delete game once rounds are scored (T2-18).
+- "Out of the gate" shares medal art with "Clean hands" (T3-14, needs Weave, ask first).
+- Focus ring on Home's scroll area (T4-09). A different icon for Table settings (T4-16). Natural screen-reader order for standings rows (T4-18). Table page header buttons are 41px at 320 (R-10).
+- Ideas: a "Dino deals · same 4 · Change" line before a rematch (T1-I3); "Undo round N" becomes "Edit round N" (T1-I4).
+- TV and big night: parked until families ask (owner, 16 Nov).
+
 ## Done means
 
 - The live site works offline after the build step.

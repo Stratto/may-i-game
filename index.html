@@ -911,9 +911,6 @@ if (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIn
   box-shadow: 0 4px 6px -2px rgba(0, 0, 0, .4); animation: k-shuf 1.4s ease-in-out infinite; animation-delay: calc(var(--k) * -.46s);}
 @keyframes k-shuf {0%, 100% { transform: translateX(-16px) rotate(-12deg); z-index: 1; } 50% { transform: translateX(16px) rotate(12deg); z-index: 3; }}
 .kit .loading b {font: 700 1.05rem/1 var(--display);}
-.kit .sync {display: inline-flex; align-items: center; gap: 7px; padding: 7px 12px; border-radius: 99px; border: 1.5px solid rgba(255, 233, 166, .38); background: rgba(var(--k-panel), .45);
-  font: 700 .76rem/1 var(--label); letter-spacing: .12em; text-transform: uppercase; color: var(--on-bg2);}
-.kit .sync::before {content: ""; width: 7px; height: 7px; border-radius: 50%; background: #7CF5C8;}
 .kit .logos {display: grid; gap: 18px;}
 @media (min-width: 760px) {
 .kit .logos {grid-template-columns: repeat(3, minmax(0, 1fr));}
@@ -1552,7 +1549,6 @@ if (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIn
 .kit .lc-blocks .blk small {margin-top: 3px;}
 .kit .lc-champ-c {position: absolute; right: -14px; bottom: -30px; width: 76px; rotate: 14deg; filter: drop-shadow(-4px 6px 8px rgba(0, 0, 0, .35));}
 .kit .lc-crown {position: absolute; right: 30px; bottom: 66px; width: 30px; rotate: 12deg; filter: drop-shadow(0 3px 3px rgba(0, 0, 0, .4));}
-.kit .lc-join {justify-self: center; min-height: 44px;}
 .kit .lc-dock-home {flex-direction: column; align-items: stretch; gap: 10px; padding-bottom: 14px;}
 .kit .lc-dock-home .kb {flex: none;}
 .kit .lc-dock-home .tabbar {max-width: none;}
@@ -1605,12 +1601,6 @@ if (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIn
 .kit .lc-grab {width: 44px; height: 5px; margin: 0 auto 8px; border-radius: 9px; background: rgba(110, 74, 16, .3);}
 .kit .lc-sh {display: flex; align-items: center; gap: 10px; margin-bottom: 10px;}
 .kit .lc-sh h3 {flex: 1; margin: 0; font: 800 1.4rem/1 var(--display);}
-.kit .lc-qr {display: grid; justify-items: center; gap: 10px; text-align: center;}
-.kit .lc-qr svg {width: 196px; height: 196px; padding: 12px; border-radius: 16px; background: #FFFDF7; box-shadow: 0 8px 18px -10px rgba(74, 52, 12, .45);}
-.kit .lc-qr .lc-code {font: 800 3rem/1 var(--num); letter-spacing: .14em; color: var(--ink);}
-.kit .lc-qr p {margin: 0; font-size: .9rem; color: var(--ink2); max-width: 30ch;}
-.kit .lc-qr .sample {font: 700 .82rem/1 var(--display); color: #8B5A12;}
-.kit .lc-qr .kb {width: 100%;}
 .kit .lc-set {gap: 4px;}
 .kit .lc-set .lc-h {margin-top: 14px; margin-bottom: 4px;}
 .kit .lc-set .lc-h:first-child {margin-top: 4px;}
@@ -2315,7 +2305,6 @@ if (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIn
 .kit .lb-wtok { box-shadow: 0 0 0 4px var(--gold, #E4C27A), 0 14px 28px rgba(0, 0, 0, .38); }
 
 /* ── Home (app) ── */
-.kit.khome .lc-homenav, .kit.kfirst .lc-homenav { position: absolute; top: 0; left: 0; right: 0; z-index: 3; background: none; }
 .kit.khome .lc-home { padding-top: calc(30px + env(safe-area-inset-top, 0px)); padding-bottom: calc(240px + env(safe-area-inset-bottom, 0px)); }
 .kit .lc-hero { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .kit .lc-h1 { margin: 0; }
@@ -2351,7 +2340,6 @@ if (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIn
 .kit .lc-edit { display: grid; place-items: center; width: 44px; height: 44px; border: 0; background: none; color: #FFE7A3; cursor: pointer; }
 .kit .lc-edit svg { width: 18px; height: 18px; }
 .kit .lc-tfield { justify-self: center; width: 100%; text-align: left; }
-.kit .lc-firstlinks { display: grid; justify-items: center; gap: 2px; }
 .kit.kfirst .ph-dock { padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
 /* New game sheet */
 .kit .ng-sheet .body { max-height: min(62dvh, 560px); overflow-y: auto; overscroll-behavior: contain; }
@@ -2416,11 +2404,6 @@ html.scrolled .kit.kscreen > .ph-nav { background: rgba(var(--k-bar), .8); -webk
 .kit .ts-faces .tok { display: block; }
 .kit .ts-del { width: 100%; }
 /* Invite and join */
-.kit .lc-invite .lc-qr { padding: 6px 0 4px; }
-.kit .lc-qrart { width: 120px; height: 120px; object-fit: contain; filter: drop-shadow(0 10px 14px rgba(74, 52, 12, .35)); }
-.kit .lc-invite .lc-code { font: 800 2.7rem/1 var(--num); letter-spacing: .12em; color: var(--ink); user-select: all; -webkit-user-select: all; }
-.kit .lc-invite .foot { gap: 14px; }
-.kit .lc-codein { font-family: var(--num) !important; letter-spacing: .2em; text-transform: uppercase; }
 .kit .lc-err { color: var(--ruby); }
 
 /* ── Kit tab bar on Learn and Stats ── */
@@ -2569,13 +2552,6 @@ html.calm *, html.calm *::before, html.calm *::after { animation-duration: .01ms
 .kit .level-sheet .body { padding-bottom: calc(22px + env(safe-area-inset-bottom, 0px)); }
 
 /* ── Join (app) ── */
-.kit .jn-soon { display: grid; justify-items: center; gap: 10px; text-align: center; padding: 6px 4px 4px; }
-.kit .jn-soon img { width: 96px; height: 96px; object-fit: contain; filter: drop-shadow(0 8px 10px rgba(70, 40, 0, .3)); }
-.kit .jn-soon p { margin: 0; color: var(--ink2); line-height: 1.4; text-wrap: balance; }
-.kit .jn-soon b { display: block; margin-bottom: 4px; font: 800 1.15rem/1.15 var(--display); color: var(--ink); }
-.kit .jn-code input { font: 800 1.6rem/1 var(--num); letter-spacing: .3em; text-align: center; text-transform: uppercase; }
-.kit .jn-hint, .kit .jn-err { margin: 0 2px; font-size: .92rem; color: var(--ink2); }
-.kit .jn-err { color: var(--ruby, #A8263B); font-weight: 700; }
 
 /* ── Wide screens: the round (kit: Tablet · the round) ── */
 @media (min-width: 900px) {

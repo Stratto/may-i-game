@@ -27,8 +27,8 @@ A scorekeeper and companion for May I?, a seven-round contract rummy game. It tr
 
 ## Capabilities and Constraints
 - Capabilities: player setup and dealer, the contract for each round, buys with a house-rule limit, one Out per round (the last player is marked Out automatically), score entry with a hand-counter for tapping cards, undo, standings and insights, house rules, results with a podium and awards, and saved game history.
-- The existing codebase is a single `index.html` (vendored React 18, no build step), hosted on GitHub Pages as an offline-capable PWA (`sw.js`).
-- Works offline-first in localStorage. Shared groups sync through Supabase (free tier, live updates), joined by a group code. Anyone holding a code can view and edit that group. Optional sign-in may come later.
+- A Vite + React 18 app, built and published to GitHub Pages by GitHub Actions as an offline-capable PWA (`sw.js`).
+- Works offline on one phone or tablet, saved in localStorage. Sharing a table across phones is parked (see `docs/refine-plan.md`); players never sign in.
 - The scorekeeper needs: rules in the moment, live standings, and a game recap (shareable).
 - **Must work in sunlight:** high contrast, and scores large enough to read across the table and outdoors.
 - Undecided: how to make money. A tip link exists, but its `SUPPORT_URL` is still a placeholder. Optional paid looks packs have been floated but not decided.
