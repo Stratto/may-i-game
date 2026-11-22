@@ -70,8 +70,17 @@ Each phase is its own thread, in this order.
 - To avoid saying the same thing twice, the award line under the winner is gone, and the standings rows show a plain fact from the scores (such as "Went out 2 times"). `npm run e2e` opens a results screen and checks that no award name also appears in the standings.
 
 **P4. Your decisions, then build**
-- Looks per table.
-- Joining from another phone by link or QR. This needs a Supabase project that you create.
+- Looks per table — done 22 Nov (owner chose: yes as recommended; dealt to each new table, changed later).
+  - A new table is dealt one of the four looks (Lagoon, Game night, Lime, Cherry), one that no other table is wearing yet while there is one. Tables made before this show Lagoon.
+  - The table's page, its round, score pad, between rounds and results wear its look. Its card on Play takes the look's colour, replacing the colours that used to go by position. Play, Learn, Stats and Settings stay on Lagoon.
+  - To change it: Table settings (the gear on the table's page) has a row of four look tiles. A tap changes it at once, and the page behind the sheet shows it.
+  - `npm run e2e` checks that Friday night wears Cherry, that a tap on Lime changes it, that Play stays Lagoon and Friday night's card turns green, and that its results wear Lime.
+- Joining from another phone by link or QR — **parked 22 Nov (owner's call).** One phone or tablet on the table already replaces the paper sheet. Sharing a table across phones soon leads to "my stats", one name on every phone and moving phones, which means accounts and a much bigger job. Watch the test game nights: build it only if players ask to follow along or score from their own phone, and then ask which they want.
+  - If it comes back: players never sign in. The table is the shared thing (QR code or link, then "That's me" or add a name and face). It would run on a small Cloudflare Worker on the owner's account, in place of the Supabase code that is in the app but switched off. Peer-to-peer was the no-account fallback, but it can fail on mobile data.
+
+**Next, in order**
+1. **Put P0–P4 live.** Set repo Settings → Pages → Source: GitHub Actions, push, then check each phase once on a real iPhone.
+2. **Card scanner on the owner's account.** A small Cloudflare Worker holds the owner's Anthropic key as a secret; the app sends the photo with a scanner code the owner gives family (daily cap per code, plus a monthly limit in the Anthropic account). This replaces each player pasting their own key. The owner's part: `npx wrangler login` once, then `npx wrangler secret put ANTHROPIC_API_KEY` typed by the owner, so the key is never seen in a session.
 
 ## Done means
 

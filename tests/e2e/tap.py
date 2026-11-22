@@ -145,8 +145,20 @@ def returning(br):
     if p.get_by_role("button", name="New game at Friday night").count() != 1: fail("play: expected exactly one 'New game at Friday night' (the dock)")
     tap(p, p.locator(".lc-tcard .blk").nth(1), "Friday night card"); p.wait_for_timeout(700); shot(p, "13-table-friday")
     if p.locator(".khome").count(): fail("table card: tap did not open the table")
+    # Looks belong to tables: Friday night wears Cherry on its page, a tap in its settings changes it, and Play stays on the lagoon.
+    look = lambda: p.evaluate("document.documentElement.dataset.look")
+    if look() != "parlour": fail("table page: Friday night should wear Cherry, got " + repr(look()))
+    if tap(p, p.get_by_role("button", name="Table settings"), "table settings"):
+        p.wait_for_timeout(500)
+        if tap(p, p.get_by_role("radio", name="Lime"), "Lime look"):
+            if look() != "lime": fail("table settings: tapping Lime did not change the look, got " + repr(look()))
+            if p.get_by_role("radio", name="Lime").get_attribute("aria-checked") != "true": fail("table settings: Lime not marked as chosen")
+            shot(p, "13b-table-look")
+        p.keyboard.press("Escape"); p.wait_for_timeout(400)
     # Results: the awards have their own section, and the rows above never repeat an award's name.
     p.goto(URL); p.wait_for_timeout(1300)
+    if look() != "midnight": fail("play: should be Lagoon, got " + repr(look()))
+    if "jade" not in (p.locator(".lc-tcard .blk").nth(1).get_attribute("class") or ""): fail("play: Friday night's card does not wear Lime")
     if tap(p, p.locator(".lc-moment"), "last game"):
         p.wait_for_timeout(900); shot(p, "14-results")
         if not p.locator(".lb-aws li").count(): fail("results: no awards section")
@@ -154,6 +166,7 @@ def returning(br):
         for t in titles:
             if t in rows: fail("results: award " + repr(t) + " also named in the standings")
         covered_controls(p, "results")
+        if look() != "lime": fail("results: Friday night's game should wear its table's look, got " + repr(look()))
     ctx.close()
 
 with sync_playwright() as pw:

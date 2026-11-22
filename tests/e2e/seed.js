@@ -1,4 +1,4 @@
-// A returning player's data: two tables with finished games. Pass {live: true} to add a game in progress at Family.
+// A returning player's data: two tables with finished games. Family was made before looks (none, so Lagoon); Friday night wears Cherry. Pass {live: true} to add a game in progress at Family.
 // Used by tap.py through add_init_script; written to localStorage before the app loads.
 window.__mayiSeed = function (opts) {
   const t = Date.now(), day = 864e5;
@@ -16,6 +16,6 @@ window.__mayiSeed = function (opts) {
   };
   if (opts && opts.live) games.live = { id: "live", groupId: "g1", players: ["a", "b", "c", "d"], dealer: 1, rules, round: 3, status: "live", startedAt: t - 36e5, updatedAt: t,
     scores: sc(["a", "b", "c", "d"], [[0, 30, 60, 40], [5, 0, 70, 40], [10, 20, 0, 30]]), buys: {}, hands: {} };
-  localStorage.setItem("mayi:v5", JSON.stringify({ groups: { g1: table("g1", "Family", fam), g2: table("g2", "Friday night", fri) }, games, groupOrder: ["g1", "g2"] }));
+  localStorage.setItem("mayi:v5", JSON.stringify({ groups: { g1: table("g1", "Family", fam), g2: { ...table("g2", "Friday night", fri), look: "parlour" } }, games, groupOrder: ["g1", "g2"] }));
   localStorage.setItem("mayi:settings:v6", JSON.stringify({ level: "pro", sound: false }));
 };

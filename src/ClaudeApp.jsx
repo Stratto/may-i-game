@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo, Fragment } from "react";
+import React, { useState, useEffect, useRef, useMemo, useLayoutEffect, Fragment } from "react";
 import ReactDOM from "react-dom";
 
 const ce = React.createElement;
@@ -1137,6 +1137,15 @@ const SETTINGS_KEY = "mayi:settings:v6";
 const loadSettings = () => ({ look: "midnight", ...loadJSON(SETTINGS_KEY, {}) });
 // Looks mapped onto the Lagoon materials. Daylight shows Lagoon until it is mapped too.
 const MAPPED_LOOKS = ["midnight", "table", "lime", "parlour"];
+// Looks belong to tables (owner's call, 22 Nov): a table's page and its games wear its look; Play, Learn, Stats and Settings stay on the lagoon.
+// A table made before looks belonged to tables has none, and shows Lagoon.
+const tableLook = g => g && MAPPED_LOOKS.includes(g.look) ? g.look : "midnight";
+// A new table is dealt a look the other tables are not wearing yet, while there is one.
+const dealLook = groups => { const used = Object.values(groups || {}).map(tableLook), free = MAPPED_LOOKS.filter(k => !used.includes(k)), pool = free.length ? free : MAPPED_LOOKS;
+  return pool[Math.floor(Math.random() * pool.length)]; };
+// The tile for each look in the picker: its water and its jewel. The table card on Play takes the look's colour too.
+const LOOK_TILE = { midnight: { c: ["#3DBDB1", "#1C8E9D", "#0B5866"], art: "crown", blk: "teal" }, table: { c: ["#6F96FF", "#3463D8", "#17337E"], art: "jewel-spade", blk: "sap" },
+  lime: { c: ["#A8DB62", "#458F25", "#1F5212"], art: "jewel-club", blk: "jade" }, parlour: { c: ["#F07080", "#C42645", "#680D26"], art: "jewel-heart", blk: "ruby" } };
 function applyLook(chosen) {
   // Every mapped look is deep water under cream text, so each one uses its deep colours in light and dark alike. (A pale ground would hide the cream headings.)
   const name = MAPPED_LOOKS.includes(chosen) ? chosen : "midnight", L = LOOKS[name] || LOOKS.table, dark = !!L.dark, t = dark ? L.dark : L.light;
@@ -1185,15 +1194,18 @@ function App() {
   const sync = useSync(s, api);
   const wide = useMedia("(min-width: 900px)"), desk = useMedia("(min-width: 1100px)");
   const [settings, setSettings] = useState(loadSettings);
-  useEffect(() => { saveJSON(SETTINGS_KEY, settings); applyLook(settings.look); soundOn = settings.sound !== false;
+  useEffect(() => { saveJSON(SETTINGS_KEY, settings); soundOn = settings.sound !== false;
     calmOn = !!settings.calm; speakOn = !!settings.speak; undoOn = settings.undo !== false; awakeOn = settings.awake !== false;
     const de = document.documentElement; de.classList.toggle("calm", calmOn); de.classList.toggle("hicon", !!settings.contrast); de.classList.toggle("pat", !!settings.patterns); de.classList.toggle("lefty", settings.hand === "left");
     de.style.fontSize = settings.text && +settings.text !== 1 ? +settings.text * 100 + "%" : ""; }, [settings]);
-  useEffect(() => { const mq = matchMedia("(prefers-color-scheme: dark)"), h = () => applyLook(settings.look); mq.addEventListener("change", h); return () => mq.removeEventListener("change", h); }, [settings.look]);
   const [view, setView] = useState(() => {
     const live = Object.values(s.games).find(g => g.status === "live");
     return live ? { at: "game", gameId: live.id } : { at: "home" };
   });
+  // The look follows the place: a table's page, its games and its results wear the table's look; everywhere else is the lagoon.
+  const lookGame = view.gameId && s.games[view.gameId], lookGroup = ["group", "game", "recap"].includes(view.at) && s.groups[view.groupId || (lookGame && lookGame.groupId)];
+  const lookNow = lookGroup ? tableLook(lookGroup) : "midnight";
+  useLayoutEffect(() => { applyLook(lookNow); }, [lookNow]);
   const [sheet, setSheet] = useState(null), [intro, setIntro] = useState(introDue);
   const [toast, setToast] = useState(null);
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(null), toast.undo ? 6000 : toast.sub ? 3800 : 2800); return () => clearTimeout(t); }, [toast]);
@@ -1214,7 +1226,7 @@ function App() {
   useEffect(() => { const f = () => document.documentElement.classList.toggle("scrolled", scrollY > 8); addEventListener("scroll", f, { passive: true }); f(); return () => removeEventListener("scroll", f); }, []);
   // First run: the table is made from the names typed, and the first hand is dealt.
   const firstGame = (name, players, dealer, rules) => { const gid = uid();
-    api.set(x => ({ ...x, groups: { ...x.groups, [gid]: { id: gid, name, auto: true, code: newCode(), players, createdAt: now(), updatedAt: now() } }, groupOrder: [...x.groupOrder, gid] }));
+    api.set(x => ({ ...x, groups: { ...x.groups, [gid]: { id: gid, name, auto: true, code: newCode(), look: dealLook(x.groups), players, createdAt: now(), updatedAt: now() } }, groupOrder: [...x.groupOrder, gid] }));
     startGame(gid, players.map(p => p.id), dealer || 0, rules || DEFAULT_RULES); };
   // A new face at a table, from New game's Add.
   const addToTable = (gid, name) => { const grp = s.groups[gid], used = grp.players.map(q => q.color), id = uid();
@@ -1254,7 +1266,7 @@ function App() {
       onNewTable: () => { close(); go({ at: "newtable" }); },
       onAddPlayer: addToTable, onFace: (gid, pid, color, avatar) => api.group(gid, x => ({ ...x, players: x.players.map(q => q.id === pid ? { ...q, color, avatar } : q) })) });
     if (sheet.type === "table") { const tg = s.groups[sheet.groupId]; sheetEl = tg && ce(TableSheet, { onClose: close, group: tg, games: Object.values(s.games).filter(x => x.groupId === tg.id && x.status !== "abandoned").length,
-      onRename: name => api.group(tg.id, x => ({ ...x, name, auto: false })),
+      onRename: name => api.group(tg.id, x => ({ ...x, name, auto: false })), onLook: look => api.group(tg.id, x => ({ ...x, look })),
       onPlayers: () => open("players", { groupId: tg.id }), onInvite: () => open("share", { groupId: tg.id }),
       onDelete: () => { close(); withUndo(tg.name + " deleted", () => { api.set(x => { const groups = { ...x.groups }, games = { ...x.games }; delete groups[tg.id];
         Object.values(games).forEach(gm => { if (gm.groupId === tg.id) delete games[gm.id]; }); return { ...x, groups, games, groupOrder: x.groupOrder.filter(i => i !== tg.id) }; }); go({ at: "home" }); }); } }); }
@@ -1344,7 +1356,7 @@ function Home({ s, open, go, sync, onFirst }) {
           const lw = lastG && (() => { const r = rankOf(lastG), top = r.filter(x => x.total === r[0].total), lp = plOf(g, lastG); return (top.length > 1 ? "Shared last game" : lp(top[0].id).name + " won last") + " · " + ago(lastG.endedAt); })();
           const playing = lives.some(x => x.g.id === g.id), isDock = !lives.length && nextT && nextT.id === g.id;
           return ce("div", { key: g.id, className: "lc-tcard" },
-            ce("button", { className: "blk " + BLK[i % BLK.length], onClick: () => go({ at: "group", groupId: g.id }), "aria-label": g.name + ": " + line + (lw ? ". " + lw : "") + ". Open the table" },
+            ce("button", { className: "blk " + LOOK_TILE[tableLook(g)].blk, onClick: () => go({ at: "group", groupId: g.id }), "aria-label": g.name + ": " + line + (lw ? ". " + lw : "") + ". Open the table" },
               ce("span", { className: "lc-tt" }, ce("b", null, g.name), ce("small", null, line), lw && ce("small", { className: "lc-tlast" }, lw)),
               ce("span", { className: "avs" }, g.players.slice(0, 4).map(p => ce(Tok, { key: p.id, p }))),
               champ && (card ? ce("span", { className: "lc-champ-c", "aria-hidden": true }, ce(DeckCard, faceProps(av.card))) : ce(Tok, { p: champ, cls: "lc-champ-t" })),
@@ -2737,12 +2749,16 @@ function JoinSheet({ onClose, initial, api, onJoined }) {
     err ? ce("p", { className: "jn-err", role: "alert" }, err) : ce("p", { className: "jn-hint" }, "Ask whoever made the table for its 6-character code."));
 }
 // Tables wear the four enamels in turn.
-const BLK = ["teal", "sap", "ruby", "jade"];
-function TableSheet({ onClose, group, onRename, onDelete, onPlayers, onInvite, games }) {
+function TableSheet({ onClose, group, onRename, onLook, onDelete, onPlayers, onInvite, games }) {
   const [name, setName] = useState(group.name), [asking, setAsking] = useState(false);
   const save = () => { const n = name.trim(); if (n && n !== group.name) onRename(n.slice(0, 30)); onClose(); };
   return ce(KSheet, { title: "Table settings", onClose, cls: "gm-sheet ts-sheet", foot: ce("button", { className: "kb", disabled: !name.trim(), onClick: save }, "Save") },
     ce(KNameField, { id: "tsName", label: "Name", value: name, onChange: setName, onEnter: save }),
+    // The table's look: a tap changes it at once, and the page behind the sheet shows it.
+    ce("div", { className: "ts-look" }, ce("span", { className: "ts-lbl", id: "tsLookL" }, "Look"),
+      ce("div", { className: "looks st-looks ts-looks", role: "radiogroup", "aria-labelledby": "tsLookL" }, MAPPED_LOOKS.map(k => { const T = LOOK_TILE[k], on = tableLook(group) === k;
+        return ce("button", { key: k, type: "button", className: "look", role: "radio", "aria-checked": on, style: { "--c2": T.c[0], "--c3": T.c[1], "--c5": T.c[2] },
+          onClick: () => { if (!on) { haptic(8); onLook(k); } } }, ce("img", { src: "art/" + T.art + ".webp", alt: "" }), ce("span", { className: "tick", "aria-hidden": true }, kIcon("check")), ce("b", null, LOOKS[k].name)); }))),
     ce("div", { className: "gm-list" },
       ce("button", { className: "gm-row", onClick: onPlayers }, ce("span", { className: "ts-faces", "aria-hidden": true }, group.players.slice(0, 3).map(p => ce(Tok, { key: p.id, p }))),
         ce("span", { className: "gm-t" }, ce("b", null, "Players"), ce("small", null, stPlural(group.players.length, "player") + " at this table · names and faces")), kIcon("chevl", "gm-chev")),
