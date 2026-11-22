@@ -1227,7 +1227,7 @@ function App() {
           return { ...x, groups, games: { ...x.games, [gm.id]: { ...joinGame(gm, p.id, namesOf({ players: [p] }, [p.id])[p.id], target), updatedAt: now() } } }; });
         haptic(10); sound("chip"); setToast({ text: (who || "New player") + " joined the game" }); } });
     if (sheet.type === "house" && sg) sheetEl = ce(HouseSheet, { onClose: () => open("game", { gameId: sg.id }), rules: sg.rules, setRules: fn => { api.game(sg.id, x => ({ ...x, rules: fn(x.rules) })); api.group(sg.groupId, x => ({ ...x, rules: fn({ ...DEFAULT_RULES, ...(x.rules || sg.rules) }) })); } });
-    if (sheet.type === "game" && sg) sheetEl = ce(GameMenu, { onClose: close, game: sg, group: s.groups[sg.groupId], onSettings: () => open("settings"),
+    if (sheet.type === "game" && sg) sheetEl = ce(GameMenu, { onClose: close, game: sg, group: s.groups[sg.groupId], onSettings: () => open("settings"), onLook: look => api.group(sg.groupId, x => ({ ...x, look })),
       onPlayers: () => open("gamePlayers", { gameId: sg.id }), onHouse: () => open("house", { gameId: sg.id }),
       onFix: i => { close(); go({ at: "game", gameId: sg.id, fix: i, k: Date.now() }); },
       onEnd: () => { close(); const back = !!sg.reopened;
@@ -1793,7 +1793,7 @@ function GameScreen({ s, api, game, open, go, wide, setToast, level, fixAsk }) {
       ce("button", { className: "ib", onClick: () => go({ at: "group", groupId: group.id }), "aria-label": "Back to " + group.name }, kIcon("chevl")),
       ce("span", { className: "lbl" }, group.name), ce("span", { className: "sp" }),
       kGuideBtn(() => open("rules", { gameId: game.id })),
-      ce("button", { className: "ib", onClick: () => open("game", { gameId: game.id }), "aria-label": "Game menu: players, rules and settings" }, kIcon("gear"))),
+      ce("button", { className: "ib", onClick: () => open("game", { gameId: game.id }), "aria-label": "Game menu: players, look, rules and settings" }, kIcon("more"))),
     ce("main", { className: "ph-body lr-body" }, left,
       // On a tablet the faces carry each running total, so the whole table can read the standings (CSS shows them from 700px wide).
       ce(BuyTable, { game, pl, rs, limit, dealer, firstId, many, cards: r.cards, changeBuy, onScore: k => { haptic(6); setPad(k); }, setBuyToast, toast: buyToast,
@@ -2154,7 +2154,7 @@ function BetweenScreen({ game, pl, from, onPlay, onUndo, onMenu, onRules }) {
       ce("button", { className: "ib", onClick: onPlay, "aria-label": "Back to the round" }, kIcon("chevl")),
       ce("span", { className: "lbl" }, "After round " + (from + 1)), ce("span", { className: "sp" }),
       onRules && kGuideBtn(onRules),
-      ce("button", { className: "ib", onClick: onMenu, "aria-label": "Game menu" }, kIcon("gear"))),
+      ce("button", { className: "ib", onClick: onMenu, "aria-label": "Game menu" }, kIcon("more"))),
     ce("main", { className: "ph-body lb-between" },
       ce("h1", { className: "won lb-won" }, ce("img", { src: "art/icons/" + (outId ? "out" : "steady") + ".webp", alt: "" }), outId ? pl(outId).name + " went out" : "Nobody went out"),
       ce(Leaderboard, { rows, deal: nd, dealIn: true, label: "Standings after round " + (from + 1) }),
@@ -2244,7 +2244,7 @@ function Recap({ s, game, go, setToast, rematch, onDelete, onReopen, onTable, se
       ce("svg", { className: "rays", viewBox: "-100 -100 200 200", "aria-hidden": true }, ce("path", { d: FIN_RAYS, fill: "#FFE9A6", opacity: .22 })),
       ce("div", { className: "ph-nav lb-finnav" },
         ce("button", { className: "ib", onClick: () => go({ at: "group", groupId: group.id }), "aria-label": "Back to " + group.name }, kIcon("chevl")), ce("span", { className: "sp" }),
-        ce("button", { className: "ib", onClick: () => setMore(true), "aria-label": "More: reopen or delete this game" }, "•••")),
+        ce("button", { className: "ib", onClick: () => setMore(true), "aria-label": "More: reopen or delete this game" }, kIcon("more"))),
       ce("div", { className: "lb-wins" + (winners.length > 1 ? " two" : "") }, winners.slice(0, 2).map(p => ce("div", { key: p.id, className: "lb-wincard" }, winCard(p),
         ce("img", { className: "lb-wcrown", src: "art/crown.webp", alt: "" }),
         !reducedMotion() && ce("span", { className: "sparks lb-wsp", "aria-hidden": true }, [0, 1, 2, 3, 4, 5, 6, 7].map(k => ce("i", { key: k, style: { "--k": k } })))))),
@@ -2339,36 +2339,83 @@ function nightHighlights(game, pl, facts) {
   });
   return out;
 }
-// The results picture, drawn in the table's look with the app's own fonts. Recap draws it as soon as
-// it opens, so a tap on Share can open the share sheet straight away (Safari refuses it after a delay).
+// The results picture, drawn like the Results screen: the table's enamel with light rays and the suit pattern, a gilt
+// frame, the wordmark, the winner's own card under the crown, the ribbon, and the places on a cream score card.
+// Recap draws it as soon as it opens, so a tap on Share can open the share sheet straight away (Safari refuses it after a delay).
 function resultsImage(name, rows, endedAt, look) {
   const load = src => new Promise(r => { if (!src) return r(null); const im = new Image(); if (/^https:/.test(src)) im.crossOrigin = "anonymous"; im.onload = () => r(im); im.onerror = () => r(null); im.src = src; });
-  const fonts = document.fonts ? Promise.all(["800 104px Fraunces", "700 48px 'Barlow Semi Condensed'", "700 34px 'Barlow Condensed'"].map(f => document.fonts.load(f).catch(() => null))) : Promise.resolve();
-  return Promise.all([fonts, load("art/logo-emblem.webp"), ...rows.map(r => load(avatarSrc(avOf(r.avatar, r.name))))]).then(([, crest, ...imgs]) => new Promise(res => { try {
-    const T = LOOK_TILE[look] || LOOK_TILE.midnight, [hi, mid, deep] = T.c, gold = "#E2BE6E", cream = "#FFF6E0", cream2 = "rgba(255,246,224,.72)";
-    const W = 1080, H = 1350, c = document.createElement("canvas"); c.width = W; c.height = H; const x = c.getContext("2d");
-    const g = x.createRadialGradient(W * .5, H * .12, 40, W * .5, H * .45, H * .95); g.addColorStop(0, mid); g.addColorStop(1, deep);
-    x.fillStyle = g; x.fillRect(0, 0, W, H);
-    x.strokeStyle = gold; x.globalAlpha = .7; x.lineWidth = 3; x.strokeRect(40, 40, W - 80, H - 80); x.globalAlpha = .35; x.strokeRect(54, 54, W - 108, H - 108); x.globalAlpha = 1;
+  const fonts = document.fonts ? Promise.all(["900 80px Fraunces", "700 40px Fraunces", "700 40px 'Barlow Semi Condensed'", "800 40px 'Barlow Semi Condensed'", "700 30px 'Barlow Condensed'"].map(f => document.fonts.load(f).catch(() => null))) : Promise.resolve();
+  const win = rows.filter(r => r.place === 1), hero = win[0] || rows[0], hav = avOf(hero.avatar, hero.name), hc = hav.type === "card" ? cardOfAv(hav.card) : null;
+  const heroArt = hc ? (hc.key === "joker" ? "art/courts/joker.webp" : hc.rank === "a" ? suitArt(hc.suit) : "art/courts/" + hc.key + ".webp") : hav.type === "photo" ? hav.src : null;
+  return Promise.all([fonts, load("art/logo-wordmark-v2.webp"), load("art/crown.webp"), load("art/suit-tile.webp"), load(heroArt), hc && hc.key !== "joker" ? load(suitArt(hc.suit)) : null,
+    ...rows.map(r => load(avatarSrc(avOf(r.avatar, r.name))))]).then(([, mark, crown, tile, art, pip, ...imgs]) => new Promise(res => { try {
+    const T = LOOK_TILE[look] || LOOK_TILE.midnight, [hi, mid, deep] = T.c;
+    const gold = "#E2BE6E", goldHi = "#F6DE9C", goldLo = "#A87A2A", cream = "#FFF6E0", cream2 = "rgba(255,246,224,.78)", ink = "#2B2014", ink2 = "#6B5536";
     const serif = '"Fraunces", Georgia, serif', label = '"Barlow Condensed", "Arial Narrow", sans-serif', num = '"Barlow Semi Condensed", "Barlow Condensed", sans-serif';
-    if (crest) { const h = 150, w = crest.width * h / crest.height; x.drawImage(crest, (W - w) / 2, 84, w, h); }
-    x.textAlign = "center"; x.fillStyle = gold; x.font = "700 34px " + label; x.fillText(name.toUpperCase(), W / 2, 284);
-    const win = rows.filter(r => r.place === 1);
-    x.fillStyle = cream; x.font = "800 100px " + serif; x.fillText(win.map(r => r.name).join(" & "), W / 2, 400, W - 160);
-    x.font = "600 42px " + num; x.fillStyle = cream2; x.fillText(win.length > 1 ? "share the win" : "wins the game", W / 2, 462);
-    const rowH = Math.min(104, 700 / Math.max(rows.length, 1)), top = 560 + (700 - rowH * rows.length) / 2;
-    rows.forEach((r, i) => { const y = top + i * rowH + rowH * .5, p = peg(r.color), first = r.place === 1;
-      x.fillStyle = first ? "rgba(226,190,110,.16)" : i % 2 ? "rgba(0,0,0,0)" : "rgba(255,246,224,.06)"; x.beginPath(); x.roundRect ? x.roundRect(110, y - rowH * .44, W - 220, rowH * .88, 24) : x.rect(110, y - rowH * .44, W - 220, rowH * .88); x.fill();
-      x.textAlign = "left"; x.textBaseline = "middle"; x.fillStyle = first ? gold : cream2; x.font = "700 40px " + num; x.fillText(r.place, 146, y);
-      x.beginPath(); x.arc(250, y, 32, 0, 7); x.fillStyle = p.c; x.fill();
-      if (imgs[i]) { x.save(); x.beginPath(); x.arc(250, y, 32, 0, 7); x.clip(); x.drawImage(imgs[i], 218, y - 32, 64, 64); x.restore(); }
-      if (first) { x.lineWidth = 5; x.strokeStyle = gold; x.beginPath(); x.arc(250, y, 39, 0, 7); x.stroke(); }
-      x.fillStyle = cream; x.font = "700 48px " + num; x.fillText(r.name, 312, y, 470);
-      x.textAlign = "right"; x.font = "800 56px " + num; x.fillStyle = first ? gold : cream; x.fillText(r.total, W - 146, y); });
-    x.textBaseline = "alphabetic"; x.textAlign = "center"; x.fillStyle = cream2; x.font = "600 32px " + label;
-    x.fillText(((endedAt ? new Date(endedAt).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" }) + "  ·  " : "") + "May I?").toUpperCase(), W / 2, H - 104);
+    const W = 1080, H = 1350, c = document.createElement("canvas"); c.width = W; c.height = H; const x = c.getContext("2d");
+    const rr = (X, Y, w, h, r) => { x.beginPath(); x.moveTo(X + r, Y); x.arcTo(X + w, Y, X + w, Y + h, r); x.arcTo(X + w, Y + h, X, Y + h, r); x.arcTo(X, Y + h, X, Y, r); x.arcTo(X, Y, X + w, Y, r); x.closePath(); };
+    const gilt = (y0, y1) => { const g = x.createLinearGradient(0, y0, 0, y1); g.addColorStop(0, goldHi); g.addColorStop(.5, gold); g.addColorStop(1, goldLo); return g; };
+    // Ground: enamel, rays from behind the card, the suit pattern.
+    const cx = W / 2, cy = 500, g = x.createRadialGradient(cx, cy, 30, cx, cy + 120, H * .9); g.addColorStop(0, hi); g.addColorStop(.38, mid); g.addColorStop(1, deep);
+    x.fillStyle = g; x.fillRect(0, 0, W, H);
+    x.save(); x.globalAlpha = .09; x.fillStyle = cream; for (let k = 0; k < 18; k++) { const a = k / 18 * Math.PI * 2; x.beginPath(); x.moveTo(cx, cy); x.arc(cx, cy, 1200, a, a + Math.PI / 30); x.closePath(); x.fill(); } x.restore();
+    if (tile) { x.save(); x.globalAlpha = .07; const p = x.createPattern(tile, "repeat"); x.fillStyle = p; x.fillRect(0, 0, W, H); x.restore(); }
+    const v = x.createRadialGradient(cx, H * .5, H * .35, cx, H * .5, H * .8); v.addColorStop(0, "rgba(0,0,0,0)"); v.addColorStop(1, "rgba(0,0,0,.35)"); x.fillStyle = v; x.fillRect(0, 0, W, H);
+    // Gilt frame with corner studs.
+    x.lineWidth = 6; x.strokeStyle = gilt(0, H); rr(34, 34, W - 68, H - 68, 26); x.stroke();
+    x.lineWidth = 2; x.globalAlpha = .6; rr(52, 52, W - 104, H - 104, 16); x.stroke(); x.globalAlpha = 1;
+    [[34, 34], [W - 34, 34], [34, H - 34], [W - 34, H - 34]].forEach(([X, Y]) => { x.fillStyle = gilt(Y - 12, Y + 12); x.beginPath(); x.arc(X, Y, 12, 0, 7); x.fill(); });
+    // Wordmark.
+    if (mark) { const w = 250, h = mark.height * w / mark.width; x.drawImage(mark, cx - w / 2, 58, w, h); }
+    // The winner's card, tilted, with the crown on it.
+    const CW = 318, CH = CW * 88 / 63, red = hc && (hc.suit === "heart" || hc.suit === "diamond");
+    x.save(); x.translate(cx, 292 + CH / 2); x.rotate(-.06);
+    x.shadowColor = "rgba(0,0,0,.45)"; x.shadowBlur = 40; x.shadowOffsetY = 18; x.fillStyle = "#FFFDF6"; rr(-CW / 2, -CH / 2, CW, CH, 22); x.fill(); x.shadowColor = "transparent";
+    x.lineWidth = 5; x.strokeStyle = gilt(-CH / 2, CH / 2); rr(-CW / 2, -CH / 2, CW, CH, 22); x.stroke();
+    x.lineWidth = 1.5; x.strokeStyle = "rgba(168,122,42,.55)"; rr(-CW / 2 + 16, -CH / 2 + 16, CW - 32, CH - 32, 10); x.stroke();
+    const fx = -CW / 2 + 40, fy = -CH / 2 + 40, fw = CW - 80, fh = CH - 80;
+    if (hc && hc.key !== "joker" && hc.rank !== "a" && art) {
+      [0, 1].forEach(half => { x.save(); if (half) x.rotate(Math.PI); x.beginPath(); x.rect(fx, fy, fw, fh / 2); x.clip();
+        const w = fw, h = art.height * w / art.width; x.drawImage(art, fx, fy, w, h); x.restore(); });
+      x.strokeStyle = "rgba(168,122,42,.6)"; x.lineWidth = 2; x.beginPath(); x.moveTo(fx, 0); x.lineTo(fx + fw, 0); x.stroke();
+    } else if (art) { const k = Math.min(fw / art.width, fh / art.height) * (hc && hc.rank === "a" ? .7 : 1), w = art.width * k, h = art.height * k;
+      if (hav.type === "photo") { x.save(); rr(fx, fy, fw, fh, 8); x.clip(); const k2 = Math.max(fw / art.width, fh / art.height); x.drawImage(art, -art.width * k2 / 2, -art.height * k2 / 2, art.width * k2, art.height * k2); x.restore(); }
+      else x.drawImage(art, -w / 2, -h / 2, w, h);
+    } else { x.fillStyle = peg(hero.color).c; rr(fx, fy, fw, fh, 10); x.fill(); x.fillStyle = cream; x.font = "900 200px " + serif; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText((hero.name || "?").trim().charAt(0).toUpperCase(), 0, 8); }
+    if (hc) { const ix = hc.key === "joker" ? "★" : hc.rank.toUpperCase(); x.fillStyle = red ? "#B3263A" : "#1D2230"; x.textAlign = "center"; x.textBaseline = "alphabetic";
+      [[1, -CW / 2 + 30, -CH / 2 + 50], [-1, CW / 2 - 30, CH / 2 - 50]].forEach(([d, X, Y]) => { x.save(); x.translate(X, Y); if (d < 0) x.rotate(Math.PI); x.font = "900 40px " + serif; x.fillText(ix, 0, 0); if (pip) x.drawImage(pip, -13, 8, 26, 24); x.restore(); }); }
+    if (crown) { const w = 190, h = crown.height * w / crown.width; x.drawImage(crown, -w / 2, -CH / 2 - h * .62, w, h); }
+    x.restore();
+    // Ribbon.
+    const title = win.length > 1 ? win.map(r => r.name).join(" & ") + " share it!" : hero.name + " wins!";
+    x.font = "900 78px " + serif; const tw = Math.min(x.measureText(title).width, 700), RW = tw + 120, RH = 112, RX = cx - RW / 2, RY = 726;
+    x.fillStyle = deep; [[RX - 50, RX + 10, RX - 26], [RX + RW + 50, RX + RW - 10, RX + RW + 26]].forEach(([o, inn, notch]) => { x.beginPath(); x.moveTo(inn, RY + 22); x.lineTo(o, RY + 22); x.lineTo(notch, RY + 22 + RH / 2); x.lineTo(o, RY + 22 + RH); x.lineTo(inn, RY + 22 + RH); x.closePath(); x.fill(); });
+    const rg = x.createLinearGradient(0, RY, 0, RY + RH); rg.addColorStop(0, hi); rg.addColorStop(.6, mid); rg.addColorStop(1, deep);
+    x.shadowColor = "rgba(0,0,0,.4)"; x.shadowBlur = 24; x.shadowOffsetY = 10; x.fillStyle = rg; rr(RX, RY, RW, RH, 12); x.fill(); x.shadowColor = "transparent";
+    x.lineWidth = 6; x.strokeStyle = gilt(RY, RY + RH); rr(RX, RY, RW, RH, 12); x.stroke();
+    x.fillStyle = cream; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(title, cx, RY + RH / 2 + 4, 700);
+    x.font = "700 30px " + label; x.fillStyle = cream2; x.textBaseline = "alphabetic";
+    const margin = rows.length > 1 ? rows.filter(r => r.place > 1).map(r => r.total).sort((a, b) => a - b)[0] - hero.total : 0;
+    x.fillText((name + (margin > 0 ? "  ·  won by " + margin : "") + "  ·  seven rounds").toUpperCase(), cx, RY + RH + 56, W - 200);
+    // The places on a cream score card.
+    const PX = 120, PW = W - 240, PY = 926, PH = 314;
+    x.shadowColor = "rgba(0,0,0,.35)"; x.shadowBlur = 30; x.shadowOffsetY = 12; x.fillStyle = cream; rr(PX, PY, PW, PH, 28); x.fill(); x.shadowColor = "transparent";
+    x.lineWidth = 4; x.strokeStyle = gilt(PY, PY + PH); rr(PX, PY, PW, PH, 28); x.stroke();
+    const list = rows.slice(0, 8), rowH = Math.min(84, (PH - 36) / list.length), top = PY + (PH - rowH * list.length) / 2, sz = Math.min(1, rowH / 76);
+    list.forEach((r, i) => { const y = top + i * rowH + rowH / 2, first = r.place === 1, p = peg(r.color), R = 27 * sz;
+      if (i) { x.strokeStyle = "rgba(107,85,54,.18)"; x.lineWidth = 1.5; x.beginPath(); x.moveTo(PX + 34, y - rowH / 2); x.lineTo(PX + PW - 34, y - rowH / 2); x.stroke(); }
+      x.textBaseline = "middle"; x.textAlign = "left"; x.fillStyle = first ? goldLo : ink2; x.font = "700 " + Math.round(36 * sz) + "px " + serif; x.fillText(r.place + ordOf(r.place), PX + 40, y);
+      const ax = PX + 170; x.beginPath(); x.arc(ax, y, R, 0, 7); x.fillStyle = p.c; x.fill();
+      if (imgs[i]) { x.save(); x.beginPath(); x.arc(ax, y, R, 0, 7); x.clip(); x.drawImage(imgs[i], ax - R, y - R, R * 2, R * 2); x.restore(); }
+      else { x.fillStyle = cream; x.textAlign = "center"; x.font = "800 " + Math.round(28 * sz) + "px " + num; x.fillText((r.name || "?").trim().charAt(0).toUpperCase(), ax, y + 1); }
+      x.lineWidth = first ? 4 : 2; x.strokeStyle = first ? gilt(y - R, y + R) : "rgba(107,85,54,.35)"; x.beginPath(); x.arc(ax, y, R + (first ? 3 : 1), 0, 7); x.stroke();
+      x.textAlign = "left"; x.fillStyle = ink; x.font = "700 " + Math.round(40 * sz) + "px " + num; x.fillText(r.name, ax + R + 22, y, 380);
+      x.textAlign = "right"; x.font = "800 " + Math.round(46 * sz) + "px " + num; x.fillStyle = first ? goldLo : ink; x.fillText(r.total, PX + PW - 40, y); });
+    // Footer.
+    x.textBaseline = "alphabetic"; x.textAlign = "center"; x.fillStyle = cream2; x.font = "700 28px " + label;
+    x.fillText(((endedAt ? new Date(endedAt).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" }) + "  ·  " : "") + "Scored on May I?").toUpperCase(), cx, H - 74);
     c.toBlob(b => res(b), "image/png");
-  } catch (e) { res(null); } }));
+  } catch (e) { console.error(e); res(null); } }));
 }
 function PlayOnce({ fn }) { useEffect(() => { fn(); }, []); return null; }
 // ── Finale effects ────────────────────────────────────────────────
@@ -2659,17 +2706,20 @@ function AddPlayerSheet({ game, group, who, onBack, onClose, onAdd }) {
 function KSeg({ label, value, onChange, options }) {
   return ce("div", { className: "kseg", role: "group", "aria-label": label }, options.map(([v, t]) => ce("button", { key: v, type: "button", "aria-pressed": value === v, onClick: () => { haptic(6); onChange(v); } }, t)));
 }
+// The table's look: a tap changes it at once, and the page behind the sheet shows it. Used in Table settings and the game menu.
+function LookPicker({ group, onLook, id }) {
+  return ce("div", { className: "ts-look" }, ce("span", { className: "ts-lbl", id }, "Look"),
+    ce("div", { className: "looks st-looks ts-looks", role: "radiogroup", "aria-labelledby": id }, MAPPED_LOOKS.map(k => { const T = LOOK_TILE[k], on = tableLook(group) === k;
+      return ce("button", { key: k, type: "button", className: "look", role: "radio", "aria-checked": on, style: { "--c2": T.c[0], "--c3": T.c[1], "--c5": T.c[2] },
+        onClick: () => { if (!on) { haptic(8); onLook(k); } } }, ce("img", { src: "art/" + T.art + ".webp", alt: "" }), ce("span", { className: "tick", "aria-hidden": true }, kIcon("check")), ce("b", null, LOOKS[k].name)); })));
+}
 // Tables wear the four enamels in turn.
 function TableSheet({ onClose, group, onRename, onLook, onDelete, onPlayers, games }) {
   const [name, setName] = useState(group.name), [asking, setAsking] = useState(false);
   const save = () => { const n = name.trim(); if (n && n !== group.name) onRename(n.slice(0, 30)); onClose(); };
   return ce(KSheet, { title: "Table settings", onClose, cls: "gm-sheet ts-sheet", foot: ce("button", { className: "kb", disabled: !name.trim(), onClick: save }, "Save") },
     ce(KNameField, { id: "tsName", label: "Name", value: name, onChange: setName, onEnter: save }),
-    // The table's look: a tap changes it at once, and the page behind the sheet shows it.
-    ce("div", { className: "ts-look" }, ce("span", { className: "ts-lbl", id: "tsLookL" }, "Look"),
-      ce("div", { className: "looks st-looks ts-looks", role: "radiogroup", "aria-labelledby": "tsLookL" }, MAPPED_LOOKS.map(k => { const T = LOOK_TILE[k], on = tableLook(group) === k;
-        return ce("button", { key: k, type: "button", className: "look", role: "radio", "aria-checked": on, style: { "--c2": T.c[0], "--c3": T.c[1], "--c5": T.c[2] },
-          onClick: () => { if (!on) { haptic(8); onLook(k); } } }, ce("img", { src: "art/" + T.art + ".webp", alt: "" }), ce("span", { className: "tick", "aria-hidden": true }, kIcon("check")), ce("b", null, LOOKS[k].name)); }))),
+    ce(LookPicker, { group, onLook, id: "tsLookL" }),
     ce("div", { className: "gm-list" },
       ce("button", { className: "gm-row", onClick: onPlayers }, ce("span", { className: "ts-faces", "aria-hidden": true }, group.players.slice(0, 3).map(p => ce(Tok, { key: p.id, p }))),
         ce("span", { className: "gm-t" }, ce("b", null, "Players"), ce("small", null, stPlural(group.players.length, "player") + " at this table · names and faces")), kIcon("chevl", "gm-chev"))),
@@ -2698,7 +2748,7 @@ function HouseSheet({ onClose, rules, setRules, note }) {
     ce(KHouseRules, { rules, up: (k, v) => setRules(x => ({ ...x, [k]: v })) }),
     ce("p", { className: "fine" }, note || "Changes apply to this game from now on, and to this table's next games."));
 }
-function GameMenu({ onClose, game, group, onFinish, onEnd, onSettings, onPlayers, onHouse, onFix }) {
+function GameMenu({ onClose, game, group, onFinish, onEnd, onSettings, onPlayers, onHouse, onFix, onLook }) {
   const done = ROUNDS.filter((_, i) => roundDone(game, i)).length, r = ROUNDS[game.round];
   const fixable = ROUNDS.map((_, i) => i).filter(i => i !== game.round && roundDone(game, i));
   const [picking, setPicking] = useState(false), [asking, setAsking] = useState(false);
@@ -2708,6 +2758,7 @@ function GameMenu({ onClose, game, group, onFinish, onEnd, onSettings, onPlayers
   return ce(KSheet, { title: "This game", heading: group ? group.name : "This game", onClose, cls: "gm-sheet", footCls: "gm-foot",
       foot: ce("button", { className: "link gm-danger", onClick: onEnd }, game.reopened ? "Discard changes" : "End without saving") },
     ce("p", { className: "gm-where" }, "Round " + r.n + " of 7 · " + r.name + " · " + game.players.length + " playing"),
+    group && onLook && ce(LookPicker, { group, onLook, id: "gmLookL" }),
     ce("div", { className: "gm-list" },
       row("friends", "Players", "Seats, sitting out, adding someone", onPlayers),
       done > 0 && row("scores", "Scores so far", "Every round on one sheet, and fixing a score", () => setPicking(x => !x), { "aria-expanded": picking }),

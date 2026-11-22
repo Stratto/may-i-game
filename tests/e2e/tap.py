@@ -123,6 +123,17 @@ def game(br, n, full):
     shot(p, "10-round-2-%d" % n)
     if not p.get_by_text("Round 2 of 7").count(): fail("did not reach round 2")
     else: fits(p, "round 2 with %d" % n)
+    if n == 4:
+        # The game menu has its own icon (three dots, not a sun-like gear) and carries the table's look.
+        if tap(p, p.get_by_role("button", name=re.compile("^Game menu")).first, "game menu"):
+            p.wait_for_timeout(700); shot(p, "10b-game-menu")
+            lime = p.get_by_role("radio", name="Lime")
+            if not lime.count(): fail("game menu: no look tiles")
+            elif tap(p, lime, "lime look"):
+                p.wait_for_timeout(500)
+                if p.evaluate("document.documentElement.dataset.look") != "lime": fail("game menu: the round did not change to Lime")
+                if lime.get_attribute("aria-checked") != "true": fail("game menu: Lime not marked chosen")
+            p.keyboard.press("Escape"); p.wait_for_timeout(500)
     ctx.close()
 
 def returning(br):
