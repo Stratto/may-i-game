@@ -2216,7 +2216,11 @@ function Recap({ s, game, go, setToast, rematch, onDelete, onReopen, onTable, se
     }
   }
   const sameTable = game.players.filter(id => group.players.some(p => p.id === id)).length >= 2;
-  const [take, setTake] = useState(fresh ? 1 : 0), [more, setMore] = useState(false);
+  const [take, setTake] = useState(fresh ? 1 : 0), [more, setMore] = useState(false), [allAw, setAllAw] = useState(false);
+  // The finale is a moment, not the page: the winner's card fills the screen for a beat, then settles into the header so Rematch and Share are in reach. A tap skips it.
+  const [settled, setSettled] = useState(!fresh || reducedMotion());
+  useEffect(() => { if (!take || reducedMotion()) return; setSettled(false); const t = setTimeout(() => setSettled(true), 1700); return () => clearTimeout(t); }, [take]);
+  const canRematch = game.status === "done" && sameTable;
   const hl = nightHighlights(game, pl, true), winners = top.map(t => pl(t.id));
   const names = winners.map(p => p.name), title = names.length > 1 ? names.slice(0, -1).join(", ") + " and " + names[names.length - 1] + " win!" : names[0] + " wins!";
   const winCard = p => { const av = avOf(p.avatar, p.name), c = av.type === "card" && cardOfAv(av.card);
@@ -2240,10 +2244,11 @@ function Recap({ s, game, go, setToast, rematch, onDelete, onReopen, onTable, se
     .filter((id, i, a) => a.indexOf(id) === i).map(id => ({ id, p: pl(id), total: Object.values(game.scores).reduce((s, r) => s + (r && typeof r[id] === "number" ? r[id] : 0), 0), from: (game.left || {})[id] }));
   const rest = ranked.filter(t => t.total !== best).map(t => ({ id: t.id, p: pl(t.id), total: t.total, ...hl[t.id] }));
   return ce("div", { className: "kit kscreen kresults" },
-    ce("section", { key: "fin" + take, className: "finale lb-fin" },
+    ce("section", { key: "fin" + take, className: "finale lb-fin" + (settled ? " settled" : ""), onClick: settled ? undefined : () => setSettled(true) },
       ce("svg", { className: "rays", viewBox: "-100 -100 200 200", "aria-hidden": true }, ce("path", { d: FIN_RAYS, fill: "#FFE9A6", opacity: .22 })),
       ce("div", { className: "ph-nav lb-finnav" },
         ce("button", { className: "ib", onClick: () => go({ at: "group", groupId: group.id }), "aria-label": "Back to " + group.name }, kIcon("chevl")), ce("span", { className: "sp" }),
+        ce("button", { className: "ib", onClick: share, "aria-label": "Share results" }, kIcon("share")),
         ce("button", { className: "ib", onClick: () => setMore(true), "aria-label": "More: reopen or delete this game" }, kIcon("more"))),
       ce("div", { className: "lb-wins" + (winners.length > 1 ? " two" : "") }, winners.slice(0, 2).map(p => ce("div", { key: p.id, className: "lb-wincard" }, winCard(p),
         ce("img", { className: "lb-wcrown", src: "art/crown.webp", alt: "" }),
@@ -2254,6 +2259,7 @@ function Recap({ s, game, go, setToast, rematch, onDelete, onReopen, onTable, se
       take > 0 && ce(FinaleFX)),
     fresh && ce(PlayOnce, { fn: () => sound("win") }),
     rest.length > 0 && ce(Leaderboard, { rows: rest, from: 1 + top.length, dealIn: fresh, label: "The rest of the table" }),
+    ce("section", { className: "lb-sheet", "aria-label": "Scores by round" }, ce("h2", null, "Scores by round"), ce(ScoreSheet, { game, pl })),
     aws.length > 0 && ce("section", { className: "lb-aws" + (fresh && !reducedMotion() ? " in" : ""), "aria-labelledby": "lbAwsH" },
       ce("h2", { id: "lbAwsH" }, "Awards", ce("small", null, stPlural(aws.length, "award") + " handed out")),
       // The four rarest are big, with how they were won; any more sit in a smaller row underneath so a big night stays one screen of medals.
@@ -2262,20 +2268,15 @@ function Recap({ s, game, go, setToast, rematch, onDelete, onReopen, onTable, se
         ce("b", { className: "lb-awt" }, A.t),
         ce("span", { className: "lb-awwho" }, ce(Tok, { p }), p.name),
         ce("small", null, (a.d || A.how || "").replace(/\.$/, ""))))),
-      aws.length > 4 && ce("ul", { className: "lb-awsm" }, aws.slice(4).map(({ a, A, p }, i) => ce("li", { key: a.key + ":" + a.id, style: { "--i": i + 4 } },
+      aws.length > 4 && !allAw && ce("button", { className: "link lb-awall", onClick: () => setAllAw(true) }, "All " + aws.length + " awards"),
+      aws.length > 4 && allAw && ce("ul", { className: "lb-awsm" }, aws.slice(4).map(({ a, A, p }, i) => ce("li", { key: a.key + ":" + a.id, style: { "--i": i + 4 } },
         ce("span", { className: "lb-medal", "aria-hidden": true }, ce("img", { src: "art/icons/" + A.art + ".webp", alt: "" })),
         ce("b", { className: "lb-awt" }, A.t),
         ce("span", { className: "lb-awwho" }, ce(Tok, { p }), p.name),
         ce("span", { className: "vh" }, ". " + (a.d || A.how || "")))))),
     leftRows.length > 0 && ce("section", { className: "lb-left", "aria-label": "Left early" }, ce("h2", null, "Left early"),
       ce("ul", null, leftRows.map(r => ce("li", { key: r.id }, ce(Tok, { p: r.p }), ce("span", null, ce("b", null, r.p.name), ce("small", null, r.from != null ? "Sat out from round " + (r.from + 1) : "Left the game")), ce("em", null, r.total))))),
-    ce("div", { className: "lb-sect lb-endsect" },
-      ce("div", { className: "lb-share" }, ce("img", { className: "lb-shareart", src: "art/icons/camera.webp", alt: "" }),
-        ce("p", null, ce("b", null, "The night in one card."), " " + names[0] + "'s win, every place and every score, ready for the group chat.")),
-      ce("div", { className: "lb-two" },
-        ce("button", { className: "kb cream", onClick: share }, kIcon("share"), "Share"),
-        game.status === "done" && sameTable && ce("button", { className: "kb", onClick: () => rematch(game) }, kIcon("again"), "Rematch")),
-      ce("section", { className: "lb-sheet", "aria-label": "Scores by round" }, ce("h2", null, "Scores by round"), ce(ScoreSheet, { game, pl })),
+    ce("div", { className: "lb-sect lb-endsect" + (canRematch ? " docked" : "") },
       ask === "name" && ce("form", { className: "lb-nudge lb-name", "aria-label": "Name this table", onSubmit: nameIt },
         ce("img", { src: "art/icons/furniture.webp", alt: "" }),
         ce("p", null, ce("b", null, "Same table next time?"), "It was dealt the name " + group.name + ". Keep it, roll another, or type the table's own."),
@@ -2292,6 +2293,7 @@ function Recap({ s, game, go, setToast, rematch, onDelete, onReopen, onTable, se
         ce("p", null, ce("b", null, "A good night?"), "May I? is free, with no ads. A tip from the table keeps it that way."),
         ce("div", { className: "lb-nbtns" }, ce("button", { className: "link", onClick: () => mark("tipSnooze") }, "Not now"),
           ce("a", { className: "kb sm cream", href: SUPPORT_URL, target: "_blank", rel: "noopener", onClick: () => { haptic(10); mark("tipped"); } }, "Leave a tip")))),
+    canRematch && ce("div", { className: "ph-dock lb-rdock" }, ce("button", { className: "kb", onClick: () => { haptic(10); rematch(game); } }, kIcon("again"), "Rematch")),
     more && ce(KSheet, { title: "This game", onClose: () => setMore(false), cls: "gm-sheet" },
       ce("div", { className: "gm-list" },
         onReopen && ce("button", { className: "gm-row", onClick: () => { setMore(false); onReopen(); } }, ce("img", { src: "art/icons/scores.webp", alt: "" }),

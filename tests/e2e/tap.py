@@ -178,12 +178,21 @@ def returning(br):
             if t in rows: fail("results: award " + repr(t) + " also named in the standings")
         covered_controls(p, "results")
         if look() != "lime": fail("results: Friday night's game should wear its table's look, got " + repr(look()))
+        # Actions first: Rematch sits in the dock, and the places start on the first screen.
+        rm = p.get_by_role("button", name="Rematch")
+        if not rm.count() or not rm.is_visible(): fail("results: no Rematch in the dock")
+        else:
+            bb = rm.bounding_box()
+            if bb["y"] + bb["height"] > 664: fail("results: Rematch is below the screen")
+        lr = p.locator(".ldr li").first
+        if lr.count() and lr.bounding_box()["y"] > 560: fail("results: the places start %dpx down, below the first screen" % lr.bounding_box()["y"])
+        if p.get_by_text("The night in one card").count(): fail("results: the old share card is still there")
         # Share: Safari only opens the share sheet straight after a tap, so the picture must be ready before it.
         p.wait_for_timeout(1500)
         p.evaluate("""() => { window.__shares = []; navigator.canShare = () => true;
           navigator.share = async d => { window.__shares.push({ files: (d.files || []).length, size: d.files && d.files[0] ? d.files[0].size : 0, ms: performance.now() - window.__tapAt }); };
           document.addEventListener('pointerdown', () => { window.__tapAt = performance.now(); }, true); }""")
-        if tap(p, p.get_by_role("button", name="Share", exact=True), "share results"):
+        if tap(p, p.get_by_role("button", name="Share results"), "share results"):
             p.wait_for_timeout(400); sh = p.evaluate("window.__shares")
             if not sh: fail("results: Share did not open the share sheet")
             elif sh[0]["files"] != 1 or sh[0]["size"] < 20000: fail("results: the share sheet got no picture " + repr(sh[0]))

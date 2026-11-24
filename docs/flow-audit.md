@@ -62,6 +62,46 @@ The start screen and the empty Play tab are the same screen, so first and second
 5. **Stats: people and awards, not tables again.** Tables go (they're on Play). Stats shows each person's line across all tables, then the award cabinet showing only won and nearly-won awards, with "13 still to find" closing it. *Removes the duplicate and the wall of grey.*
 6. **Later, if the above lands:** whether Learn and Settings still need tabs, or whether they belong under the crest and a gear on Play, leaving the tab bar to Play and Stats.
 
+## Checked against known patterns, 23 Nov 2026
+
+Mobbin's plugin needs a paid plan, so this check is from well-known patterns in popular apps, not screens pulled today. Apps change, so the app names are there for you to look up, not as proof. Each item says whether it backs the recommendation above, changes it, or adds something.
+
+### 1. Results: backed, with one change
+- **The pattern:** Duolingo's lesson complete, the NYT Games results (Wordle) and Strava's saved activity all keep the celebration short. Then the next action is in reach without scrolling: Duolingo pins one Continue button at the bottom, NYT puts a large Share button inside the result, and the score breakdown (Wordle's guess spread) sits right under the headline.
+- **The change:** keep the big moment, but make it a moment. The winner's card fills the screen for about 1.5 s (a tap skips it), then shrinks into the compact header with the places below. This keeps the finale people enjoy and still puts Rematch and Share in reach.
+- **Backs:** Rematch in the dock, Share at the top, scores by round straight after the places.
+
+### 2. Dropping Between rounds: backed, with two changes
+- **The pattern:** Gmail's "Sent · Undo" and Google Photos' "Deleted · Undo" do the action right away and offer Undo, instead of a screen or a "Done" step. Game companion apps tend to show the change in standings on the main screen rather than a separate step.
+- **Change 1, show the change where people look:** after Save, the round screen's totals count up and anyone who moves place slides up or down, with "Ana went out · Ana leads by 12" across the top. That gives the table the moment Between rounds gave, without the extra tap.
+- **Change 2, don't let Undo vanish:** a banner on a timer is hard for slow readers and screen readers (WCAG 2.2.1). Keep the banner until the next tap on the round, announce it to screen readers, and keep **Undo round N** in the game menu after it goes.
+
+### 3. One way to start: backed
+- **The pattern:** Spotify's "Jump back in", Duolingo's single Start on the next lesson and Strava's one Record button all give one main way to carry on. Lists open a detail page; they don't each carry their own start button.
+
+### 4. The game menu icon: done 23 Nov
+- **The pattern:** Apple's guidance uses an ellipsis for "more actions" and a gear only for Settings. The game screens now use the three dots and the table page uses a cog. No more change needed.
+
+### 5. Stats awards: changed
+- **The pattern:** Apple Fitness puts earned awards first and shows locked ones as dim outlines grouped by kind. Duolingo's achievements show progress ("7 of 10"). Steam and Xbox show how rare an award is.
+- **The change:** rather than hide every award not yet won, show won awards first, then the ones in progress with a bar ("Dynasty · 2 of 3 wins in a row"), then fold the rest into "13 still to find". No empty grey "?" medals. This also covers backlog T3-12.
+
+### 6. Share picture: adds one thing
+- **The pattern:** Spotify Wrapped and Strava show you the picture before you share it, and offer a tall story size (9 : 16) beside the feed size.
+- **The addition:** Share in the top bar opens a small sheet with the picture and one **Share** button. The picture is drawn before that tap, so Safari still opens the share sheet straight away. A story size can wait until someone asks for it.
+
+### 7. Animation
+- **The pattern:** Duolingo and Apple Fitness count numbers up, celebrate briefly and let a tap skip it. Movement explains a change (a total going up, a place changing), not decoration.
+- **For May I?:** totals count up after Save, places slide when they change, the winner's card shrinks into the header, and awards pop in after the finale as they do now. Each one under about half a second except the finale, and all of them turned off by Reduce motion. Phones can't vibrate from Safari on iPhone, so there are no haptics.
+
+### What this changes in the plan
+1. Results: the finale plays for about 1.5 s, then becomes the compact header. Everything else as recommended. **Built 23 Nov** (the share preview sheet is not built yet).
+2. Between rounds: totals count up and places move on the round screen. The banner stays until the next tap, and Undo round N stays in the menu.
+3. Play: unchanged.
+4. Game menu icon: done.
+5. Stats: won awards, then in-progress awards with bars, then a count of the rest.
+6. Share: a small sheet with the picture before sharing.
+
 ## Not changing
 - The round screen itself: the goal, the turn order, buys on a tap. It tested well in P1.
 - Two taps to start a known table.
