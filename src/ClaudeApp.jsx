@@ -906,7 +906,7 @@ function KSheet({ title, heading, onClose, children, foot, footCls, cls, closeLa
   const end = e => { if (!d.current) return; const dy = Math.max(0, e.clientY - d.current.y), v = dy / (performance.now() - d.current.t); d.current = null; if (dy > 100 || v > .6) close(); else setDrag(0); };
   return onTop(ce("div", { ref: me, className: "kit kport" + (closing ? " out" : ""), onFocus },
     ce("div", { className: "lr-dim", onClick: close }),
-    ce("div", { className: "ksheet lr-sheet" + (cls ? " " + cls : ""), role: "dialog", "aria-modal": true, "aria-label": title, style: drag ? { transform: "translateY(" + drag + "px)", animation: "none" } : null },
+    ce("div", { className: "ksheet lr-sheet" + (cls ? " " + cls : ""), role: "dialog", "aria-modal": true, "aria-label": title, style: drag ? (closing ? { transform: "translateY(100%)", transition: "transform .2s ease-in", animation: "none" } : { transform: "translateY(" + drag + "px)", animation: "none" }) : null },
       ce("div", { className: "kgrab", onPointerDown: start, onPointerMove: move, onPointerUp: end, onPointerCancel: end },
         ce("div", { className: "grab" }),
         bare ? ce("button", { className: "ib cream ks-x", onClick: close, "aria-label": closeLabel || "Close" }, kIcon("xmark"))
@@ -1152,6 +1152,8 @@ function App() {
   const [sheet, setSheet] = useState(null), [intro, setIntro] = useState(introDue);
   const [toast, setToast] = useState(null);
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(null), toast.undo ? 6000 : toast.sub ? 3800 : 2800); return () => clearTimeout(t); }, [toast]);
+  // After something is removed (a game ended, a table deleted), focus lands on Undo, so a screen reader hears what happened and can take it back.
+  useEffect(() => { if (!toast || !toast.undo) return; const t = setTimeout(() => { const b = document.querySelector(".toast-undo"); if (b) b.focus({ preventScroll: true }); }, 80); return () => clearTimeout(t); }, [toast]);
   // Destructive actions happen at once and offer Undo, instead of asking twice.
   const withUndo = (text, change) => { const before = s; change(); setToast({ text, undo: () => { api.set(() => before); setToast(null); } }); };
   const startGame = (groupId, players, dealer, rules) => {
@@ -1162,7 +1164,7 @@ function App() {
     close(); go({ at: "game", gameId: id });
   };
   // Rematch: same players and rules, the deal moves one seat left.
-  const rematch = g => { const ids = g.players.filter(id => s.groups[g.groupId].players.some(p => p.id === id)); if (ids.length < 2) return open("newgame", { groupId: g.groupId, rules: g.rules }); startGame(g.groupId, ids, (g.dealer + 1) % ids.length, g.rules); };
+  const rematch = (g, extra) => { const ids = [...g.players, ...(extra || [])].filter(id => s.groups[g.groupId].players.some(p => p.id === id)); if (ids.length < 2) return open("newgame", { groupId: g.groupId, rules: g.rules }); startGame(g.groupId, ids, (g.dealer + 1) % ids.length, g.rules); };
   useEffect(() => { scrollTo(0, 0); }, [view.at, view.groupId, view.gameId]);
   // Headers sit on the background; once the page scrolls under one it frosts over.
   useEffect(() => { const f = () => document.documentElement.classList.toggle("scrolled", scrollY > 8); addEventListener("scroll", f, { passive: true }); f(); return () => removeEventListener("scroll", f); }, []);
@@ -1177,6 +1179,28 @@ function App() {
   const open = (type, extra) => { if (type === "settings") { setSheet(null); haptic(6); return setView(v => v.at === "settings" ? v : { at: "settings", back: v }); } setSheet({ type, ...(extra || {}) }); };
   const close = () => setSheet(null);
   const go = v => { haptic(6); setView(v); };
+  // The phone's Back (or a swipe back) closes the top sheet first, then steps back one screen. It never leaves a game.
+  const backRef = useRef(null), backTold = useRef(false);
+  backRef.current = () => {
+    if (intro) { setIntro(false); return true; }
+    const g0 = view.gameId && s.games[view.gameId];
+    if (view.at === "game" && g0) { if (!backTold.current) { backTold.current = true; setToast({ text: "Still playing", sub: "End or leave the game from \u2022\u2022\u2022" }); } return true; }
+    if (view.at === "recap" && g0) { go({ at: "group", groupId: g0.groupId }); return true; }
+    if (view.at === "settings" && view.back) { go(view.back); return true; }
+    if (view.at !== "home") { go({ at: "home" }); return true; }
+    return false;
+  };
+  useEffect(() => {
+    const guard = () => history.pushState({ mayi: 1 }, "");
+    if (!(history.state && history.state.mayi)) guard();
+    const onPop = () => {
+      const tops = document.querySelectorAll("body > .kport, body > .kscreen");
+      if (tops.length) { dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" })); return guard(); }
+      if (backRef.current()) return guard();
+      history.back();
+    };
+    addEventListener("popstate", onPop); return () => removeEventListener("popstate", onPop);
+  }, []);
 
   let screen;
   const g = view.gameId && s.games[view.gameId], grp = view.groupId && s.groups[view.groupId];
@@ -1950,7 +1974,9 @@ function ScorePad({ game, pl, start, round, rs, setScore, onClose, onDone, fixin
   });
   const oi = outId ? ids.indexOf(outId) : -1, order = oi < 0 ? missing : ids.slice(oi + 1).concat(ids.slice(0, oi)).filter(x => missing.includes(x));
   const side = wide && picked ? hand || order[0] || null : null;
-  const useHand = id => (v, cards) => { setScore(id, v, cards); setDrafts(d => ({ ...d, [id]: String(v) })); setHand(null); };
+  const useHand = id => (v, cards) => { setScore(id, v, cards); setDrafts(d => ({ ...d, [id]: String(v) })); setHand(null);
+    // The next empty hand takes over, so counting a hand never leaves you hunting for where you were.
+    if (!wide) setTimeout(() => { const k = ids.indexOf(id), nx = ids.slice(k + 1).concat(ids.slice(0, k)).find(x => x !== outId && x !== id && typeof rs[x] !== "number"); const el = nx && refs.current[nx]; if (el) el.focus({ preventScroll: false }); }, 260); };
   const aceV = rules.aceValue == null && rules.acesPosition === "both" ? "1 or 15" : String(acePoints(rules));
   const vals = [[rules.twosWild ? "3 to 9" : "2 to 9", "face value"], ["10, J, Q, K", "10 each"], ["Ace", aceV], [rules.twosWild ? "Joker or 2" : "Joker", String(wildPoints(rules))]];
   const left = [ce("div", { key: "s", className: "lb-step" }, ce("h1", null, title), ce("p", { className: "ls-lead" }, picked ? (wide ? "Count each hand on the right, or type what's left." : "Type what's left in each hand, or tap the cards to count it.") : "Who went out first?"),
@@ -2137,7 +2163,7 @@ function RoundNews({ game, pl, from, onStandings, onUndo }) {
 function BetweenScreen({ game, pl, from, onPlay, onUndo, onMenu, onRules }) {
   const rs = game.scores[from] || {}, outId = game.players.find(id => rs[id] === 0), hls = roundHighlights(game, from);
   const totals = totalsOf(game), next = from + 1, nd = game.players[dealerIdx(game, next)], ns = game.players[(dealerIdx(game, next) + 1) % game.players.length];
-  useEffect(() => { const k = e => { if (e.key === "Enter" && !e.target.closest("button, input")) onPlay(); }; addEventListener("keydown", k); return () => removeEventListener("keydown", k); }, []);
+  useEffect(() => { const k = e => { if ((e.key === "Enter" && !e.target.closest("button, input")) || e.key === "Escape") onPlay(); }; addEventListener("keydown", k); return () => removeEventListener("keydown", k); }, []);
   const rows = totals.map(t => ({ id: t.id, p: pl(t.id), total: t.total, ...hls[t.id] }));
   // From round 2 on, the closest chaser's path to the lead, and up to three awards someone holds for now.
   const live = from >= 1 && next < 7, notes = live ? chaseNotes({ ...game, status: "live" }, id => pl(id).name) : [], chase = notes[0] || null;
@@ -2213,6 +2239,11 @@ function Recap({ s, game, go, setToast, rematch, onDelete, onReopen, onTable, se
   const [settled, setSettled] = useState(!fresh || reducedMotion());
   useEffect(() => { if (!take || reducedMotion()) return; setSettled(false); const t = setTimeout(() => setSettled(true), 1700); return () => clearTimeout(t); }, [take]);
   const canRematch = game.status === "done" && sameTable;
+  // Someone who played the table's game before this one but sat this one out gets a one-tap way back into the rematch.
+  const sat = useMemo(() => { if (!canRematch) return [];
+    const prev = Object.values(s.games).filter(x => x.groupId === game.groupId && x.status === "done" && x.id !== game.id && (x.endedAt || 0) < (game.endedAt || 0)).sort((a, b) => b.endedAt - a.endedAt)[0];
+    return prev ? prev.players.filter(id => !game.players.includes(id) && group.players.some(p => p.id === id)).slice(0, 2) : []; }, [canRematch, game.id, s.games, group.players]);
+  const [back, setBack] = useState([]);
   const hl = nightHighlights(game, pl, true), winners = top.map(t => pl(t.id));
   const names = winners.map(p => p.name), title = names.length > 1 ? names.slice(0, -1).join(", ") + " and " + names[names.length - 1] + " win!" : names[0] + " wins!";
   const winCard = p => { const av = avOf(p.avatar, p.name), c = av.type === "card" && cardOfAv(av.card);
@@ -2270,7 +2301,7 @@ function Recap({ s, game, go, setToast, rematch, onDelete, onReopen, onTable, se
         ce("span", { className: "vh" }, ". " + (a.d || A.how || "")))))),
     leftRows.length > 0 && ce("section", { className: "lb-left", "aria-label": "Left early" }, ce("h2", null, "Left early"),
       ce("ul", null, leftRows.map(r => ce("li", { key: r.id }, ce(Tok, { p: r.p }), ce("span", null, ce("b", null, r.p.name), ce("small", null, r.from != null ? "Sat out from round " + (r.from + 1) : "Left the game")), ce("em", null, r.total))))),
-    ce("div", { className: "lb-sect lb-endsect" + (canRematch ? " docked" : "") },
+    ce("div", { className: "lb-sect lb-endsect" + (canRematch ? " docked" : "") + (sat.length ? " sat" + sat.length : "") },
       ask === "name" && ce("form", { className: "lb-nudge lb-name", "aria-label": "Name this table", onSubmit: nameIt },
         ce("img", { src: "art/icons/furniture.webp", alt: "" }),
         ce("p", null, ce("b", null, "Same table next time?"), "It was dealt the name " + group.name + ". Keep it, roll another, or type the table's own."),
@@ -2287,7 +2318,12 @@ function Recap({ s, game, go, setToast, rematch, onDelete, onReopen, onTable, se
         ce("p", null, ce("b", null, "A good night?"), "May I? is free, with no ads. A tip from the table keeps it that way."),
         ce("div", { className: "lb-nbtns" }, ce("button", { className: "link", onClick: () => mark("tipSnooze") }, "Not now"),
           ce("a", { className: "kb sm cream", href: SUPPORT_URL, target: "_blank", rel: "noopener", onClick: () => { haptic(10); mark("tipped"); } }, "Leave a tip")))),
-    canRematch && ce("div", { className: "ph-dock lb-rdock" }, ce("button", { className: "kb", onClick: () => { haptic(10); rematch(game); } }, kIcon("again"), "Rematch")),
+    canRematch && ce("div", { className: "ph-dock lb-rdock" + (sat.length ? " has-sat" : "") },
+      sat.map(id => { const p = group.players.find(q => q.id === id), on = back.includes(id);
+        return ce("p", { key: id, className: "lb-sat" + (on ? " on" : "") }, ce(Tok, { p }),
+          ce("span", null, on ? p.name + " is in the rematch" : p.name + " sat out"),
+          ce("button", { className: "link", "aria-pressed": on, onClick: () => { haptic(8); setBack(b => on ? b.filter(x => x !== id) : [...b, id]); } }, on ? "Undo" : "Add back")); }),
+      ce("button", { className: "kb", onClick: () => { haptic(10); rematch(game, back); } }, kIcon("again"), back.length ? "Rematch with " + (game.players.length + back.length) : "Rematch")),
     sharing && ce(KSheet, { title: "Share results", heading: "Share the night", onClose: () => setSharing(false), cls: "sh-sheet",
         foot: ce("button", { className: "kb wide", onClick: share, disabled: !picUrl }, picUrl ? "Share" : "Drawing the picture…") },
       picUrl ? ce("img", { className: "sh-pic", src: picUrl, alt: "The results picture: " + ranked.map(t => place(t) + ". " + pl(t.id).name + " " + t.total).join(", ") })
@@ -2893,7 +2929,16 @@ function SettingsPage({ s, settings, setSettings, onBack, go, open, onRestore, s
         ce(AiKeyCard)),
       SUPPORT_URL && ce("div", { className: "blk ruby lc-offer lc-tip" },
         ce("div", { className: "lc-cup", "aria-hidden": true },
+          // Steam from the kit: soft wisps rising, warped by a slow noise filter. Still under Calm.
+          ce("svg", { className: "lc-defs", width: 0, height: 0, "aria-hidden": true, focusable: false },
+            ce("filter", { id: "lcWisp", x: "-50%", y: "-20%", width: "200%", height: "140%" },
+              ce("feTurbulence", { type: "fractalNoise", baseFrequency: "0.022 0.05", numOctaves: 2, seed: 4 },
+                ce("animate", { attributeName: "baseFrequency", dur: "9s", values: "0.022 0.05;0.026 0.035;0.022 0.05", repeatCount: "indefinite" })),
+              ce("feDisplacementMap", { in: "SourceGraphic", scale: 18 }), ce("feGaussianBlur", { stdDeviation: 2.2 }))),
+          ce("span", { className: "lc-steam" }, [["-16px", "7px", "-9deg", "0s"], ["6px", "-8px", "8deg", "-1.1s"], ["-4px", "10px", "-6deg", "-2.3s"], ["16px", "-6px", "11deg", "-3.2s"], ["-10px", "-9px", "5deg", "-4.4s"]]
+            .map(([x, sx, r, d], i) => ce("i", { key: i, style: { "--x": x, "--s": sx, "--r": r, "--d": d } }))),
           ce("img", { src: "art/icons/goodsport.webp", alt: "" }),
+          ce("span", { className: "lc-tea" }),
           ce("img", { className: "lc-heart", src: "art/suits/heart.webp", alt: "", style: { "--x": "-86px", "--y": "26px", "--r": "-16deg" } }),
           ce("img", { className: "lc-heart", src: "art/suits/heart.webp", alt: "", style: { "--x": "84px", "--y": "6px", "--r": "14deg" } })),
         ce("span", null, ce("b", null, "Stand the table a cuppa"), ce("small", null, "May I? is free, with no ads. A tip keeps it that way.")),
@@ -3000,7 +3045,7 @@ const timesWord = n => n === 1 ? "once" : n === 2 ? "twice" : n + " times";
 function Shelf({ sets, label, lockable }) {
   const [cur, setCur] = useState(0), [pick, setPick] = useState({}), [bump, setBump] = useState(0), [all, setAll] = useState(false);
   const set0 = sets[Math.min(cur, sets.length - 1)], hide = lockable && !all && set0.items.some(x => x.lit);
-  const set = hide ? { ...set0, items: set0.items.filter(x => x.lit) } : set0, pk = set.key + (hide ? ":lit" : "");
+  const set = hide ? { ...set0, items: set0.items.filter(x => x.lit || x.near) } : set0, pk = set.key + (hide ? ":lit" : "");
   const first = Math.max(0, set.items.findIndex(x => x.lit));
   const i = Math.min(pick[pk] != null ? pick[pk] : first, set.items.length - 1), it = set.items[i];
   const choose = k => { haptic(6); setPick(p => ({ ...p, [pk]: k })); setBump(b => b + 1); };
@@ -3011,11 +3056,12 @@ function Shelf({ sets, label, lockable }) {
       lockable && ce("div", { className: "cab-lock" }, ce("span", { "aria-hidden": true }, "Show locked"), ce(KSw, { on: all, onChange: v => { setAll(v); setBump(b => b + 1); }, label: "Show locked" }))),
     ce("div", { className: "cab-spot" + (it.lit ? "" : " no"), "aria-live": "polite" },
       ce("span", { key: "m" + bump, className: "med" + (bump ? " pop" : "") }, ce("img", { src: "art/icons/" + it.art + ".webp", alt: "" })),
-      ce("div", { key: "t" + bump, className: bump ? "slide" : "" }, ce("b", null, it.t), ce("p", null, it.how), ce("span", { className: "st" }, it.st))),
+      ce("div", { key: "t" + bump, className: bump ? "slide" : "" }, ce("b", null, it.t), ce("p", null, it.how), ce("span", { className: "st" }, it.st),
+        !it.lit && it.near && ce("span", { className: "pf-bar", "aria-hidden": true }, ce("i", { style: { width: Math.round(100 * it.near.n / it.near.of) + "%" } })))),
     ce("div", { key: set.key, className: "cab-grid", role: "group", "aria-label": set.label }, set.items.map((x, k) =>
-      ce("button", { key: x.key, className: "cab-cell" + (x.lit ? "" : " no"), "aria-pressed": k === i, "aria-label": x.said, style: { "--k": k }, onClick: () => { if (k !== i) choose(k); } },
+      ce("button", { key: x.key, className: "cab-cell" + (x.lit ? "" : " no") + (!x.lit && x.near ? " near" : ""), "aria-pressed": k === i, "aria-label": x.said, style: { "--k": k }, onClick: () => { if (k !== i) choose(k); } },
         ce("span", { className: "med" }, ce("img", { src: "art/icons/" + x.art + ".webp", alt: "", loading: "lazy", decoding: "async" }), x.badge || null),
-        ce("span", { className: "nm" }, x.t)))));
+        ce("span", { className: "nm" }, x.t), !x.lit && x.near && ce("span", { className: "cab-bar", "aria-hidden": true }, ce("i", { style: { width: Math.round(100 * x.near.n / x.near.of) + "%" } }))))));
 }
 
 // ── Learn tab: the same guide the book opens in a game, starting on Basics ──
@@ -3088,12 +3134,27 @@ function StatsPage({ s, open, go }) {
   const tables = s.groupOrder.map(id => s.groups[id]).filter(Boolean).map(g => { const st = groupStats(s, g.id), top = Object.entries(st.wins).sort((a, b) => b[1] - a[1]);
     const champ = top[0] && !(top[1] && top[1][1] === top[0][1]) ? plOf(g, null)(top[0][0]) : null; return { g, st, champ, wins: top[0] ? top[0][1] : 0 }; });
   const claimed = hall.filter(h => h.lit).length, nT = tables.filter(t => t.st.games.length).length;
+  // Nearly there: the achievements closest to being earned, across everyone at every table (one line per person, their closest).
+  const near = []; const seen = new Set();
+  tables.forEach(({ g }) => (g.players || []).forEach(p => { const k = (p.name || "").trim().toLowerCase(); if (seen.has(k)) return; seen.add(k);
+    const pp = plOf(g, null)(p.id), all = lifeAchievements(s, g.id, p.id).filter(x => x.near && x.near.n < x.near.of).sort((a, b) => b.near.n / b.near.of - a.near.n / a.near.of);
+    if (all.length) near.push({ g, p: pp, all, f: all[0].near.n / all[0].near.of }); }));
+  // Each line tries a different achievement, so four people don't all say the same thing.
+  near.sort((a, b) => b.f - a.f); const used = new Set();
+  const nearTop = near.slice(0, 4).map(x => { const a = x.all.find(y => !used.has(y.key)) || x.all[0]; used.add(a.key); return { ...x, a }; });
   return ce("div", { className: "kit kscreen kstats" },
     ce("div", { className: "ph-nav" }, ce("span", { className: "lbl" }, "Stats")),
     ce("main", { className: "ph-body st-body" }, ce("h1", { className: "vh" }, "Stats"),
       ce("div", { className: "st-hero" }, ce("img", { src: "art/crown.webp", alt: "" }),
         ce("p", null, done.length ? stPlural(done.length, "game") + " across " + stPlural(nT, "table") + ", and " + claimed + " of " + AWARD_ORDER.length + " awards claimed"
           : "Finish a game and the awards, records and champions show up here.")),
+      nearTop.length > 0 && ce("section", { className: "st-sect" }, ce("h2", { className: "sub" }, "Nearly there"),
+        ce("ul", { className: "st-near" }, nearTop.map(({ g, p, a }) => ce("li", { key: g.id + p.id },
+          ce("button", { onClick: () => { haptic(6); open("profile", { groupId: g.id, playerId: p.id }); }, "aria-label": p.name + ", " + a.t + ": " + a.near.n + " of " + a.near.of + " " + a.near.what + ". Open " + p.name + "'s profile" },
+            ce("span", { className: "med" }, ce("img", { src: "art/icons/" + a.art + ".webp", alt: "" })),
+            ce("span", { className: "grow" }, ce("b", null, p.name + " · " + a.t), ce("small", null, a.near.n + " of " + a.near.of + " " + a.near.what),
+              ce("span", { className: "pf-bar", "aria-hidden": true }, ce("i", { style: { width: Math.round(100 * a.near.n / a.near.of) + "%" } }))),
+            ce(Tok, { p })))))),
       done.length > 0 && ce("section", { className: "st-sect" }, ce("h2", { className: "sub" }, "Hall of fame"),
         ce(Shelf, { label: "Hall of fame", lockable: true, sets: [{ key: "hall", label: "Hall of fame", items: hall }] }),
         ce("p", { className: "st-note" }, "Who has won each award most often, across every table. " + (AWARD_ORDER.length - claimed > 0 ? (AWARD_ORDER.length - claimed) + " still to find." : "Every award has a holder.")))));

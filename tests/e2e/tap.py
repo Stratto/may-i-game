@@ -93,6 +93,12 @@ def game(br, n, full):
     if not full: ctx.close(); return
 
     if n == 4:
+     # The phone's Back never leaves a game: the round stays, and a toast says how to leave.
+     p.evaluate("history.back()"); p.wait_for_timeout(500)
+     if not p.locator(".kround").count(): fail("back in a game: left the round")
+     elif "Still playing" not in (p.locator(".toast").inner_text() if p.locator(".toast").count() else ""): fail("back in a game: no 'Still playing' toast")
+     p.evaluate("history.back()"); p.wait_for_timeout(500)
+     if not p.locator(".kround").count(): fail("second back in a game: left the round")
      print("  buy and undo")
      face = p.locator(".lr-buys .lr-b").nth(1)
      before = face.get_attribute("aria-label") or ""
@@ -164,6 +170,27 @@ def game(br, n, full):
                 if p.evaluate("document.documentElement.dataset.look") != "lime": fail("game menu: the round did not change to Lime")
                 if lime.get_attribute("aria-checked") != "true": fail("game menu: Lime not marked chosen")
             p.keyboard.press("Escape"); p.wait_for_timeout(500)
+    ctx.close()
+
+def back_button(br):
+    print("phone back button")
+    ctx = br.new_context(viewport={"width": 390, "height": 664}, device_scale_factor=2)
+    p = ctx.new_page()
+    p.on("pageerror", lambda e: errors.append(str(e)))
+    seed = open(os.path.join(HERE, "seed.js")).read()
+    p.add_init_script(seed + "\nsessionStorage.setItem('mayi:intro','1'); if (!sessionStorage.getItem('seeded')) { __mayiSeed({}); sessionStorage.setItem('seeded','1'); }")
+    p.goto(URL); p.wait_for_timeout(1300)
+    back = lambda: (p.evaluate("history.back()"), p.wait_for_timeout(600))
+    tap(p, p.locator(".lc-tcard .blk").nth(1), "Friday night card"); p.wait_for_timeout(700)
+    if tap(p, p.get_by_role("button", name="Table settings"), "table settings"):
+        p.wait_for_timeout(500); back()
+        if p.locator("body > .kport").count(): fail("back: the sheet stayed open")
+        if p.locator(".khome").count(): fail("back: closing the sheet also left the table page")
+    back()
+    if not p.locator(".khome").count(): fail("back: table page did not return to Play")
+    if tap(p, p.get_by_role("button", name="Stats", exact=True), "tab Stats"):
+        p.wait_for_timeout(500); back()
+        if not p.locator(".khome").count(): fail("back: Stats did not return to Play")
     ctx.close()
 
 def returning(br):
@@ -278,6 +305,7 @@ with sync_playwright() as pw:
 
     br_ctx = (br, ctx)
     returning(br)
+    back_button(br)
     for n in (4, 2, 8):
         game(br, n, full=(n != 2))
 

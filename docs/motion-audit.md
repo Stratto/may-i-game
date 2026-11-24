@@ -87,3 +87,5 @@ Each interactive moment was checked against trigger, rules, feedback and loops. 
 - The kit's decorative effects: the glint, the steam and the icon hover feels.
 
 **Now: 9/10.** The one point short: closing a sheet still has no exit motion, and opening one does. That needs sheets to stay mounted while they slide away, which is a change across the app.
+
+**24 Nov:** sheets already stayed mounted for 0.2 s on close; only the CSS was missing. They now slide down (and a dragged sheet carries on down). The background lights drift again (owner's call). The tip cup's steam came over from the kit. **Now: 10/10.**

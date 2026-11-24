@@ -116,3 +116,25 @@ Carried over on 22 Nov from the 16 Nov play-test backlog and the rework plan, wh
 - Every tab and control takes a real tap at 390 by 664.
 - A first-time player can start a game in under 30 seconds.
 - Each phase is checked once on a real phone.
+
+## Owner's calls, 24 Nov 2026
+Live first: 16be34d (layout pass, round banner, Standings, share preview). Then, item by item:
+
+**Build, in this order**
+1. **Phone Back button:** closes the top sheet, then goes back one screen; never leaves a game.
+2. **Score pad:** whole numbers only, "Sure?" over 200, jump to the next empty hand after "Use 56".
+3. **Rematch:** "Hayley sat out · Add back" when someone from the table sat out.
+4. **Past games:** open the same Results view with scores by round, no finale.
+5. **Stats:** awards in progress with a bar ("Dynasty · 2 of 3"), between won awards and "N still to find".
+6. **Sheets slide down on close** (about 0.25 s, never under Calm).
+7. **Background lights drift slowly again** (owner chose drift; off under Calm and Reduce Motion).
+8. **Tip card:** the cup shows empty and its steam is gone. Fix the art and the steam. The link stays a placeholder for now.
+9. **Black square** top-left of Results and Learn in WebKit.
+10. **VoiceOver:** focus to Undo after "End without saving"; sensible reading order on the round banner and Standings.
+11. **Tablet round:** two columns down to 768px.
+
+**Built 24 Nov:** 1 Back button; 2 the score pad already took whole numbers and caught hands bigger than the round allows (stricter than "over 200"), so only the jump to the next empty hand after "Use N" was added; 3 the Rematch line; 4 was already done (past games open Results with scores by round); 5 Nearly there on Stats, plus bars on achievements in progress in the cabinet (game awards are won in one game, so they have no progress); 6 sheets slide down; 7 lights drift; 8 tea and steam in the tip cup (the steam had only ever been in the UI kit); 10 focus moves to Undo after an undo toast; 11 was already fine (the round on a 768px iPad uses the width with two columns of faces; the old two-column CSS is unused). **Not fixed:** 9, the black square, appears in headless WebKit only when many drop-shadow filters are on screen at once; no single element causes it. Check it on a real iPhone.
+
+**Mock up first:** the score-sheet finale (winner's total circled in ink, card pinned on, zeros as an Out stamp), side by side with today's finale, before anything is built.
+
+**After the batch:** a short real-iPhone checklist for the owner (VoiceOver, large text, Sunlight, offline, Back button, swipe back, the black square on Results and Learn, the drifting lights' battery use).
