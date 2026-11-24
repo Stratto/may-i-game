@@ -19,7 +19,7 @@ The screens should follow that order of weight. Today they mostly follow the ord
 ### 1. Score a round: 4 taps + typing, ×7
 | # | Screen | Tap |
 |---|---|---|
-| 1 | Round | **Someone went out** |
+| 1 | Round | **Score round N** (was "Someone went out" until 23 Nov) |
 | 2 | Score pad, step 1 | **Out** beside the player who went out |
 | 3 | Score pad, step 2 | Type each other hand (Enter jumps on) |
 | 4 | Score pad | **Save round N** |
@@ -96,11 +96,11 @@ Mobbin's plugin needs a paid plan, so this check is from well-known patterns in 
 
 ### What this changes in the plan
 1. Results: the finale plays for about 1.5 s, then becomes the compact header. Everything else as recommended. **Built 23 Nov** (the share preview sheet is not built yet).
-2. Between rounds: totals count up and places move on the round screen. The banner stays until the next tap, and Undo round N stays in the menu.
-3. Play: unchanged.
+2. Between rounds: totals count up and places move on the round screen. The banner stays until the next tap, and Undo round N stays in the menu. **Built 23 Nov (owner's call):** Save opens the next round with a banner (who went out, who leads, Undo, Standings). Undo lives in the banner and in Standings; past rounds are fixed from Scores so far, so the menu has no extra Undo row. 3 taps a round instead of 4.
+3. Play: one way to start. **Built 23 Nov:** table cards lost their New game pill; the dock starts the last table, others start from their page.
 4. Game menu icon: done.
-5. Stats: won awards, then in-progress awards with bars, then a count of the rest.
-6. Share: a small sheet with the picture before sharing.
+5. Stats: won awards, then in-progress awards with bars, then a count of the rest. **Built 23 Nov, in part:** the tables list is gone (it is on Play), only won awards show until Show locked, and a line counts the rest. Progress bars are not built yet.
+6. Share: a small sheet with the picture before sharing. **Built 23 Nov.**
 
 ## Not changing
 - The round screen itself: the goal, the turn order, buys on a tap. It tested well in P1.

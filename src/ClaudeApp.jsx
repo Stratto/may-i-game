@@ -1290,14 +1290,13 @@ function Home({ s, open, go, onFirst }) {
           const line = champ ? champ.name + " holds it · " + stPlural(board[0][1], "win") : st.games.length ? stPlural(st.games.length, "game") + " · all square" : st.live ? "First game under way" : stPlural(g.players.length, "player");
           const lastG = Object.values(s.games).filter(x => x.groupId === g.id && x.status === "done").sort((a, b) => b.endedAt - a.endedAt)[0];
           const lw = lastG && (() => { const r = rankOf(lastG), top = r.filter(x => x.total === r[0].total), lp = plOf(g, lastG); return (top.length > 1 ? "Shared last game" : lp(top[0].id).name + " won last") + " · " + ago(lastG.endedAt); })();
-          const playing = lives.some(x => x.g.id === g.id), isDock = !lives.length && nextT && nextT.id === g.id;
           return ce("div", { key: g.id, className: "lc-tcard" },
             ce("button", { className: "blk " + LOOK_TILE[tableLook(g)].blk, onClick: () => go({ at: "group", groupId: g.id }), "aria-label": g.name + ": " + line + (lw ? ". " + lw : "") + ". Open the table" },
               ce("span", { className: "lc-tt" }, ce("b", null, g.name), ce("small", null, line), lw && ce("small", { className: "lc-tlast" }, lw)),
               ce("span", { className: "avs" }, g.players.slice(0, 4).map(p => ce(Tok, { key: p.id, p }))),
               champ && (card ? ce("span", { className: "lc-champ-c", "aria-hidden": true }, ce(DeckCard, faceProps(av.card))) : ce(Tok, { p: champ, cls: "lc-champ-t" })),
               champ && ce("img", { className: "lc-crown", src: "art/crown.webp", alt: "" })),
-            !playing && !isDock && ce("button", { className: "lc-tnew", onClick: () => { haptic(8); open("newgame", { groupId: g.id }); }, "aria-label": "New game at " + g.name }, kIcon("plus"), "New game")); })),
+            ); })),
       last && ce(LastGame, { s, game: last, go, withTable: true, activeGroup: cur ? cur.g : null }),),
     ce("div", { className: "ph-dock lc-dock-home" + (lives.length ? " bare" : "") },
       // One main action: while a game is going, its card is the way back in, so the dock is only the tabs. Otherwise: start one.
@@ -1714,7 +1713,8 @@ function GameScreen({ s, api, game, open, go, wide, setToast, level, fixAsk }) {
   useEffect(() => { setBuyToast(null); }, [game.round]);
   useEffect(() => { if (!buyToast) return; const t = setTimeout(() => setBuyToast(null), 5000); return () => clearTimeout(t); }, [buyToast]);
   useEffect(() => { if (fixAsk) setFix(+fixAsk.split(":")[0]); }, [fixAsk]);
-  const [intro, setIntro] = useState(null);
+  // After Save the next round opens at once (23 Nov). A banner tells what happened, with Undo, until the next tap on the round.
+  const [news, setNews] = useState(null), [standings, setStandings] = useState(false), roundEl = useRef(null);
   // A brand-new game opens straight on the round screen. The guide opens by itself only at tables that asked for it, once a game.
   useEffect(() => { if (game.round === 0 && !Object.keys(game.scores).length && level === "new" && !guideSeen.has(game.id)) { guideSeen.add(game.id); open("rules", { gameId: game.id }); } }, []);
   const r = ROUNDS[game.round], rs = game.scores[game.round] || {};
@@ -1747,10 +1747,10 @@ function GameScreen({ s, api, game, open, go, wide, setToast, level, fixAsk }) {
     if (ROUNDS.every((_, i) => i === game.round ? complete : roundDone(game, i))) return finish();
     const gap = ROUNDS.findIndex((_, i) => i !== game.round && !roundDone(game, i));
     if (game.round >= 6 && gap >= 0) { upd(g => ({ ...g, round: gap })); setToast({ text: "Round " + (gap + 1) + " still needs scores" }); return; }
-    const from = game.round, best = Math.min(...game.players.map(id => rs[id]));
-    const winners = game.players.filter(id => rs[id] === best).map(id => pl(id).name).join(" & ");
+    const from = game.round;
     haptic(14); sound("deal"); upd(g => ({ ...g, round: from + 1 }));
-    setIntro({ round: from + 1, winners, from });
+    setNews({ from }); setStandings(false);
+    if (level === "new") open("rules", { gameId: game.id });
   }
   const firstOpen = Math.max(0, game.players.findIndex(id => typeof rs[id] !== "number"));
   const outs = game.players.filter(id => rs[id] === 0).length, outOk = outs === 1 || (outs === 0 && !!(game.noOut && game.noOut[game.round]));
@@ -1762,16 +1762,16 @@ function GameScreen({ s, api, game, open, go, wide, setToast, level, fixAsk }) {
   const action = complete && !outOk ? ce("button", { className: "kb", onClick: () => { haptic(8); setPad(Math.max(0, game.players.findIndex(id => rs[id] === 0 || outs === 0))); } }, outs ? "Only one player can go out" : "Mark who went out")
     : allDone ? ce("button", { className: "kb", onClick: finish }, "Finish game · see who won")
     : complete ? ce("button", { className: "kb", onClick: nextRound }, nextGap >= 0 && game.round >= 6 ? "Go to round " + (nextGap + 1) : "Start round " + (game.round + 2))
-    : ce("button", { className: "kb", onClick: () => { haptic(8); setPad(firstOpen); } }, scored ? "Keep scoring · " + scored + " of " + game.players.length : "Someone went out");
+    : ce("button", { className: "kb", onClick: () => { haptic(8); setPad(firstOpen); } }, scored ? "Keep scoring · " + scored + " of " + game.players.length : "Score round " + (game.round + 1));
   const overlays = ce(Fragment, null,
     pad != null && ce(ScorePad, { game, pl, start: pad, round: game.round, rs, setScore, onSure: (pid, v) => sureOf(game.round, pid, v), onRules: () => open("rules", { gameId: game.id }), onClose: () => setPad(null), onDone: () => { setPad(null); nextRound(); },
       noOut: !!(game.noOut && game.noOut[game.round]), setNoOut: on => upd(g => ({ ...g, noOut: { ...(g.noOut || {}), [g.round]: on } })) }),
     fix != null && ce(ScorePad, { game, pl, start: 0, round: fix, fixing: true, rs: game.scores[fix] || {}, setScore: (pid, v, cards) => setScore(pid, v, cards, fix), onSure: (pid, v) => sureOf(fix, pid, v), onRules: () => open("rules", { gameId: game.id }), onClose: () => setFix(null),
       noOut: !!(game.noOut && game.noOut[fix]), setNoOut: on => upd(g => ({ ...g, noOut: { ...(g.noOut || {}), [fix]: on } })),
       onDone: () => { setFix(null); setToast({ text: "Round " + (fix + 1) + " updated" }); } }),
-    intro && intro.from != null && ce(BetweenScreen, { game, pl, from: intro.from, onMenu: () => open("game", { gameId: game.id }), onRules: () => open("rules", { gameId: game.id }),
-      onPlay: () => { setIntro(null); if (level === "new") open("rules", { gameId: game.id }); },
-      onUndo: () => { upd(g => ({ ...g, round: intro.from })); setIntro(null); } }));
+    news && standings && ce(BetweenScreen, { game, pl, from: news.from, onMenu: () => open("game", { gameId: game.id }), onRules: () => open("rules", { gameId: game.id }),
+      onPlay: () => { setStandings(false); setNews(null); },
+      onUndo: () => { upd(g => ({ ...g, round: news.from })); setStandings(false); setNews(null); } }));
   if (board) return ce("div", { className: "scoreboard" },
     ce("div", { className: "sb-head" }, ce("span", null, "Round " + r.n + " of 7"), ce("h1", null, r.name), ce(Melds, { ex: r.ex }), ce("span", { className: "grow" }),
       ce("button", { className: "btn on-band", onClick: () => setBoard(false) }, "Done")), ce(RaceTrack, { game, pl, big: true }),
@@ -1787,15 +1787,19 @@ function GameScreen({ s, api, game, open, go, wide, setToast, level, fixAsk }) {
       ce(GoalMelds, { r }),
       ce("span", { className: "lr-rule" }, GOAL_LINE[game.round]),
       ce("span", { className: "lr-more" }, "Round guide", kIcon("chevl")))];
-  return ce("div", { className: "kit kscreen kround" },
+  const newsUndo = () => { haptic(8); upd(g => ({ ...g, round: news.from })); setNews(null); };
+  // Any tap on the round itself (not the banner, not a sheet over it) puts the banner away.
+  const onRoundTap = e => { if (news && !standings && roundEl.current && roundEl.current.contains(e.target) && !e.target.closest(".lr-news")) setNews(null); };
+  return ce("div", { ref: roundEl, className: "kit kscreen kround" + (news ? " has-news" : ""), onPointerDownCapture: onRoundTap },
     ce("div", { className: "ph-nav" },
       ce("button", { className: "ib", onClick: () => go({ at: "group", groupId: group.id }), "aria-label": "Back to " + group.name }, kIcon("chevl")),
       ce("span", { className: "lbl" }, group.name), ce("span", { className: "sp" }),
       kGuideBtn(() => open("rules", { gameId: game.id })),
       ce("button", { className: "ib", onClick: () => open("game", { gameId: game.id }), "aria-label": "Game menu: players, look, rules and settings" }, kIcon("more"))),
-    ce("main", { className: "ph-body lr-body" }, left,
+    ce("main", { className: "ph-body lr-body" },
+      news && ce(RoundNews, { key: news.from, game, pl, from: news.from, onStandings: () => setStandings(true), onUndo: newsUndo }), left,
       // On a tablet the faces carry each running total, so the whole table can read the standings (CSS shows them from 700px wide).
-      ce(BuyTable, { game, pl, rs, limit, dealer, firstId, many, cards: r.cards, changeBuy, hold: !!intro, onScore: k => { haptic(6); setPad(k); }, setBuyToast, toast: buyToast,
+      ce(BuyTable, { game, pl, rs, limit, dealer, firstId, many, cards: r.cards, changeBuy, hold: false, onScore: k => { haptic(6); setPad(k); }, setBuyToast, toast: buyToast,
         totals: doneN > 0 ? Object.fromEntries(totals.map(t => [t.id, t.total])) : null })),
     ce("div", { className: "ph-dock" }, action), overlays);
 }
@@ -2115,7 +2119,21 @@ function GuideCard({ r }) {
     ce("div", { className: "facts" }, ce("span", null, ce("b", null, r.cards), "cards dealt"), ce("span", null, ce("b", null, lay), "to lay down"), ce("span", null, ce("b", null, r.cards - lay), "left over")),
     ce("p", { className: "watch" }, ce("span", { className: "tipm", "aria-hidden": true }, kIcon("bulb")), ce("span", null, ce("b", null, "Tip"), r.goOut ? "Go out in one turn. No final discard." : r.watch)));
 }
-// Between rounds: one headline moment, the Leaderboard with each player's highlight, then the next round.
+// The round that just closed, in one line: who went out and who leads, with Standings and Undo. Read aloud if asked.
+function RoundNews({ game, pl, from, onStandings, onUndo }) {
+  const rs = game.scores[from] || {}, outId = game.players.find(id => rs[id] === 0), t = totalsOf(game);
+  const now = [...t].sort((a, b) => a.total - b.total), was = t.map(x => ({ id: x.id, total: x.total - (typeof rs[x.id] === "number" ? rs[x.id] : 0) })).sort((a, b) => a.total - b.total);
+  const tie = now[1] && now[1].total === now[0].total, wasSole = from > 0 && !(was[1] && was[1].total === was[0].total);
+  const head = outId ? pl(outId).name + " went out" : "Nobody went out";
+  const line = tie ? "All square at the top" : pl(now[0].id).name + (wasSole && was[0].id !== now[0].id ? " takes the lead by " : " leads by ") + (now[1] ? now[1].total - now[0].total : 0);
+  useEffect(() => { if (!speakOn || !window.speechSynthesis) return;
+    const u = new SpeechSynthesisUtterance("After round " + (from + 1) + ". " + head + ". " + now.map((x, i) => pl(x.id).name + ", " + x.total + (i === 0 && !tie ? ", leading" : "")).join(". ") + ".");
+    u.rate = .95; speechSynthesis.cancel(); speechSynthesis.speak(u); return () => speechSynthesis.cancel(); }, []);
+  return ce("section", { className: "lr-news", role: "status", "aria-label": "Round " + (from + 1) + " saved" },
+    ce("b", null, head), undoOn ? ce("button", { className: "link", onClick: onUndo }, "Undo round " + (from + 1)) : ce("span"),
+    ce("span", null, line), ce("button", { className: "link", onClick: onStandings }, "Standings", kIcon("chev")));
+}
+// Standings after a round, opened from the banner: the Leaderboard with each player's highlight and the chase.
 function BetweenScreen({ game, pl, from, onPlay, onUndo, onMenu, onRules }) {
   const rs = game.scores[from] || {}, outId = game.players.find(id => rs[id] === 0), hls = roundHighlights(game, from);
   const totals = totalsOf(game), next = from + 1, nd = game.players[dealerIdx(game, next)], ns = game.players[(dealerIdx(game, next) + 1) % game.players.length];
@@ -2125,9 +2143,6 @@ function BetweenScreen({ game, pl, from, onPlay, onUndo, onMenu, onRules }) {
   const live = from >= 1 && next < 7, notes = live ? chaseNotes({ ...game, status: "live" }, id => pl(id).name) : [], chase = notes[0] || null;
   const race = live ? gameAwards(game).filter(a => a.id && AWARDS[a.key]).slice(0, 3) : [];
   if (outId && hls[outId] && hls[outId].ic === "out") hls[outId].hl = "Went out";
-  useEffect(() => { if (!speakOn || !window.speechSynthesis) return; const r = [...totals].sort((a, b) => a.total - b.total);
-    const say = "After round " + (from + 1) + ". " + (outId ? pl(outId).name + " went out. " : "") + r.map((t, i) => pl(t.id).name + ", " + t.total + (i === 0 ? ", leading" : "")).join(". ") + ".";
-    const u = new SpeechSynthesisUtterance(say); u.rate = .95; speechSynthesis.cancel(); speechSynthesis.speak(u); return () => speechSynthesis.cancel(); }, []);
   return onTop(ce("div", { className: "kit kscreen kbetween", role: "dialog", "aria-modal": true, "aria-label": "After round " + (from + 1), onScroll: navBack },
     ce("div", { className: "lb-glow", "aria-hidden": true }),
     ce("div", { className: "ph-nav" },
@@ -2138,19 +2153,14 @@ function BetweenScreen({ game, pl, from, onPlay, onUndo, onMenu, onRules }) {
     ce("main", { className: "ph-body lb-between" },
       ce("h1", { className: "won lb-won" }, ce("img", { src: "art/icons/" + (outId ? "out" : "steady") + ".webp", alt: "" }), outId ? pl(outId).name + " went out" : "Nobody went out"),
       ce(Leaderboard, { rows, deal: nd, dealIn: true, label: "Standings after round " + (from + 1) }),
-      next < 7 && ce("p", { className: "lb-dealline" }, ce("span", { className: "dl", "aria-hidden": true }, "D"), ce("span", null, ce("b", null, pl(nd).name), " deals " + ROUNDS[next].cards + " each · ", ce("b", null, pl(ns).name), " goes first")),
       race.length > 0 && ce("section", { className: "lb-race" }, ce("h2", null, "The chase"),
         chase && ce("p", { className: "lb-chase" }, ce("b", null, pl(chase.id).name), " is " + chase.text.replace(/^Only /, "only ")),
         ce("ul", null, [...new Set(race.map(a => a.id))].map(id => { const mine = race.filter(a => a.id === id), ts = mine.map(a => AWARDS[a.key].t);
           return ce("li", { key: id }, ce("span", { className: "lb-raceart" }, mine.map(a => ce("img", { key: a.key, src: "art/icons/" + (AWARDS[a.key].art || a.key) + ".webp", alt: "" }))),
-            ce("span", null, ce("b", null, pl(id).name), ce("small", null, (ts.length > 1 ? ts.slice(0, -1).join(", ") + " and " + ts[ts.length - 1] : ts[0]) + ", for now"))); }))),
-      next < 7 && ce("div", { className: "lb-nextr" },
-        ce("h2", null, "Next round"),
-        ce("div", { className: "guides lb-guides", tabIndex: 0, role: "region", "aria-label": "Round guide: round " + (next + 1) + " next" + (next < 6 ? ", then the rounds after. Scroll sideways for more." : ".") },
-          ROUNDS.slice(next).map(r => ce(GuideCard, { key: r.n, r }))))),
+            ce("span", null, ce("b", null, pl(id).name), ce("small", null, (ts.length > 1 ? ts.slice(0, -1).join(", ") + " and " + ts[ts.length - 1] : ts[0]) + ", for now"))); })))),
     ce("div", { className: "ph-dock lb-dock" },
       onUndo && undoOn && ce("button", { className: "link", onClick: onUndo }, "Undo round " + (from + 1)),
-      ce("button", { className: "kb", onClick: () => { haptic(10); sound("deal"); onPlay(); } }, "Let's play"))));
+      ce("button", { className: "kb", onClick: onPlay }, "Back to round " + (from + 2)))));
 }
 
 // Racing pegs: each player's peg sits on a lane; the lowest total is closest to the finish.
@@ -2175,16 +2185,18 @@ function Recap({ s, game, go, setToast, rematch, onDelete, onReopen, onTable, se
   const place = t => 1 + ranked.filter(q => q.total < t.total).length;
   const shareRows = () => ranked.map(t => ({ ...pl(t.id), total: t.total, place: place(t) }));
   const shareText = () => "May I? · " + group.name + "\n" + ranked.map(t => place(t) + ". " + pl(t.id).name + " · " + t.total).join("\n");
-  const pic = useRef(null);
-  useEffect(() => { let on = true; pic.current = null;
-    resultsImage(group.name, shareRows(), game.endedAt, tableLook(group)).then(b => { if (on && b) pic.current = new File([b], "may-i-results.png", { type: "image/png" }); });
-    return () => { on = false; }; }, [game.id, game.updatedAt, group.look]);
+  // The picture is drawn when Results opens, so Share can show it first and still hand it to the share sheet straight after a tap.
+  const pic = useRef(null), [picUrl, setPicUrl] = useState(null), [sharing, setSharing] = useState(false);
+  useEffect(() => { let on = true, url = null; pic.current = null; setPicUrl(null);
+    resultsImage(group.name, shareRows(), game.endedAt, tableLook(group)).then(b => { if (on && b) { pic.current = new File([b], "may-i-results.png", { type: "image/png" }); url = URL.createObjectURL(b); setPicUrl(url); } });
+    return () => { on = false; if (url) URL.revokeObjectURL(url); }; }, [game.id, game.updatedAt, group.look]);
+  const savePic = () => { const f = pic.current; if (!f) return; const a = document.createElement("a"); a.href = URL.createObjectURL(f); a.download = "may-i-results.png"; document.body.appendChild(a); a.click(); a.remove(); setToast({ text: "Results picture saved" }); };
   // Nothing is awaited before navigator.share: Safari only opens the share sheet straight after the tap.
   async function share() {
     const text = shareText(), file = pic.current;
     try {
-      if (file && navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: "May I? results", text }); return; }
-      if (navigator.share) { await navigator.share({ title: "May I? results", text }); return; }
+      if (file && navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: "May I? results", text }); setSharing(false); return; }
+      if (navigator.share) { await navigator.share({ title: "May I? results", text }); setSharing(false); return; }
       throw new Error("no share");
     } catch (e) {
       if (e && e.name === "AbortError") return; // the player closed the share sheet
@@ -2228,7 +2240,7 @@ function Recap({ s, game, go, setToast, rematch, onDelete, onReopen, onTable, se
       ce("svg", { className: "rays", viewBox: "-100 -100 200 200", "aria-hidden": true }, ce("path", { d: FIN_RAYS, fill: "#FFE9A6", opacity: .22 })),
       ce("div", { className: "ph-nav lb-finnav" },
         ce("button", { className: "ib", onClick: () => go({ at: "group", groupId: group.id }), "aria-label": "Back to " + group.name }, kIcon("chevl")), ce("span", { className: "sp" }),
-        ce("button", { className: "ib", onClick: share, "aria-label": "Share results" }, kIcon("share")),
+        ce("button", { className: "ib", onClick: () => { haptic(6); setSharing(true); }, "aria-label": "Share results" }, kIcon("share")),
         ce("button", { className: "ib", onClick: () => setMore(true), "aria-label": "More: reopen or delete this game" }, kIcon("more"))),
       ce("div", { className: "lb-wins" + (winners.length > 1 ? " two" : "") }, winners.slice(0, 2).map(p => ce("div", { key: p.id + ":" + cheer, className: "lb-wincard" + (cheer ? " cheer" : ""),
           // A tap on the winner's card is a little cheer: it jumps, the crown bounces and the sparks fly again.
@@ -2276,6 +2288,11 @@ function Recap({ s, game, go, setToast, rematch, onDelete, onReopen, onTable, se
         ce("div", { className: "lb-nbtns" }, ce("button", { className: "link", onClick: () => mark("tipSnooze") }, "Not now"),
           ce("a", { className: "kb sm cream", href: SUPPORT_URL, target: "_blank", rel: "noopener", onClick: () => { haptic(10); mark("tipped"); } }, "Leave a tip")))),
     canRematch && ce("div", { className: "ph-dock lb-rdock" }, ce("button", { className: "kb", onClick: () => { haptic(10); rematch(game); } }, kIcon("again"), "Rematch")),
+    sharing && ce(KSheet, { title: "Share results", heading: "Share the night", onClose: () => setSharing(false), cls: "sh-sheet",
+        foot: ce("button", { className: "kb wide", onClick: share, disabled: !picUrl }, picUrl ? "Share" : "Drawing the picture…") },
+      picUrl ? ce("img", { className: "sh-pic", src: picUrl, alt: "The results picture: " + ranked.map(t => place(t) + ". " + pl(t.id).name + " " + t.total).join(", ") })
+        : ce("div", { className: "sh-pic sh-wait", "aria-hidden": true }),
+      ce("button", { className: "link sh-save", onClick: savePic, disabled: !picUrl }, "Save the picture instead")),
     more && ce(KSheet, { title: "This game", onClose: () => setMore(false), cls: "gm-sheet" },
       ce("div", { className: "gm-list" },
         onReopen && ce("button", { className: "gm-row", onClick: () => { setMore(false); onReopen(); } }, ce("img", { src: "art/icons/scores.webp", alt: "" }),
@@ -2852,11 +2869,10 @@ function SettingsPage({ s, settings, setSettings, onBack, go, open, onRestore, s
       sw("speak", "Read scores aloud", "Speaks the totals after each round"),
       ce("h2", { className: "lc-h" }, "During a game"),
       sw("awake", "Keep screen awake", "While a game is open", true),
-      sw("calm", "Calm mode", "No sliding, no confetti, no fireworks"),
+      sw("calm", "Calm mode", "No sliding, no confetti, no fireworks. Already on if the phone asks for less motion."),
       sw("undo", "Undo last round", "Shows Undo after every saved round", true),
       ce("div", { className: "prow" }, ce("span", { className: "grow" }, ce("b", null, "Guide every round"), ce("small", null, "Opens the round guide as each round starts, for tables still learning")),
         ce(KSw, { on: settings.level === "new", onChange: v => up("level", v ? "new" : "pro"), label: "Guide every round" })),
-      ce("div", { className: "call" }, ce("span", { className: "ci" }, kIcon("bolt")), ce("span", null, ce("b", null, "Calm already?"), ce("p", null, "If the phone asks for less motion, May I? stays calm without this switch."))),
       ce("h2", { className: "lc-h" }, "Backup"),
       ce("p", { className: "lc-own lc-left" }, kept.games
         ? [ce("b", { key: "n" }, stPlural(kept.games, "game") + " and " + stPlural(kept.awards, "award")), " live only on this phone. A backup file keeps them through a lost or new phone."]
@@ -3078,15 +3094,9 @@ function StatsPage({ s, open, go }) {
       ce("div", { className: "st-hero" }, ce("img", { src: "art/crown.webp", alt: "" }),
         ce("p", null, done.length ? stPlural(done.length, "game") + " across " + stPlural(nT, "table") + ", and " + claimed + " of " + AWARD_ORDER.length + " awards claimed"
           : "Finish a game and the awards, records and champions show up here.")),
-      tables.length > 0 && ce("section", { className: "st-sect" }, ce("h2", { className: "sub" }, "Tables"),
-        ce("div", { className: "st-rows" }, tables.map(({ g, st, champ, wins }) => ce("button", { key: g.id, className: "prow", onClick: () => go({ at: "group", groupId: g.id }) },
-          champ ? ce(Tok, { p: champ, cls: "st-lead" }) : ce("span", { className: "st-stack" }, g.players.slice(0, 3).map(p => ce(Tok, { key: p.id, p }))),
-          ce("span", { className: "grow" }, ce("b", null, g.name),
-            ce("small", null, st.games.length ? (champ ? champ.name + " leads with " + stPlural(wins, "win") : "All square at the top") + " · " + stPlural(st.games.length, "game") : st.live ? "First game under way" : "No games yet")),
-          kIcon("chev", "chev"))))),
       done.length > 0 && ce("section", { className: "st-sect" }, ce("h2", { className: "sub" }, "Hall of fame"),
-        ce(Shelf, { label: "Hall of fame", sets: [{ key: "hall", label: "Hall of fame", items: hall }] }),
-        ce("p", { className: "st-note" }, "Who has won each award most often, across every table. Tap one to see who holds it."))));
+        ce(Shelf, { label: "Hall of fame", lockable: true, sets: [{ key: "hall", label: "Hall of fame", items: hall }] }),
+        ce("p", { className: "st-note" }, "Who has won each award most often, across every table. " + (AWARD_ORDER.length - claimed > 0 ? (AWARD_ORDER.length - claimed) + " still to find." : "Every award has a holder.")))));
 }
 // Bottom tabs on the three top-level screens, so nothing important hides behind an icon.
 const TABS = [["home", "play", "Play"], ["learn", "rules", "Learn"], ["stats", "trophy", "Stats"]];
@@ -4208,7 +4218,7 @@ button.fpod { color: inherit; font: inherit; } button.fpod:active .fpod-av { tra
 .cab-spot b { display: block; font: 800 1.5rem/1.1 var(--display); letter-spacing: -.015em; color: var(--hl); text-wrap: balance; }
 .cab-spot.no b { color: var(--ink); }
 .cab-spot p { margin: 5px 0 9px; color: var(--ink); font-size: 1rem; line-height: 1.35; text-wrap: balance; }
-.cab-spot .st { font: 700 .76rem/1.25 var(--label); letter-spacing: .1em; text-transform: uppercase; color: var(--ink2); }
+.cab-spot .st { font: 600 .95rem/1.3 var(--font); color: var(--ink2); }
 .cab-grid { --row: 132px; display: grid; grid-template-columns: repeat(auto-fill, minmax(82px, 1fr)); grid-auto-rows: var(--row); padding: 0 4px;
   background: linear-gradient(180deg, transparent 80px, #FFEDB0 80px, #E6B04A 82px, #A86F1B 85px, rgba(0,0,0,.32) 86px, rgba(0,0,0,0) 98px) 0 0 / 100% var(--row) repeat-y; }
 .cab-cell { position: relative; display: grid; grid-template-rows: 80px auto; justify-items: center; padding: 0 3px; color: var(--ink); text-align: center; }

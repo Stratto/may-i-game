@@ -58,6 +58,7 @@ def fits(p, where):
         who = p.evaluate("""() => { let best = null, b = 0; for (const el of document.body.querySelectorAll('*')) { const r = el.getBoundingClientRect(); if (r.bottom > b + 1 && r.height) { b = r.bottom; best = el; } }
           return best ? best.tagName.toLowerCase() + '.' + String(best.className).split(' ').join('.') + ' bottom ' + Math.round(b) : ''; }""")
         fail(where + ": " + str(over) + "px taller than the screen (lowest: " + who + ")")
+        if os.environ.get("FITDEBUG"): print(p.evaluate("""() => [...document.body.querySelectorAll('*')].map(el => [el, el.getBoundingClientRect()]).filter(([el, r]) => r.bottom > innerHeight + 2 && r.height).slice(0, 12).map(([el, r]) => el.tagName + '.' + el.className + ' <' + (el.parentElement && el.parentElement.className) + '> ' + Math.round(r.top) + '-' + Math.round(r.bottom)).join('\\n')"""))
 
 
 NAMES = ["Ana", "Ben", "Cy", "Di", "Eve", "Fin", "Gus", "Hal"]
@@ -119,9 +120,19 @@ def game(br, n, full):
     btns = [b.inner_text().strip() for b in p.locator("button:visible").all() if b.inner_text().strip()]
     save = p.get_by_role("button", name=re.compile("^(Save|Done|Next round|Finish round)", re.I))
     if not save.count(): fail("score pad: no save button among " + repr(btns[-6:])); ctx.close(); return
-    tap(p, save, "save scores"); p.wait_for_timeout(1200); shot(p, "09-after-save")
-    nxt = p.get_by_role("button", name=re.compile("Start round 2|Let's play", re.I))
-    if nxt.count(): tap(p, nxt, "start round 2"); p.wait_for_timeout(300)
+    tap(p, save, "save scores"); p.wait_for_timeout(250)
+    # No Between rounds screen (23 Nov): Save opens round 2 at once, with a banner that says what happened.
+    if p.locator(".kbetween").count(): fail("after save: Between rounds still covers the round")
+    news = p.locator(".lr-news")
+    if not news.count(): fail("after save: no banner on round 2")
+    elif "went out" not in news.inner_text(): fail("after save: the banner does not say who went out: " + repr(news.inner_text()))
+    elif n == 2:
+        # Standings opens from the banner and comes back to the round.
+        if tap(p, p.get_by_role("button", name="Standings"), "standings"):
+            p.wait_for_timeout(700); shot(p, "09c-standings")
+            if not p.locator(".kbetween .ldr li").count(): fail("standings: no leaderboard")
+            tap(p, p.get_by_role("button", name="Back to round 2"), "back to round 2"); p.wait_for_timeout(400)
+            if p.locator(".kbetween").count(): fail("standings: did not close")
     # Round 2 opens telling what round 1 did: totals count up, +N floats off, the out player hops in sparks.
     if p.get_by_text("Round 2 of 7").count():
         if not p.locator(".lr-plus").count(): fail("round 2: no +N floating off the totals")
@@ -129,7 +140,16 @@ def game(br, n, full):
         early = p.locator(".lr-tot").all_inner_texts(); p.wait_for_timeout(900); late = p.locator(".lr-tot").all_inner_texts()
         if early == late: fail("round 2: totals did not count up " + repr(late))
         shot(p, "09b-round-2-opens")
-    p.wait_for_timeout(900)
+    p.wait_for_timeout(900); shot(p, "09-after-save")
+    if p.locator(".lr-news").count():
+        fits(p, "round 2 with the banner, %d players" % n)
+        if n == 8:
+            if tap(p, p.get_by_role("button", name="Undo round 1"), "undo round 1"):
+                p.wait_for_timeout(400)
+                if not p.get_by_text("Round 1 of 7").count(): fail("banner undo: did not go back to round 1")
+                ctx.close(); return
+        tap(p, p.locator(".lr-head"), "round heading"); p.wait_for_timeout(300)
+        if p.locator(".lr-news").count(): fail("banner: still there after a tap on the round")
     shot(p, "10-round-2-%d" % n)
     if not p.get_by_text("Round 2 of 7").count(): fail("did not reach round 2")
     else: fits(p, "round 2 with %d" % n)
@@ -157,12 +177,15 @@ def returning(br):
     covered_controls(p, "play (returning)")
     first = p.locator(".lc-tables .lc-tcard").first
     if "Family" not in first.inner_text(): fail("play: the first table card is not Family: " + repr(first.inner_text()[:40]))
-    pill = p.get_by_role("button", name="New game at Family")
-    if not pill.count(): fail("play: no New game pill on Family")
-    elif tap(p, pill, "New game at Family"):
-        p.wait_for_timeout(600); shot(p, "12-new-game-family")
-        if not p.get_by_text("Family").count(): fail("new game sheet: Family not shown")
-        p.keyboard.press("Escape"); p.wait_for_timeout(500)
+    # One way to start (23 Nov): the dock starts at the last table; other tables start from their own page.
+    if p.get_by_role("button", name="New game at Family").count(): fail("play: table cards should not carry their own New game pill")
+    if tap(p, p.locator(".lc-tcard .blk").first, "Family card"):
+        p.wait_for_timeout(700)
+        if tap(p, p.get_by_role("button", name="New game at this table"), "New game at this table"):
+            p.wait_for_timeout(600); shot(p, "12-new-game-family")
+            if not p.get_by_text("Family").count(): fail("new game sheet: Family not shown")
+            p.keyboard.press("Escape"); p.wait_for_timeout(500)
+        p.goto(URL); p.wait_for_timeout(1300)
     if p.get_by_role("button", name="New game at Friday night").count() != 1: fail("play: expected exactly one 'New game at Friday night' (the dock)")
     tap(p, p.locator(".lc-tcard .blk").nth(1), "Friday night card"); p.wait_for_timeout(700); shot(p, "13-table-friday")
     if p.locator(".khome").count(): fail("table card: tap did not open the table")
@@ -202,11 +225,23 @@ def returning(br):
         p.evaluate("""() => { window.__shares = []; navigator.canShare = () => true;
           navigator.share = async d => { window.__shares.push({ files: (d.files || []).length, size: d.files && d.files[0] ? d.files[0].size : 0, ms: performance.now() - window.__tapAt }); };
           document.addEventListener('pointerdown', () => { window.__tapAt = performance.now(); }, true); }""")
+        # Share shows the picture first (23 Nov), then one Share button hands it to the share sheet.
         if tap(p, p.get_by_role("button", name="Share results"), "share results"):
+            p.wait_for_timeout(600); shot(p, "14b-share-preview")
+            if not p.locator(".sh-pic[src]").count(): fail("share: no picture in the preview")
+            if p.evaluate("window.__shares").__len__(): fail("share: the share sheet opened before the Share tap")
+        if tap(p, p.locator(".sh-sheet").get_by_role("button", name="Share", exact=True), "share in preview"):
             p.wait_for_timeout(400); sh = p.evaluate("window.__shares")
             if not sh: fail("results: Share did not open the share sheet")
             elif sh[0]["files"] != 1 or sh[0]["size"] < 20000: fail("results: the share sheet got no picture " + repr(sh[0]))
             elif sh[0]["ms"] > 150: fail("results: the share sheet opened %dms after the tap (Safari refuses it)" % sh[0]["ms"])
+    # Stats: no second list of tables (they live on Play), won awards first and a count of the rest.
+    p.goto(URL); p.wait_for_timeout(1300)
+    if tap(p, p.get_by_role("button", name="Stats", exact=True), "tab Stats"):
+        p.wait_for_timeout(1400); shot(p, "15-stats")
+        if p.get_by_role("heading", name="Tables").count(): fail("stats: the tables list is back (it belongs on Play)")
+        if p.locator(".cab-cell.no").count(): fail("stats: locked awards show before Show locked is on")
+        if not p.get_by_text(re.compile("still to find")).count(): fail("stats: no count of awards still to find")
     ctx.close()
 
 with sync_playwright() as pw:
