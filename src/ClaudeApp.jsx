@@ -1145,9 +1145,14 @@ function App() {
     const live = Object.values(s.games).find(g => g.status === "live");
     return live ? { at: "game", gameId: live.id } : { at: "home" };
   });
-  // The look follows the place: a table's page, its games and its results wear the table's look; everywhere else is the lagoon.
+  // The look follows the place: a table's page, its games and its results wear the table's look.
   const lookGame = view.gameId && s.games[view.gameId], lookGroup = ["group", "game", "recap"].includes(view.at) && s.groups[view.groupId || (lookGame && lookGame.groupId)];
-  const lookNow = lookGroup ? tableLook(lookGroup) : "midnight";
+  // Settings, Learn and Stats wear the look of the table played last, so they match the game just left (owner, 24 Nov). Play stays the lagoon.
+  const lastGroup = useMemo(() => { const g = Object.values(s.games).filter(x => s.groups[x.groupId]).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))[0];
+    return g ? s.groups[g.groupId] : s.groups[(s.groupOrder || [])[0]]; }, [s.games, s.groups]);
+  const backGame = view.back && view.back.gameId && s.games[view.back.gameId];
+  const tabGroup = ["learn", "stats", "settings"].includes(view.at) && ((backGame && s.groups[backGame.groupId]) || lastGroup);
+  const lookNow = lookGroup ? tableLook(lookGroup) : tabGroup ? tableLook(tabGroup) : "midnight";
   useLayoutEffect(() => { applyLook(lookNow); }, [lookNow]);
   const [sheet, setSheet] = useState(null), [intro, setIntro] = useState(introDue);
   const [toast, setToast] = useState(null);
@@ -1305,18 +1310,19 @@ function Home({ s, open, go, onFirst }) {
           ce("span", { className: "foot" }, ce("span", { className: "avs" }, game.players.slice(0, 6).map(id => ce(Tok, { key: id, p: pl(id) }))), ce("span", { className: "grow" }),
             ce("span", { className: "lc-resume" }, "Resume", kIcon("chev", "chev")))); }),
       // Tables lead (owner's call, 22 Nov): a returning table finds itself first. The last game sits under the tables.
-      ce("div", { className: "lc-hact" }, ce("h2", { className: "lc-h" }, groups.length === 1 ? "The table" : "Tables"),
+      // Tables with a game under way sit above as Playing now; the rest are "Your tables", each with a Finished stamp on its last game (owner, 24 Nov).
+      ce("div", { className: "lc-hact" }, ce("h2", { className: "lc-h" }, lives.length ? "Your tables" : groups.length === 1 ? "The table" : "Tables"),
         ce("button", { className: "qp", onClick: () => go({ at: "newtable" }) }, kIcon("plus"), "New table")),
       ce("div", { className: "lc-tables" },
-        groups.map((g, i) => { const st = groupStats(s, g.id), board = Object.entries(st.wins).sort((a, b) => b[1] - a[1]);
+        groups.filter(g => !lives.some(x => x.g.id === g.id)).map((g, i) => { const st = groupStats(s, g.id), board = Object.entries(st.wins).sort((a, b) => b[1] - a[1]);
           const champ = board[0] && !(board[1] && board[1][1] === board[0][1]) && g.players.find(p => p.id === board[0][0]);
           const av = champ && avOf(champ.avatar, champ.name), card = av && av.type === "card" && cardOfAv(av.card);
           const line = champ ? champ.name + " holds it · " + stPlural(board[0][1], "win") : st.games.length ? stPlural(st.games.length, "game") + " · all square" : st.live ? "First game under way" : stPlural(g.players.length, "player");
           const lastG = Object.values(s.games).filter(x => x.groupId === g.id && x.status === "done").sort((a, b) => b.endedAt - a.endedAt)[0];
-          const lw = lastG && (() => { const r = rankOf(lastG), top = r.filter(x => x.total === r[0].total), lp = plOf(g, lastG); return (top.length > 1 ? "Shared last game" : lp(top[0].id).name + " won last") + " · " + ago(lastG.endedAt); })();
+          const lw = lastG && (() => { const r = rankOf(lastG), top = r.filter(x => x.total === r[0].total), lp = plOf(g, lastG); return (top.length > 1 ? "shared" : lp(top[0].id).name + " won") + " · " + ago(lastG.endedAt); })();
           return ce("div", { key: g.id, className: "lc-tcard" },
-            ce("button", { className: "blk " + LOOK_TILE[tableLook(g)].blk, onClick: () => go({ at: "group", groupId: g.id }), "aria-label": g.name + ": " + line + (lw ? ". " + lw : "") + ". Open the table" },
-              ce("span", { className: "lc-tt" }, ce("b", null, g.name), ce("small", null, line), lw && ce("small", { className: "lc-tlast" }, lw)),
+            ce("button", { className: "blk " + LOOK_TILE[tableLook(g)].blk, onClick: () => go({ at: "group", groupId: g.id }), "aria-label": g.name + ": " + line + (lw ? ". Last game finished, " + lw : "") + ". Open the table" },
+              ce("span", { className: "lc-tt" }, ce("b", null, g.name), ce("small", null, line), lw && ce("small", { className: "lc-tlast" }, ce("span", { className: "lc-stamp" }, "Finished"), lw)),
               ce("span", { className: "avs" }, g.players.slice(0, 4).map(p => ce(Tok, { key: p.id, p }))),
               champ && (card ? ce("span", { className: "lc-champ-c", "aria-hidden": true }, ce(DeckCard, faceProps(av.card))) : ce(Tok, { p: champ, cls: "lc-champ-t" })),
               champ && ce("img", { className: "lc-crown", src: "art/crown.webp", alt: "" })),
@@ -1389,9 +1395,13 @@ function LastGame({ s, game, go, withTable, activeGroup }) {
       ce("span", { className: "lc-mo-art", "aria-hidden": true }, card ? ce(DeckCard, faceProps(av.card)) : ce(Tok, { p: w, cls: "lc-mo-tok" }), ce("img", { className: "lc-mo-crown", src: "art/crown.webp", alt: "" })),
       ce("span", { className: "lc-mo-t" }, ce("b", null, title), ce("small", null, sub)),
       kIcon("chev", "chev")),
-    aws.length > 0 && ce("ul", { className: "lc-aws", "aria-label": "Awards from that game" }, aws.map(({ a, A, p }) =>
-      ce("li", { key: a.key + ":" + a.id, className: "lc-aw", title: a.d }, ce("img", { src: "art/icons/" + A.art + ".webp", alt: "", width: 46, height: 46 }),
-        ce("b", null, A.t || a.t), ce("span", null, ce(Tok, { p }), p.name)))));
+    // Awards that night: the three rarest as labelled rows, and the rest on Results (owner, 24 Nov: the sideways strip didn't say what it was).
+    aws.length > 0 && ce("div", { className: "lc-awn" }, ce("h3", { className: "lc-awh" }, "Awards that night"),
+      ce("ul", { className: "lc-awl" }, [...aws].sort((x, y) => (y.A.r || 0) - (x.A.r || 0)).slice(0, 3).map(({ a, A, p }) =>
+        ce("li", { key: a.key + ":" + a.id }, ce("img", { src: "art/icons/" + A.art + ".webp", alt: "", width: 40, height: 40 }),
+          ce("span", { className: "grow" }, ce("b", null, A.t || a.t), ce("small", null, (a.d || A.how || "").replace(/\.$/, ""))),
+          ce("span", { className: "lc-awwho" }, ce(Tok, { p }), p.name)))),
+      aws.length > 3 && ce("button", { className: "link lc-awall", onClick: () => go({ at: "recap", gameId: game.id }) }, "All " + aws.length + " awards")));
 }
 // The opening: the crest arrives and the fan deals out behind it, then the crest settles into Play's corner. About a second, once a visit. A tap skips it.
 const INTRO_KEY = "mayi:intro";
@@ -1581,18 +1591,23 @@ function KHouseRules({ rules, up }) {
     why === k && ce("span", { className: "hr-whytext" }, RULE_WHY[k]));
   const seg = (k, title, val, opts, num) => ce("div", { className: "prow hr-row" }, ce("b", null, title), ce(KSeg, { label: title, value: val, onChange: v => up(k, num ? +v : v), options: opts }), hint(k));
   const sw = (k, title) => ce("div", { className: "prow hr-row hr-sw" }, ce("span", { className: "grow" }, ce("b", null, title), hint(k)), ce(KSw, { on: !!rules[k], onChange: v => up(k, v), label: title }));
-  const n = rules.customBuyLimit || 3;
+  // Buys and points are steppers that are always there, so nothing appears or jumps; past 10 buys is No limit (owner, 24 Nov).
+  const lim = buyLimitOf(rules), BUYS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, Infinity];
+  const setBuys = v => v === Infinity ? up("buyLimit", "unlimited") : v === 3 ? up("buyLimit", "3") : (up("customBuyLimit", v), up("buyLimit", "custom"));
+  const ACES = [1, 5, 10, 15, 20, 25, 30, 40, 50], JOKERS = [5, 10, 15, 20, 25, 30, 40, 50, 75, 100];
+  const step = (k, title, list, val, setV, say) => { const i = list.indexOf(val), at = i < 0 ? list.findIndex(x => x > val) : i;
+    const go = d => { const j = i < 0 ? (d < 0 ? Math.max(0, at - 1) : Math.max(0, at)) : i + d; if (list[j] != null) { haptic(6); setV(list[j]); } };
+    return ce("div", { className: "prow hr-row hr-step" }, ce("span", { className: "grow" }, ce("b", null, title), hint(k)),
+      ce("div", { className: "kstep", role: "group", "aria-label": title },
+        ce("button", { type: "button", className: "ib cream", disabled: at <= 0 && i <= 0, onClick: () => go(-1), "aria-label": "Less" }, kIcon("minus")),
+        ce("b", { "aria-live": "polite" }, ce("span", { key: String(val), className: "kstep-n" }, say(val))),
+        ce("button", { type: "button", className: "ib cream", disabled: i === list.length - 1 || (i < 0 && at < 0), onClick: () => go(1), "aria-label": "More" }, kIcon("plus")))); };
   return ce("div", { className: "hr-list" },
-    ce("div", { className: "prow hr-row" }, ce("b", null, "“May I?” buys a round"),
-      ce(KSeg, { label: "Buys a round", value: rules.buyLimit, onChange: v => up("buyLimit", v), options: [["3", "3"], ["custom", "Custom"], ["unlimited", "No limit"]] }),
-      rules.buyLimit === "custom" && ce("div", { className: "kstep" },
-        ce("button", { type: "button", className: "ib cream", disabled: n <= 1, onClick: () => up("customBuyLimit", Math.max(1, n - 1)), "aria-label": "Fewer buys" }, kIcon("minus")), ce("b", null, n),
-        ce("button", { type: "button", className: "ib cream", disabled: n >= 10, onClick: () => up("customBuyLimit", Math.min(10, n + 1)), "aria-label": "More buys" }, kIcon("plus"))),
-      hint("buyLimit")),
+    step("buyLimit", "“May I?” buys a round", BUYS, lim, setBuys, v => v === Infinity ? "No limit" : v),
     sw("jokersWild", "Jokers wild"), sw("twosWild", "2s wild too"),
     seg("acesPosition", "Aces in runs", rules.acesPosition, [["low", "A-2-3-4"], ["high", "J-Q-K-A"], ["both", "Either"]]),
-    seg("aceValue", "Ace points", String(acePoints(rules)), [["1", "1"], ["15", "15"], ["20", "20"]], true),
-    seg("jokerValue", "Joker points", String(wildPoints(rules)), [["15", "15"], ["25", "25"], ["50", "50"]], true));
+    step("aceValue", "Ace points", ACES, acePoints(rules), v => up("aceValue", v), v => v),
+    step("jokerValue", "Joker points", JOKERS, wildPoints(rules), v => up("jokerValue", v), v => v));
 }
 // Each round deals the mini card in a new suit.
 const ROUND_SUITS = ["heart", "spade", "diamond", "club"];
@@ -1675,7 +1690,11 @@ function Records({ s, group }) {
 }
 function ProfileSheet({ onClose, s, group, playerId, onDress }) {
   const p = plOf(group, null)(playerId), pr = playerProfile(s, group.id, playerId), name = id => plOf(group, null)(id).name;
-  const [cab, setCab] = useState(false), av = avOf(p.avatar, p.name);
+  const [cab, setCab] = useState(false), [allH, setAllH] = useState(false), av = avOf(p.avatar, p.name);
+  // Every award this player has won at this table, newest first, with the night it came from.
+  const hist = Object.values(s.games).filter(g => g.groupId === group.id && g.status === "done" && g.players.includes(playerId)).sort((a, b) => (b.endedAt || 0) - (a.endedAt || 0))
+    .flatMap(g => gameAwards(g).filter(a => a.id === playerId && AWARDS[a.key]).sort((x, y) => AWARDS[y.key].r - AWARDS[x.key].r)
+      .map(a => ({ t: AWARDS[a.key].t, art: AWARDS[a.key].art, d: (a.d || AWARDS[a.key].how || "").replace(/\.$/, ""), at: g.endedAt })));
   const life = lifeAchievements(s, group.id, playerId);
   const awards = AWARD_ORDER.map(k => ({ key: k, art: AWARDS[k].art, t: AWARDS[k].t, how: AWARDS[k].how, n: pr.badges[k] || 0, at: pr.badgeLast[k] }));
   const nLife = life.filter(x => x.at != null).length, nAw = awards.filter(x => x.n).length;
@@ -1701,6 +1720,11 @@ function ProfileSheet({ onClose, s, group, playerId, onDress }) {
       nx && ce("span", { className: "pf-next" }, ce("img", { src: "art/icons/" + nx.art + ".webp", alt: "" }),
         ce("span", { className: "grow" }, ce("b", null, "Next: " + nx.t), ce("small", null, nx.near.n + " of " + nx.near.of + " " + nx.near.what),
           ce("span", { className: "pf-bar", "aria-hidden": true }, ce("i", { style: { width: Math.round(100 * nx.near.n / nx.near.of) + "%" } }))))),
+    hist.length > 0 && ce("div", null, ce("h3", { className: "sub" }, "Award history"),
+      ce("ul", { className: "pf-hist" }, (allH ? hist : hist.slice(0, 6)).map((h, i) => ce("li", { key: i },
+        ce("span", { className: "med" }, ce("img", { src: "art/icons/" + h.art + ".webp", alt: "" })),
+        ce("span", { className: "grow" }, ce("b", null, h.t), ce("small", null, h.d)), ce("time", null, dayMonth(h.at))))),
+      hist.length > 6 && !allH && ce("button", { className: "link ink pf-histall", onClick: () => setAllH(true) }, "All " + hist.length + " awards")),
     pr.h2h.length > 0 && ce("div", null, ce("h3", { className: "sub" }, "Head to head"),
       ce("div", { className: "pf-h2h" }, pr.h2h.map(h => { const o = plOf(group, null)(h.id);
         return ce("div", { key: h.id, className: "prow h2h" }, ce(Tok, { p: o }), ce("span", { className: "grow" }, ce("b", null, "vs " + name(h.id)), ce("small", null, stPlural(h.played, "game"))),
@@ -1804,7 +1828,6 @@ function GameScreen({ s, api, game, open, go, wide, setToast, level, fixAsk }) {
   const firstId = game.players[(dealerIdx(game, game.round) + 1) % Math.max(game.players.length, 1)];
   const many = game.players.length > 6;
   const left = [ce("div", { key: "h", className: "lr-head" },
-      ce("span", { className: "lr-pips", "aria-hidden": true }, ROUNDS.map((_, i) => ce("i", { key: i, className: i === game.round ? "cur" : roundDone(game, i) ? "done" : "" }))),
       ce("span", { className: "lr-rn" }, "Round " + r.n + " of 7", game.round === 6 && ce("span", { className: "lr-last" }, "Last round")),
       ce("h1", { key: r.n }, r.name)),
     ce("button", { key: "g", className: "lr-goal", onClick: () => open("rules", { gameId: game.id }), "aria-label": r.name + ": " + GOAL_LINE[game.round] + " Open the round guide" },
@@ -2046,8 +2069,9 @@ function HandSheet({ p, rules, start, before, onClose, onUse, inline }) {
   return ce(KSheet, { title: p.name + "'s hand", onClose, inline, cls: "lb-pad" + (mode === "photo" ? " pp-pad" : ""), lead: ce(Tok, { p }), footCls: "lb-padfoot",
       foot: ce(Fragment, null,
         mode === "photo" && shot ? ce("button", { className: "link ink", onClick: () => fileRef.current && fileRef.current.click() }, "Retake")
-          : ce("button", { className: "link ink", disabled: !hand.length, onClick: () => { setHand([]); setDoubt([]); } }, "Clear"),
-        ce("button", { className: "kb", disabled: !hand.length, onClick: () => { haptic(10); onUse(total, hand); } }, hand.length ? "Use " + total + " for " + p.name : "Count " + p.name + "'s cards")) },
+          : mode === "photo" && !hasKey ? null : ce("button", { className: "link ink", disabled: !hand.length, onClick: () => { setHand([]); setDoubt([]); } }, "Clear"),
+        mode === "photo" && !hasKey ? ce("button", { className: "kb", type: "submit", form: "ppKey" }, "Turn on the scanner")
+          : ce("button", { className: "kb", disabled: !hand.length, onClick: () => { haptic(10); onUse(total, hand); } }, hand.length ? "Use " + total + " for " + p.name : "Count " + p.name + "'s cards")) },
     ce(KSeg, { label: "How to count", value: mode, onChange: setMode, options: [["cards", "Tap cards"], ["photo", "Photo"]] }),
     ce("input", { ref: fileRef, type: "file", accept: "image/*", capture: "environment", hidden: true, onChange: onPhoto }),
     ce("input", { ref: libRef, type: "file", accept: "image/*", hidden: true, onChange: onPhoto }),
@@ -2058,8 +2082,8 @@ function HandSheet({ p, rules, start, before, onClose, onUse, inline }) {
     : !hasKey ? ce("div", { className: "pp-off" },
         ce("img", { src: "art/icons/camera.webp", alt: "" }),
         ce("b", null, "Count a hand from a photo"),
-        ce("p", null, "Lay the cards face up and take one photo. The scanner reads them with the Anthropic key saved on this phone only."),
-        ce("div", { className: "pp-key" }, ce(AiKeyCard, { open: true, onSaved: () => setHasKey(true) })),
+        ce("p", null, "Lay the cards face up and take one photo. The scanner adds them up in seconds."),
+        ce("div", { className: "pp-key" }, ce(AiKeyCard, { open: true, brief: true, formId: "ppKey", onSaved: () => setHasKey(true) })),
         ce("button", { className: "link ink", onClick: () => setMode("cards") }, "Use Tap cards instead"))
     : ce(Fragment, null,
         ce("div", { className: "pp-view" + (scanning ? " busy" : ""), role: "img", "aria-label": shot ? "Photo of " + p.name + "'s hand" : "No photo yet" },
@@ -2740,8 +2764,12 @@ function AddPlayerSheet({ game, group, who, onBack, onClose, onAdd }) {
     ce("button", { className: "link ink la-back", onClick: onBack }, "Back to Players"));
 }
 // The kit's segmented control (docs/ui-kit.html .kseg).
+// One paper pill glides to the choice, as in the kit; the buttons share the width equally.
 function KSeg({ label, value, onChange, options }) {
-  return ce("div", { className: "kseg", role: "group", "aria-label": label }, options.map(([v, t]) => ce("button", { key: v, type: "button", "aria-pressed": value === v, onClick: () => { haptic(6); onChange(v); } }, t)));
+  const i = options.findIndex(o => o[0] === value);
+  return ce("div", { className: "kseg glides" + (i < 0 ? " none" : ""), role: "group", "aria-label": label, style: { "--n": options.length, "--i": Math.max(0, i) } },
+    ce("span", { className: "glide", "aria-hidden": true }),
+    options.map(([v, t]) => ce("button", { key: v, type: "button", "aria-pressed": value === v, onClick: () => { haptic(6); onChange(v); } }, t)));
 }
 // The table's look: a tap changes it at once, and the page behind the sheet shows it. Used in Table settings and the game menu.
 function LookPicker({ group, onLook, id }) {
@@ -2760,24 +2788,34 @@ function TableSheet({ onClose, group, onRename, onLook, onDelete, onPlayers, gam
     ce(LookPicker, { group, onLook, id: "tsLookL" }),
     ce("div", { className: "gm-list" },
       ce("button", { className: "gm-row", onClick: onPlayers }, ce("span", { className: "ts-faces", "aria-hidden": true }, group.players.slice(0, 3).map(p => ce(Tok, { key: p.id, p }))),
-        ce("span", { className: "gm-t" }, ce("b", null, "Players"), ce("small", null, stPlural(group.players.length, "player") + " at this table · names and faces")), kIcon("chevl", "gm-chev"))),
+        ce("span", { className: "gm-t" }, ce("b", null, "Players"), ce("small", null, stPlural(group.players.length, "player") + " at this table · names and faces")), kIcon("chevl", "gm-chev")),
+      ce(ScannerRow)),
     asking ? ce("div", { className: "ts-ask", role: "group", "aria-label": "Delete " + group.name + "?" },
         ce("p", null, ce("b", null, "Delete " + group.name + "?"), " " + (games ? stPlural(games, "game") + " and every award won here go with it." : "Its players go with it.")),
         ce("div", { className: "lc-bkp" }, ce("button", { className: "kb sm cream", onClick: () => setAsking(false) }, "Keep it"), ce("button", { className: "kb sm ruby", onClick: onDelete }, "Delete")))
       : ce("button", { className: "gm-row ts-del", onClick: () => games ? setAsking(true) : onDelete() }, ce("span", { className: "ts-bin", "aria-hidden": true }, kIcon("bin")),
         ce("span", { className: "gm-t" }, ce("b", null, "Delete table"), ce("small", null, "Removes its players and every game"))));
 }
-function AiKeyCard({ open, onSaved, cta }) {
+// The card scanner, turned on where it's used: a row in Table settings and the game menu that opens the setup in place (owner, 24 Nov).
+function ScannerRow() {
+  const [open, setOpen] = useState(false), [on, setOn] = useState(() => !!getAiKey());
+  return ce(Fragment, null,
+    ce("button", { className: "gm-row", onClick: () => setOpen(x => !x), "aria-expanded": open }, ce("img", { src: "art/icons/camera.webp", alt: "" }),
+      ce("span", { className: "gm-t" }, ce("b", null, "Card scanner"), ce("small", null, on ? "On · counts a hand from one photo" : "Off · counts a hand from one photo")), kIcon("chevl", "gm-chev" + (open ? " open" : ""))),
+    open && ce("div", { className: "gm-sheetin gm-scan" }, ce(AiKeyCard, { open: true, onSaved: () => setOn(true), onRemoved: () => setOn(false) })));
+}
+// brief: the score pad's version. Its form has no button of its own; the pad's main button submits it (formId), so there is one button, not two.
+function AiKeyCard({ open, onSaved, onRemoved, cta, brief, formId }) {
   const [key, setKey] = useState(getAiKey), [draft, setDraft] = useState(""), [show, setShow] = useState(!!open);
   const save = () => { const k = draft.trim(); if (!k) return; setAiKey(k); setKey(k); setDraft(""); setShow(false); haptic(10); sound("save"); onSaved && onSaved(); };
   if (key) return ce("div", { className: "ak-on" }, ce("img", { src: "art/icons/camera.webp", alt: "" }),
     ce("span", { className: "grow" }, ce("b", null, "The scanner is on"), ce("small", null, "Key ending " + key.slice(-4) + " · saved on this phone only")),
-    ce("button", { className: "qp", onClick: () => { setAiKey(""); setKey(""); } }, "Remove"));
-  if (show) return ce("form", { className: "ak-form", onSubmit: e => { e.preventDefault(); save(); } },
-    ce("div", { className: "kfield" }, ce("label", { htmlFor: "akKey" }, "Anthropic API key"),
-      ce("input", { id: "akKey", type: "password", value: draft, placeholder: "sk-ant-…", autoComplete: "off", spellCheck: false, onChange: e => setDraft(e.target.value), autoFocus: !open }),
-      ce("small", null, "The scanner reads the cards with Claude, an AI service from Anthropic, so it needs a key from console.anthropic.com. The key stays on this phone and goes only to Anthropic. Each photo costs a few cents on that account.")),
-    ce("button", { className: "kb", type: "submit", disabled: !draft.trim() }, cta || "Turn on the scanner"));
+    ce("button", { className: "qp", onClick: () => { setAiKey(""); setKey(""); setShow(!!open); onRemoved && onRemoved(); } }, "Remove"));
+  if (show) return ce("form", { id: formId, className: "ak-form", onSubmit: e => { e.preventDefault(); if (!draft.trim()) { const i = document.getElementById("akKey"); i && i.focus(); return; } save(); } },
+    ce("div", { className: "kfield" }, ce("label", { htmlFor: "akKey" }, brief ? "Scanner key" : "Anthropic API key"),
+      ce("input", { id: "akKey", type: "password", value: draft, placeholder: brief ? "Paste the key" : "sk-ant-…", autoComplete: "off", spellCheck: false, onChange: e => setDraft(e.target.value), autoFocus: !open }),
+      ce("small", null, brief ? "Paste the key once. It's saved on this phone only. Settings has the details." : "The scanner reads the cards with Claude, an AI service from Anthropic, so it needs a key from console.anthropic.com. The key stays on this phone and goes only to Anthropic. Each photo costs a few cents on that account.")),
+    !formId && ce("button", { className: "kb", type: "submit", disabled: !draft.trim() }, cta || "Turn on the scanner"));
   return ce("p", { className: "lc-own" }, "It needs a one-time setup. ", ce("button", { className: "link", onClick: () => setShow(true) }, "Set up the scanner"));
 }
 // This game's house rules, to check or change. Changes count from now on.
@@ -2803,7 +2841,8 @@ function GameMenu({ onClose, game, group, onFinish, onEnd, onSettings, onPlayers
       picking && ce("div", { className: "gm-sheetin" }, ce(ScoreSheet, { game, pl: plOf(group, game), onRound: onFix, fixable, plain: true }),
         fixable.length > 0 && ce("p", { className: "fine" }, "Tap a round's number to fix its scores.")),
       row("dealerschoice", "House rules", rulesShort(game.rules), onHouse),
-      row("settings", "Settings", "Text size, sounds and the card scanner", onSettings)),
+      ce(ScannerRow),
+      row("settings", "Settings", "Text size, sounds and seeing", onSettings)),
     ce("div", { className: "gm-list gm-end" },
       !asking ? row("curtaincall", "Finish now and count", !done ? "Score a round first." : "Ends after round " + done + ". Lowest total wins.", () => done && setAsking(true), { disabled: !done })
         : ce("div", { className: "gm-ask", role: "group", "aria-label": "Finish now?" },
@@ -2834,7 +2873,7 @@ function Call({ ic, t, warn, children }) {
   return ce("div", { className: "call" + (warn ? " warn" : "") }, ce("span", { className: "ci", "aria-hidden": true }, ce(Icon, { n: ic, size: 18 })), ce("div", null, ce("b", null, t), children));
 }
 function RoundGuide({ round, level, coach, rules, live, playing }) {
-  const r = ROUNDS[round], G = GUIDE[round], [showPro, setShowPro] = useState(level === "pro");
+  const r = ROUNDS[round], G = GUIDE[round];
   const call = (ic, t, body, warn) => ce("div", { className: "rg-call" + (warn ? " warn" : "") }, ce("span", { className: "rg-m", "aria-hidden": true }, kIcon(ic)), ce("div", null, ce("b", null, t), body));
   return ce(Fragment, null,
     ce("div", { className: "rg-hero" },
@@ -2847,8 +2886,7 @@ function RoundGuide({ round, level, coach, rules, live, playing }) {
       call("flag", "Watch out", ce("p", null, r.watch), true),
       call("down", "After going down", ce("p", null, G.after)),
       call("bulb", "Tips", ce("ul", null, G.tips.map(t => ce("li", { key: t }, t)))),
-      showPro && call("bolt", "Pro tips", ce("ul", null, G.pro.map(t => ce("li", { key: t }, t))))),
-    !showPro && ce("button", { className: "link lb-center", onClick: () => setShowPro(true) }, "Show pro tips"),
+      call("bolt", "Pro tips", ce("ul", null, G.pro.map(t => ce("li", { key: t }, t))))),
     coach && ce(HandCoach, { round, rules }));
 }
 function RulesSheet({ onClose, round, rules, setRules, level, onLevel, initialTab, live, backTo }) {
@@ -2872,11 +2910,20 @@ function tally(games) {
   return { games: done.length, awards: done.reduce((n, g) => n + gameAwards(g).filter(a => a.id && AWARDS[a.key]).length, 0) };
 }
 const shortDate = t => new Date(t).toLocaleDateString(undefined, { day: "numeric", month: "short" });
+// Settings' short scanner row: whether it's on, and a way to remove the key. It's turned on from a table or the game menu.
+function SetScanner() {
+  const [key, setKey] = useState(getAiKey);
+  return ce("div", { className: "prow" }, ce("span", { className: "grow" }, ce("b", null, key ? "On" : "Off"),
+      ce("small", null, key ? "Key ending " + key.slice(-4) + ", saved on this phone only" : "Turn it on from a table's settings, the game's ••• menu, or the Photo tab when counting a hand")),
+    key && ce("button", { className: "kb sm cream", onClick: () => { setAiKey(""); setKey(""); } }, "Remove"));
+}
+// Three faces for the before-and-after examples in Settings.
+const EX_FACES = [{ name: "Ana", color: "red" }, { name: "Ben", color: "green" }, { name: "Cy", color: "amber" }];
 function SettingsPage({ s, settings, setSettings, onBack, go, open, onRestore, setToast, tab }) {
   const up = (k, v) => setSettings(x => ({ ...x, [k]: v }));
   const sw = (k, t, d, def) => ce("div", { className: "prow" }, ce("span", { className: "grow" }, ce("b", null, t), ce("small", null, d)),
     ce(KSw, { on: settings[k] === undefined ? !!def : !!settings[k], onChange: v => up(k, v), label: t }));
-  const [tip, setTip] = useState("3"), [other, setOther] = useState(""), [bk, setBk] = useState(null), fileRef = useRef(null);
+  const [tipOpen, setTipOpen] = useState(false), [tip, setTip] = useState("3"), [other, setOther] = useState(""), [bk, setBk] = useState(null), fileRef = useRef(null);
   const amount = tip === "other" ? (/^\d{1,3}(\.\d{1,2})?$/.test(other.trim()) && +other >= 1 && +other <= 200 ? String(+other) : "") : tip;
   const toast = t => setToast && setToast(t);
   const saveBackup = () => { downloadBackup(); up("backupAt", now()); toast({ text: "Backup saved", sub: "Keep the file somewhere safe" }); };
@@ -2886,18 +2933,29 @@ function SettingsPage({ s, settings, setSettings, onBack, go, open, onRestore, s
         setBk({ st, at: d.savedAt, tables: Object.keys(st.groups).length, games: Object.values(st.games).filter(x => x.status === "done").length }); }
       catch (_) { toast({ text: "That file isn't a May I? backup" }); } };
     r.readAsText(f); };
-  const card = (h, i) => [["5", "diamond", -14, -58], ["K", "spade", 0, 0], [null, null, 14, 58]].map(([r, su, a, x], k) => ce(DeckCard, { key: k, joker: !r, rank: r, suit: su, style: { "--r": a + "deg", "--x": x + "px" } }));
   // As a tab it is a place with the tab bar. Opened from a game's menu it sits over the game, with a way back and no tabs.
   return ce("div", { className: "kit kscreen ksettings" + (tab ? " ktabbed" : "") },
     ce("div", { className: "ph-nav" }, !tab && ce("button", { className: "ib", onClick: onBack, "aria-label": "Back" }, kIcon("chevl")), ce("span", { className: "lbl" }, "Settings")),
     ce("main", { className: "ph-body lc-pad lc-set" },
       ce("h1", { className: "vh" }, "Settings"),
+      // The tip, one short row near the top; the card opens in a sheet (owner, 24 Nov).
+      SUPPORT_URL && ce("button", { className: "lc-tiprow", onClick: () => { haptic(6); setTipOpen(true); } }, ce("img", { src: "art/icons/goodsport.webp", alt: "" }),
+        ce("span", { className: "grow" }, ce("b", null, "Buy the makers a cuppa"), ce("small", null, "May I? is free, with no ads")), kIcon("chev", "chev")),
       ce("h2", { className: "lc-h" }, "Text size"),
       ce("div", { className: "kt lc-prev", style: { "--fs": 1 }, "aria-hidden": true }, ce("img", { src: "art/crown.webp", alt: "" }), ce("div", null, ce("b", null, "Rachel leads by 12"), ce("span", null, "After round 4"))),
       ce(KSeg, { label: "Text size", value: String(settings.text || 1), onChange: v => up("text", +v), options: [["1", "Standard"], ["1.18", "Large"], ["1.36", "Largest"]] }),
       ce("h2", { className: "lc-h" }, "Seeing"),
-      sw("contrast", "Sunlight contrast", "Darker text and bolder edges for bright rooms"),
-      sw("patterns", "Never colour alone", "Every face also shows the player's initial"),
+      sw("contrast", "Sunlight contrast", "Brighter text, a darker table and bolder edges, for playing outside or in a bright room"),
+      // A before and after, so the switch is clear before it's tried. The one in use wears the gold ring.
+      ce("div", { className: "ex-pair", "aria-hidden": true },
+        [false, true].map(on => ce("div", { key: String(on), className: "ex ex-sun" + (on ? " hi" : "") + (!!settings.contrast === on ? " cur" : "") },
+          ce("span", { className: "ex-k" }, on ? "On" : "Off"),
+          ce("div", { className: "ex-row" }, ce(Tok, { p: EX_FACES[0] }), ce("span", null, ce("b", null, "Ana"), ce("small", null, "15 points"))), ce("span", { className: "ex-btn" }, "Score round 4")))),
+      sw("patterns", "Never colour alone", "Adds each player's initial to their face, for anyone who finds the colours hard to tell apart"),
+      ce("div", { className: "ex-pair", "aria-hidden": true },
+        [false, true].map(on => ce("div", { key: String(on), className: "ex ex-pat" + (!!settings.patterns === on ? " cur" : "") },
+          ce("span", { className: "ex-k" }, on ? "On" : "Off"),
+          ce("div", { className: "ex-faces" }, EX_FACES.map(p => ce("span", { key: p.name, className: "ex-f" }, ce(Tok, { p }), on && ce("i", null, p.name[0]))))))),
       ce("h2", { className: "lc-h" }, "Hands and sound"),
       ce("div", { className: "lc-opt" }, ce("span", null, ce("b", null, "Main buttons sit under"), ce("small", null, "The thumb that holds the phone")),
         ce(KSeg, { label: "Main buttons sit under", value: settings.hand === "left" ? "left" : "right", onChange: v => up("hand", v), options: [["left", "Left thumb"], ["right", "Right thumb"]] })),
@@ -2919,15 +2977,9 @@ function SettingsPage({ s, settings, setSettings, onBack, go, open, onRestore, s
           ce("div", { className: "lc-bkp" }, ce("button", { className: "kb sm cream", onClick: () => setBk(null) }, "Keep what's here"), ce("button", { className: "kb sm", onClick: () => { onRestore(bk.st); setBk(null); } }, "Load the backup")))
         : ce("div", { className: "lc-bkp" }, ce("button", { className: "kb sm cream", onClick: saveBackup }, "Save a backup"), ce("button", { className: "kb sm cream", onClick: () => fileRef.current && fileRef.current.click() }, "Load a backup")),
       ce("input", { ref: fileRef, type: "file", accept: "application/json,.json", hidden: true, onChange: pickBackup }),
-      ce("div", { className: "blk sap lc-offer" },
-        ce("div", { className: "lc-scan", "aria-hidden": true },
-          ce("div", { className: "lc-hand" }, card()),
-          ce("svg", { className: "lc-vf", viewBox: "0 0 240 170", fill: "none", stroke: "#FFE7A3", strokeWidth: 5, strokeLinecap: "round" }, ce("path", { d: "M8 40V8h32M200 8h32v32M232 130v32h-32M40 162H8v-32" })),
-          ce("span", { className: "lc-beam" }), ce("img", { className: "lc-cam", src: "art/icons/camera.webp", alt: "" }),
-          ce("span", { className: "lc-add", style: { "--x": "-58px", "--a": "lc-add1" } }, "+5"), ce("span", { className: "lc-add", style: { "--x": "0px", "--a": "lc-add2" } }, "+10"), ce("span", { className: "lc-add", style: { "--x": "58px", "--a": "lc-add3" } }, "+15")),
-        ce("span", null, ce("b", null, "Card scanner"), ce("small", null, "Adding up a 12-card hand by eye takes a minute and a recount. One photo adds it in seconds.")),
-        ce(AiKeyCard)),
-      SUPPORT_URL && ce("div", { className: "blk ruby lc-offer lc-tip" },
+      ce("h2", { className: "lc-h" }, "Card scanner"),
+      ce(SetScanner),
+      tipOpen && ce(KSheet, { title: "Support May I?", onClose: () => setTipOpen(false), cls: "tip-sheet" }, ce("div", { className: "blk ruby lc-offer lc-tip" },
         ce("div", { className: "lc-cup", "aria-hidden": true },
           // Steam from the kit: soft wisps rising, warped by a slow noise filter. Still under Calm.
           ce("svg", { className: "lc-defs", width: 0, height: 0, "aria-hidden": true, focusable: false },
@@ -2941,15 +2993,14 @@ function SettingsPage({ s, settings, setSettings, onBack, go, open, onRestore, s
           ce("span", { className: "lc-tea" }),
           ce("img", { className: "lc-heart", src: "art/suits/heart.webp", alt: "", style: { "--x": "-86px", "--y": "26px", "--r": "-16deg" } }),
           ce("img", { className: "lc-heart", src: "art/suits/heart.webp", alt: "", style: { "--x": "84px", "--y": "6px", "--r": "14deg" } })),
-        ce("span", null, ce("b", null, "Stand the table a cuppa"), ce("small", null, "May I? is free, with no ads. A tip keeps it that way.")),
+        ce("span", null, ce("b", null, "Buy the makers a cuppa"), ce("small", null, "May I? is free, with no ads. A tip helps us keep it that way.")),
         ce("div", { className: "lc-chips", role: "radiogroup", "aria-label": "Tip amount" },
           TIP_AMOUNTS.map(t => ce("button", { key: t, className: "qp" + (tip === t ? " on" : ""), role: "radio", "aria-checked": tip === t, onClick: () => { haptic(6); setTip(t); } }, "£" + t)),
           ce("button", { className: "qp" + (tip === "other" ? " on" : ""), role: "radio", "aria-checked": tip === "other", onClick: () => { haptic(6); setTip("other"); } }, "Other")),
         tip === "other" && ce("label", { className: "lc-other" }, ce("span", null, "£"),
           ce("input", { inputMode: "decimal", maxLength: 5, value: other, placeholder: "Any amount", "aria-label": "Tip in pounds", autoFocus: true, onChange: e => setOther(e.target.value) })),
         ce("a", { className: "kb wide lc-tipbtn" + (amount ? "" : " off"), href: SUPPORT_URL, target: "_blank", rel: "noopener", "aria-disabled": !amount || undefined,
-          onClick: e => { if (!amount) e.preventDefault(); else { haptic(10); sound("win"); up("tipped", now()); } } }, amount ? "Tip £" + amount : tip === "other" && other.trim() ? "£1 to £200" : "Pick an amount")),
-      ce("p", { className: "lc-credits" }, "Type: Fraunces by Undercase Type and Barlow by Jeremy Tribby (both OFL).")));
+          onClick: e => { if (!amount) e.preventDefault(); else { haptic(10); sound("win"); up("tipped", now()); } } }, amount ? "Tip £" + amount : tip === "other" && other.trim() ? "£1 to £200" : "Pick an amount")))));
 }
 function KPage({ title, onClose, backLabel, cls, bodyCls, children, foot }) {
   const [closing, setClosing] = useState(false), me = useRef(null);
@@ -3095,7 +3146,7 @@ function Lesson({ rules }) {
       "A set is three cards of the same rank. The suits don't matter."],
     ["Runs", null, ce(Fragment, null, W("8", "heart", 14, 34, -9), W("9", "heart", 72, 26, -3),
         ce(DeckCard, { key: "jk", joker: true, className: "w", style: { left: 130, top: 26, rotate: "3deg" } }), W("J", "heart", 188, 34, 9),
-        rules.jokersWild && ce("span", { className: "lc-tag", style: { left: 128, top: 150 } }, "as 10♥")),
+        rules.jokersWild && ce("span", { className: "lc-tag", style: { left: 163, top: 150, translate: "-50% 0", whiteSpace: "nowrap" } }, "Joker as 10♥")),
       rules.jokersWild ? "A run is four cards in a row, all one suit. A joker can fill the gap." : "A run is four cards in a row, all one suit."],
     ["The round's goal", "Round 2 · " + ROUNDS[1].name, ce(GoalMelds, { r: ROUNDS[1] }),
       "Each round asks for its own sets and runs. Lay the whole goal down in one turn, once a round.", "lc-ill-melds"],
@@ -3142,12 +3193,25 @@ function StatsPage({ s, open, go }) {
   // Each line tries a different achievement, so four people don't all say the same thing.
   near.sort((a, b) => b.f - a.f); const used = new Set();
   const nearTop = near.slice(0, 4).map(x => { const a = x.all.find(y => !used.has(y.key)) || x.all[0]; used.add(a.key); return { ...x, a }; });
+  // Players: one row per person (by name, across tables), most wins first. A tap opens their profile at the table they played most recently (owner, 24 Nov).
+  const people = {};
+  won.forEach(([g, aw]) => { const pl = plOf(s.groups[g.groupId], g), r = rankOf(g), best = r[0] && r[0].total;
+    g.players.forEach(id => { const p = pl(id), k = (p.name || "").trim().toLowerCase(); if (!k) return;
+      const o = people[k] = people[k] || { p, g: g.groupId, id, at: 0, games: 0, wins: 0, aw: 0 };
+      o.games++; if (r.find(x => x.id === id && x.total === best)) o.wins++; o.aw += aw.filter(a => a.id === id).length;
+      if ((g.endedAt || 0) > o.at) { o.at = g.endedAt || 0; o.g = g.groupId; o.id = id; o.p = p; } }); });
+  const folk = Object.values(people).sort((a, b) => b.wins - a.wins || b.aw - a.aw || a.p.name.localeCompare(b.p.name));
   return ce("div", { className: "kit kscreen kstats" },
     ce("div", { className: "ph-nav" }, ce("span", { className: "lbl" }, "Stats")),
     ce("main", { className: "ph-body st-body" }, ce("h1", { className: "vh" }, "Stats"),
       ce("div", { className: "st-hero" }, ce("img", { src: "art/crown.webp", alt: "" }),
         ce("p", null, done.length ? stPlural(done.length, "game") + " across " + stPlural(nT, "table") + ", and " + claimed + " of " + AWARD_ORDER.length + " awards claimed"
           : "Finish a game and the awards, records and champions show up here.")),
+      folk.length > 0 && ce("section", { className: "st-sect" }, ce("h2", { className: "sub" }, "Players"),
+        ce("ul", { className: "st-folk" }, folk.map(o => ce("li", { key: o.p.name },
+          ce("button", { onClick: () => { haptic(6); open("profile", { groupId: o.g, playerId: o.id }); }, "aria-label": o.p.name + ": " + stPlural(o.wins, "win") + ", " + stPlural(o.aw, "award") + " from " + stPlural(o.games, "game") + ". Open their awards and games" },
+            ce(Tok, { p: o.p }), ce("span", { className: "grow" }, ce("b", null, o.p.name), ce("small", null, stPlural(o.games, "game") + " · " + stPlural(o.aw, "award"))),
+            ce("span", { className: "st-wins" }, ce("b", null, o.wins), ce("small", null, o.wins === 1 ? "win" : "wins")), kIcon("chev", "chev")))))),
       nearTop.length > 0 && ce("section", { className: "st-sect" }, ce("h2", { className: "sub" }, "Nearly there"),
         ce("ul", { className: "st-near" }, nearTop.map(({ g, p, a }) => ce("li", { key: g.id + p.id },
           ce("button", { onClick: () => { haptic(6); open("profile", { groupId: g.id, playerId: p.id }); }, "aria-label": p.name + ", " + a.t + ": " + a.near.n + " of " + a.near.of + " " + a.near.what + ". Open " + p.name + "'s profile" },

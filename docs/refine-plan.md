@@ -138,3 +138,45 @@ Live first: 16be34d (layout pass, round banner, Standings, share preview). Then,
 **Mock up first:** the score-sheet finale (winner's total circled in ink, card pinned on, zeros as an Out stamp), side by side with today's finale, before anything is built. **Mocked 24 Nov** (`docs/shots/finale-mock-24nov.jpg`). **Owner's call: keep today's finale**, and leave Scores by round as it is. Not built.
 
 **After the batch:** a short real-iPhone checklist for the owner (VoiceOver, large text, Sunlight, offline, Back button, swipe back, the black square on Results and Learn, the drifting lights' battery use).
+
+## Owner's notes, 24 Nov (second batch)
+
+**Built:**
+- Bigger goal cards: 70px on the round for two melds, and 58px for three, so they still fit 358px. In the round guide they're 88px and wrap.
+- The round's pagination dots are gone.
+- Pro tips always show.
+- Runs card: "Joker as 10♥".
+- The Going out medal sits inside the card, so its shadow isn't cut off.
+- House rules:
+  - every segmented control glides its pill to the choice;
+  - the buys stepper number pops;
+  - "Why?" answers ease open;
+  - buttons press down.
+- Settings:
+  - gold section headings above lighter row titles;
+  - Sunlight contrast is now strong (white text, darker table, no pattern or lights, heavier small text and lines);
+  - Sunlight and Never colour alone each get an Off and On example, with the one in use ringed;
+  - the font credits are gone.
+- Tip: "Buy the makers a cuppa · A tip helps us keep it that way."
+- Score pad photo:
+  - no Anthropic in the copy;
+  - before a key is saved, the pad's main button is "Turn on the scanner";
+  - once saved, it becomes "Count / Use N", so there's one button, not two.
+
+**Open (owner's call, asked one at a time):**
+- buys and custom points without the jump;
+- whether Settings takes the table's look;
+- the scanner turned on from the table;
+- where the tip lives;
+- each player's achievement history;
+- the Last game strip;
+- completed tables.
+
+**Owner's answers, 24 Nov:**
+1. Steppers that are always visible for buys (1 to 10, then No limit), Ace points and Joker points.
+2. Settings, Learn and Stats wear the last table's look (Lagoon when there are no tables yet).
+3. The scanner is turned on from Table settings and the game menu; Settings keeps a short row.
+4. Tip: the Results nudge stays, and Settings gets a short row near the top that opens the tip card.
+5. Stats: a row per player, and a tap opens their page (awards with date and table, their games, what's next).
+6. Last game: "Awards that night", the top three as rows, and "All N" opens Results.
+7. Play: tables with a game under way come first; the rest go under "Your tables", with the date last played and a Finished stamp on the last game.
