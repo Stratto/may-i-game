@@ -1135,6 +1135,8 @@ function App() {
   const [raw, api] = useStore(), s = useMemo(() => dealFaces(raw), [raw]);
   const wide = useMedia("(min-width: 900px)"), desk = useMedia("(min-width: 1100px)");
   const [settings, setSettings] = useState(loadSettings);
+  // Calm is known before the first screen draws, so nothing on it starts moving and then stops.
+  calmOn = !!settings.calm;
   useEffect(() => { saveJSON(SETTINGS_KEY, settings); soundOn = settings.sound !== false;
     calmOn = !!settings.calm; speakOn = !!settings.speak; undoOn = settings.undo !== false; awakeOn = settings.awake !== false;
     const de = document.documentElement; de.classList.toggle("calm", calmOn); de.classList.toggle("hicon", !!settings.contrast); de.classList.toggle("pat", !!settings.patterns); de.classList.toggle("lefty", settings.hand === "left");
@@ -1779,7 +1781,7 @@ function GameScreen({ s, api, game, open, go, wide, setToast, level, fixAsk }) {
   const many = game.players.length > 6;
   const left = [ce("div", { key: "h", className: "lr-head" },
       ce("span", { className: "lr-pips", "aria-hidden": true }, ROUNDS.map((_, i) => ce("i", { key: i, className: i === game.round ? "cur" : roundDone(game, i) ? "done" : "" }))),
-      ce("span", { className: "lr-rn" }, "Round " + r.n + " of 7"),
+      ce("span", { className: "lr-rn" }, "Round " + r.n + " of 7", game.round === 6 && ce("span", { className: "lr-last" }, "Last round")),
       ce("h1", { key: r.n }, r.name)),
     ce("button", { key: "g", className: "lr-goal", onClick: () => open("rules", { gameId: game.id }), "aria-label": r.name + ": " + GOAL_LINE[game.round] + " Open the round guide" },
       ce(GoalMelds, { r }),
@@ -1805,7 +1807,7 @@ function LrTot({ total, gain, fx }) {
   return ce("span", { className: "lr-tot", "aria-hidden": true }, shown, fx && gain > 0 && ce("span", { className: "lr-plus" }, "+" + gain));
 }
 function BuyTable({ game, pl, rs, limit, dealer, firstId, many, cards, changeBuy, onScore, setBuyToast, toast, totals, cls, hold }) {
-  const [pop, setPop] = useState(null), [fly, setFly] = useState(null), [bump, setBump] = useState(0), stock = useRef(null), slot = useRef(null), faces = useRef({});
+  const [pop, setPop] = useState(null), [lit, setLit] = useState(null), [fly, setFly] = useState(null), [bump, setBump] = useState(0), stock = useRef(null), slot = useRef(null), faces = useRef({});
   const fxKey = game.id + ":" + game.round, last = game.round > 0 ? game.scores[game.round - 1] : null;
   // Held while Between rounds covers the round, so it plays when the table can see it.
   const fx = useMemo(() => !hold && !!(totals && last) && !reducedMotion() && !ROUND_FX.has(fxKey), [fxKey, hold]);
@@ -1813,7 +1815,7 @@ function BuyTable({ game, pl, rs, limit, dealer, firstId, many, cards, changeBuy
   // May I?: the stock bumps and a card flies from it to the face that bought; the face pops as it lands.
   function buy(id) {
     const f = faces.current[id], from = stock.current && stock.current.offsetParent ? stock.current : slot.current;
-    if (reducedMotion() || !f || !from) { setPop(id); return; }
+    if (reducedMotion() || !f || !from) { setPop(id); setLit(id); return; }
     const S = from.getBoundingClientRect(), F = f.getBoundingClientRect(), sx = S.left + S.width / 2, sy = S.top + S.height / 2;
     setBump(b => b + 1); setFly({ k: Date.now(), id, x: sx, y: sy, dx: F.left + F.width / 2 - sx, dy: F.top + F.height / 2 - sy });
   }
@@ -1846,7 +1848,7 @@ function BuyTable({ game, pl, rs, limit, dealer, firstId, many, cards, changeBuy
             changeBuy(id, 1); buy(id); setBuyToast({ id, n: n + 1, k: Date.now() });
           } },
         ce("span", { className: "lr-no", "aria-hidden": true }, deal ? "D" : o + 1),
-        ce("span", { className: "lr-t", ref: el => { faces.current[id] = el; } }, ce(Tok, { p }), id === leadId && ce("img", { className: "lr-crown", src: "art/crown.webp", alt: "" }),
+        ce("span", { className: "lr-t", ref: el => { faces.current[id] = el; } }, ce(Tok, { p }), id === leadId && ce("img", { key: fx ? "cfx" : "c", className: "lr-crown", src: "art/crown.webp", alt: "" }),
           wentOut && ce("span", { className: "sparks lr-sparks", "aria-hidden": true }, [0, 1, 2, 3, 4, 5, 6, 7].map(j => ce("i", { key: j, style: { "--k": j } })))),
         ce("span", { className: "lr-mid" },
           ce("b", null, p.name),
@@ -1854,12 +1856,12 @@ function BuyTable({ game, pl, rs, limit, dealer, firstId, many, cards, changeBuy
             scoring ? ce("span", { className: "lr-sc" + (v === 0 ? " out" : "") }, has ? (v === 0 ? "Out" : "+" + v) : "To score")
               : spent ? ce("span", { className: "lr-none" }, "No buys left")
               : limit === Infinity || limit > 6 ? ce("span", { className: "lr-none" }, n ? n + (n === 1 ? " buy" : " buys") : "No buys yet")
-              : ce("span", { className: "jp", "aria-hidden": true }, Array.from({ length: limit }, (_, j) => ce("i", { key: j, className: j < n ? "on" : "" }))),
+              : ce("span", { className: "jp", "aria-hidden": true }, Array.from({ length: limit }, (_, j) => ce("i", { key: j + (lit === id && j === n - 1 ? "l" : ""), className: (j < n ? "on" : "") + (lit === id && j === n - 1 ? " lit" : "") }))),
             !scoring && deal && ce("span", { className: "lr-role" }, "Deals " + cards))),
         totals && ce(LrTot, { key: fx ? "fx" : "t", total: totals[id], gain, fx })));
     })),
     fly && ce("span", { key: fly.k, className: "lr-fly", "aria-hidden": true, style: { left: fly.x, top: fly.y, "--dx": fly.dx + "px", "--dy": fly.dy + "px" },
-      onAnimationEnd: () => { setPop(fly.id); setFly(null); } }));
+      onAnimationEnd: () => { setPop(fly.id); setLit(fly.id); setFly(null); } }));
 }
 const dealerName = (n, c) => n + " deals " + c;
 // Kit parts shared by the rebuilt screens (docs/ui-kit.html).
@@ -1963,7 +1965,7 @@ function ScorePad({ game, pl, start, round, rs, setScore, onClose, onDone, fixin
         ? ce(HandSheet, { key: side, inline: true, p: pl(side), rules, start: (hands[side] || []).slice(), before: before(side), onClose: () => setHand(null), onUse: useHand(side) })
         : ce("div", { className: "ls-sidehint" }, ce("img", { src: "art/icons/count.webp", alt: "" }),
             ce("p", null, picked ? "Every hand is in. Tap a name's cards to count it again." : "Tap Out next to whoever went out first, or Nobody went out. Then each hand is counted here.")))),
-    ce("div", { className: "ph-dock" }, ce("button", { className: "kb ls-save", disabled: !ok, onClick: () => { haptic([14, 60, 14]); sound("save"); onDone(); } }, fixing ? "Save round " + (R + 1) : "Save round " + (R + 1))),
+    ce("div", { className: "ph-dock" }, ce("button", { className: "kb ls-save" + (ok ? " ready" : ""), disabled: !ok, onClick: () => { haptic([14, 60, 14]); sound("save"); onDone(); } }, fixing ? "Save round " + (R + 1) : "Save round " + (R + 1))),
     hand && !wide && ce(HandSheet, { p: pl(hand), rules, start: (hands[hand] || []).slice(), before: before(hand), onClose: () => setHand(null), onUse: useHand(hand) })));
 }
 // One hand, counted: Tap cards or Photo share one hand, one plaque and one teal button, so switching never loses the count.
@@ -2194,7 +2196,7 @@ function Recap({ s, game, go, setToast, rematch, onDelete, onReopen, onTable, se
     }
   }
   const sameTable = game.players.filter(id => group.players.some(p => p.id === id)).length >= 2;
-  const [take, setTake] = useState(fresh ? 1 : 0), [more, setMore] = useState(false), [allAw, setAllAw] = useState(false);
+  const [take, setTake] = useState(fresh ? 1 : 0), [more, setMore] = useState(false), [allAw, setAllAw] = useState(false), [cheer, setCheer] = useState(0);
   // The finale is a moment, not the page: the winner's card fills the screen for a beat, then settles into the header so Rematch and Share are in reach. A tap skips it.
   const [settled, setSettled] = useState(!fresh || reducedMotion());
   useEffect(() => { if (!take || reducedMotion()) return; setSettled(false); const t = setTimeout(() => setSettled(true), 1700); return () => clearTimeout(t); }, [take]);
@@ -2228,7 +2230,9 @@ function Recap({ s, game, go, setToast, rematch, onDelete, onReopen, onTable, se
         ce("button", { className: "ib", onClick: () => go({ at: "group", groupId: group.id }), "aria-label": "Back to " + group.name }, kIcon("chevl")), ce("span", { className: "sp" }),
         ce("button", { className: "ib", onClick: share, "aria-label": "Share results" }, kIcon("share")),
         ce("button", { className: "ib", onClick: () => setMore(true), "aria-label": "More: reopen or delete this game" }, kIcon("more"))),
-      ce("div", { className: "lb-wins" + (winners.length > 1 ? " two" : "") }, winners.slice(0, 2).map(p => ce("div", { key: p.id, className: "lb-wincard" }, winCard(p),
+      ce("div", { className: "lb-wins" + (winners.length > 1 ? " two" : "") }, winners.slice(0, 2).map(p => ce("div", { key: p.id + ":" + cheer, className: "lb-wincard" + (cheer ? " cheer" : ""),
+          // A tap on the winner's card is a little cheer: it jumps, the crown bounces and the sparks fly again.
+          onClick: e => { if (!settled) return; e.stopPropagation(); haptic(8); sound("chip"); setCheer(c => c + 1); } }, winCard(p),
         ce("img", { className: "lb-wcrown", src: "art/crown.webp", alt: "" }),
         !reducedMotion() && ce("span", { className: "sparks lb-wsp", "aria-hidden": true }, [0, 1, 2, 3, 4, 5, 6, 7].map(k => ce("i", { key: k, style: { "--k": k } })))))),
       ce("h1", { className: "ribbon" }, ce("span", { className: "tail l", "aria-hidden": true }), title, ce("span", { className: "tail r", "aria-hidden": true })),
@@ -2688,10 +2692,11 @@ function KSeg({ label, value, onChange, options }) {
 }
 // The table's look: a tap changes it at once, and the page behind the sheet shows it. Used in Table settings and the game menu.
 function LookPicker({ group, onLook, id }) {
+  const [snap, setSnap] = useState(null);
   return ce("div", { className: "ts-look" }, ce("span", { className: "ts-lbl", id }, "Look"),
     ce("div", { className: "looks st-looks ts-looks", role: "radiogroup", "aria-labelledby": id }, MAPPED_LOOKS.map(k => { const T = LOOK_TILE[k], on = tableLook(group) === k;
-      return ce("button", { key: k, type: "button", className: "look", role: "radio", "aria-checked": on, style: { "--c2": T.c[0], "--c3": T.c[1], "--c5": T.c[2] },
-        onClick: () => { if (!on) { haptic(8); onLook(k); } } }, ce("img", { src: "art/" + T.art + ".webp", alt: "" }), ce("span", { className: "tick", "aria-hidden": true }, kIcon("check")), ce("b", null, LOOKS[k].name)); })));
+      return ce("button", { key: k, type: "button", className: "look" + (snap === k ? " snap" : ""), role: "radio", "aria-checked": on, style: { "--c2": T.c[0], "--c3": T.c[1], "--c5": T.c[2] },
+        onAnimationEnd: () => setSnap(null), onClick: () => { if (!on) { haptic(8); setSnap(k); onLook(k); } } }, ce("img", { src: "art/" + T.art + ".webp", alt: "" }), ce("span", { className: "tick", "aria-hidden": true }, kIcon("check")), ce("b", null, LOOKS[k].name)); })));
 }
 // Tables wear the four enamels in turn.
 function TableSheet({ onClose, group, onRename, onLook, onDelete, onPlayers, games }) {

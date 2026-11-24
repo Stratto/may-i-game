@@ -1299,6 +1299,23 @@ if (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIn
 .kit .lr-b.hop .lr-t {animation: k-lrhop .8s .45s var(--spring) both;}
 @keyframes k-lrhop {35% { transform: translateY(-16px) scale(1.16) rotate(-6deg); } 65% { transform: translateY(0) scale(.96) rotate(2deg); }}
 .kit .lr-sparks {z-index: 2;}
+/* The jewel a buy fills lights up as the card lands */
+.kit .jp i.lit {animation: k-jewel .6s var(--spring); box-shadow: 0 0 10px rgba(207, 230, 255, .9);}
+@keyframes k-jewel {from { scale: .3; } 50% { scale: 1.7; }}
+/* Round 7 says so */
+.kit .lr-last {display: inline-block; margin-left: 8px; padding: 3px 9px 4px; border-radius: 99px; vertical-align: 1px; background: linear-gradient(180deg, #FFE9AC, #E2B357); color: #3A2A08; font: 800 .72rem/1 var(--label); letter-spacing: .1em; text-transform: uppercase;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .3); animation: k-lastin .6s .3s var(--spring) both;}
+@keyframes k-lastin {from { scale: .4; opacity: 0; rotate: -8deg; }}
+/* Every hand is in: Save gives a small "ready" bump */
+.kit .ls-save.ready {animation: k-ready .55s var(--spring);}
+@keyframes k-ready {45% { scale: 1.05; filter: brightness(1.12); }}
+/* A tap on the winner's card cheers */
+.kit .lb-wincard {cursor: default;}
+.kit .lb-fin.settled .lb-wincard {cursor: pointer;}
+.kit .lb-wincard.cheer {animation: k-cheer .7s var(--spring);}
+.kit .lb-wincard.cheer .lb-wcrown {animation: k-cheercrown .7s var(--spring);}
+@keyframes k-cheer {30% { transform: translateY(-14px) rotate(-4deg) scale(1.05); } 60% { transform: translateY(0) rotate(2deg); }}
+@keyframes k-cheercrown {30% { transform: translateY(-12px) rotate(-10deg); }}
 .kit .lr-sparks i {width: 14px; height: 14px; animation: k-lrspark .9s .62s cubic-bezier(.2, .7, .3, 1) both; box-shadow: 0 0 8px rgba(216, 253, 255, .8);}
 @keyframes k-lrspark {from { transform: rotate(var(--a)) translateY(-10px) rotate(45deg) scale(1); opacity: 0; } 15% { opacity: 1; } to { transform: rotate(var(--a)) translateY(-52px) rotate(45deg) scale(.45); opacity: 0; }}
 .kit .lr-b:focus-visible {outline: 3px solid #FFE7A3; outline-offset: 2px;}
@@ -1319,7 +1336,7 @@ if (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIn
 .kit .lr-toast em {display: block; margin-top: 3px; font: 800 .86rem/1.1 var(--display); font-style: normal; color: #FFE7A3;}
 .kit .lr-toast .lr-undo {width: 22px; height: 22px; flex: none; color: #FFE7A3;}
 @media (prefers-reduced-motion: reduce) {
-.kit .lr-b.pop .lr-t, .kit .lr-toast, .kit .lr-b.hop .lr-t, .kit .lr-mayh img.bump, .kit .lr-plus {animation: none;} .kit .lr-fly, .kit .lr-sparks {display: none;}
+.kit .lr-b.pop .lr-t, .kit .lr-toast, .kit .lr-b.hop .lr-t, .kit .lr-mayh img.bump, .kit .lr-plus, .kit .jp i.lit, .kit .lr-last, .kit .ls-save.ready, .kit .lb-wincard.cheer, .kit .lb-wincard.cheer .lb-wcrown {animation: none;} .kit .lr-fly, .kit .lr-sparks {display: none;}
 .kit .lr-meld > span {transition: none;}
 }
 .kit .lr-flow {display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 6px; margin: 4px 0 0; padding: 0; list-style: none;}
