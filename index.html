@@ -1287,6 +1287,20 @@ if (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIn
 .kit .lr-b.spent .tok {filter: saturate(.35) brightness(.8);}
 .kit .lr-b.spent:hover {background: none;}
 .kit .lr-b.pop .lr-t {animation: k-lmpop .45s var(--spring);}
+/* May I?: a card flies from the stock to the face that bought */
+.kit .lr-mayh img.bump {animation: k-bump .4s var(--spring);}
+.kit .lr-fly {position: fixed; z-index: 30; width: 26px; height: 36px; margin: -18px 0 0 -13px; border-radius: 4px; border: 1.5px solid #D9B166; background: url(art/card-back.webp) center / cover; pointer-events: none; box-shadow: 0 6px 10px rgba(0, 0, 0, .35);
+  animation: k-lrfly .5s cubic-bezier(.45, 0, .25, 1) both;}
+@keyframes k-lrfly {0% { transform: translate(0, 0) rotate(0) scale(.7); opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { transform: translate(var(--dx), var(--dy)) rotate(-200deg) scale(.55); opacity: 0; }}
+/* A round opens: totals count up, +N floats off, whoever went out hops in sparks */
+.kit .lr-tot {position: relative;}
+.kit .lr-plus {position: absolute; right: 0; bottom: 100%; font: 800 .95rem/1 var(--num); color: #FFE7A3; white-space: nowrap; pointer-events: none; text-shadow: 0 2px 4px rgba(0, 0, 0, .45); animation: k-lrplus 1.4s .45s ease-out both;}
+@keyframes k-lrplus {from { transform: translateY(12px); opacity: 0; } 25% { opacity: 1; } 75% { opacity: 1; } to { transform: translateY(-14px); opacity: 0; }}
+.kit .lr-b.hop .lr-t {animation: k-lrhop .8s .45s var(--spring) both;}
+@keyframes k-lrhop {35% { transform: translateY(-16px) scale(1.16) rotate(-6deg); } 65% { transform: translateY(0) scale(.96) rotate(2deg); }}
+.kit .lr-sparks {z-index: 2;}
+.kit .lr-sparks i {width: 14px; height: 14px; animation: k-lrspark .9s .62s cubic-bezier(.2, .7, .3, 1) both; box-shadow: 0 0 8px rgba(216, 253, 255, .8);}
+@keyframes k-lrspark {from { transform: rotate(var(--a)) translateY(-10px) rotate(45deg) scale(1); opacity: 0; } 15% { opacity: 1; } to { transform: rotate(var(--a)) translateY(-52px) rotate(45deg) scale(.45); opacity: 0; }}
 .kit .lr-b:focus-visible {outline: 3px solid #FFE7A3; outline-offset: 2px;}
 @keyframes k-lmpop {40% { transform: scale(1.12); }}
 .kit .lr-buys.dense {grid-template-columns: repeat(4, minmax(0, 1fr));}
@@ -1305,7 +1319,7 @@ if (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIn
 .kit .lr-toast em {display: block; margin-top: 3px; font: 800 .86rem/1.1 var(--display); font-style: normal; color: #FFE7A3;}
 .kit .lr-toast .lr-undo {width: 22px; height: 22px; flex: none; color: #FFE7A3;}
 @media (prefers-reduced-motion: reduce) {
-.kit .lr-b.pop .lr-t, .kit .lr-toast {animation: none;}
+.kit .lr-b.pop .lr-t, .kit .lr-toast, .kit .lr-b.hop .lr-t, .kit .lr-mayh img.bump, .kit .lr-plus {animation: none;} .kit .lr-fly, .kit .lr-sparks {display: none;}
 .kit .lr-meld > span {transition: none;}
 }
 .kit .lr-flow {display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 6px; margin: 4px 0 0; padding: 0; list-style: none;}

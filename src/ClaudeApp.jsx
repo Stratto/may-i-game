@@ -852,13 +852,13 @@ function Switch({ on, onChange, label }) {
   return ce("button", { role: "switch", "aria-checked": on, "aria-label": label, className: "switch" + (on ? " on" : ""), onClick: () => { haptic(5); onChange(!on); } },
     ce("span", { "aria-hidden": true }, on ? "On" : "Off"), ce("i", { "aria-hidden": true }));
 }
-function useCount(value) {
-  const [v, setV] = useState(value), prev = useRef(value);
+function useCount(value, from = value, delay = 0) {
+  const [v, setV] = useState(from), prev = useRef(from);
   useEffect(() => {
     const a = prev.current, b = value; prev.current = value;
     if (a === b || reducedMotion()) { setV(b); return; }
-    const t0 = performance.now(); let raf;
-    const step = t => { const k = Math.min(1, (t - t0) / 450), e = 1 - Math.pow(1 - k, 4); setV(Math.round(a + (b - a) * e)); if (k < 1) raf = requestAnimationFrame(step); };
+    const t0 = performance.now() + delay; let raf;
+    const step = t => { const k = Math.max(0, Math.min(1, (t - t0) / 650)), e = 1 - Math.pow(1 - k, 4); setV(Math.round(a + (b - a) * e)); if (k < 1) raf = requestAnimationFrame(step); };
     raf = requestAnimationFrame(step); return () => cancelAnimationFrame(raf);
   }, [value]);
   return v;
@@ -1708,6 +1708,8 @@ function GameScreen({ s, api, game, open, go, wide, setToast, level, fixAsk }) {
     return () => { gone = true; document.removeEventListener("visibilitychange", get); lock && lock.release().catch(() => {}); }; }, []);
   const [board, setBoard] = useState(false);
   const [pad, setPad] = useState(null), [fix, setFix] = useState(null), [buyToast, setBuyToast] = useState(null);
+  // A buy's Undo belongs to its round: it must not follow the table into the next one, where it would take back a buy nobody made.
+  useEffect(() => { setBuyToast(null); }, [game.round]);
   useEffect(() => { if (!buyToast) return; const t = setTimeout(() => setBuyToast(null), 5000); return () => clearTimeout(t); }, [buyToast]);
   useEffect(() => { if (fixAsk) setFix(+fixAsk.split(":")[0]); }, [fixAsk]);
   const [intro, setIntro] = useState(null);
@@ -1754,11 +1756,6 @@ function GameScreen({ s, api, game, open, go, wide, setToast, level, fixAsk }) {
   // Awards are a surprise at the end; mid-game they show as a race so everyone has something to chase.
   const doneN = ROUNDS.filter((_, i) => roundDone(game, i)).length, race = !scored && doneN >= 2 ? gameAwards(game).filter(a => AWARD_ART[a.key]) : [];
   // A new leader shows on the Between rounds leaderboard ("Takes the lead"), so the round screen stays quiet.
-  const seats = ce("ol", { className: "seats", "aria-label": "Players" }, totals.map((t, i) => {
-    const p = pl(t.id), isLead = hasAny && t.total === lead, buys = (game.buys[game.round] && game.buys[game.round][t.id]) || 0;
-    const place = hasAny ? 1 + totals.filter(o => o.total < t.total).length : 0;   // ties share a place
-    return ce(Seat, { key: t.id, i, p, total: t.total, isLead, place: place <= 3 && totals.length > 2 || place === 1 ? place : 0, isDealer: dealer === t.id, gap: t.total - lead, hasAny, buys, limit, value: rs[t.id], changeBuy, onEdit: () => { haptic(6); setPad(i); }, move: scored ? 0 : moves[t.id] || 0 });
-  }));
   const nextGap = ROUNDS.findIndex((_, i) => i !== game.round && !roundDone(game, i));
   const action = complete && !outOk ? ce("button", { className: "kb", onClick: () => { haptic(8); setPad(Math.max(0, game.players.findIndex(id => rs[id] === 0 || outs === 0))); } }, outs ? "Only one player can go out" : "Mark who went out")
     : allDone ? ce("button", { className: "kb", onClick: finish }, "Finish game · see who won")
@@ -1796,19 +1793,36 @@ function GameScreen({ s, api, game, open, go, wide, setToast, level, fixAsk }) {
       ce("button", { className: "ib", onClick: () => open("game", { gameId: game.id }), "aria-label": "Game menu: players, look, rules and settings" }, kIcon("more"))),
     ce("main", { className: "ph-body lr-body" }, left,
       // On a tablet the faces carry each running total, so the whole table can read the standings (CSS shows them from 700px wide).
-      ce(BuyTable, { game, pl, rs, limit, dealer, firstId, many, cards: r.cards, changeBuy, onScore: k => { haptic(6); setPad(k); }, setBuyToast, toast: buyToast,
+      ce(BuyTable, { game, pl, rs, limit, dealer, firstId, many, cards: r.cards, changeBuy, hold: !!intro, onScore: k => { haptic(6); setPad(k); }, setBuyToast, toast: buyToast,
         totals: doneN > 0 ? Object.fromEntries(totals.map(t => [t.id, t.total])) : null })),
     ce("div", { className: "ph-dock" }, action), overlays);
 }
 // The May I? table: one face per player round an oval, jewels for buys. A tap records a buy; once scores are in, a tap opens that player's score.
-function BuyTable({ game, pl, rs, limit, dealer, firstId, many, cards, changeBuy, onScore, setBuyToast, toast, totals, cls }) {
-  const [pop, setPop] = useState(null);
+// As a round opens, its faces tell what the last round did: totals count up, "+N" floats off them, and whoever went out hops in a burst of sparks. Once per round.
+const ROUND_FX = new Set();
+function LrTot({ total, gain, fx }) {
+  const shown = useCount(total, fx && gain > 0 ? total - gain : total, 450);
+  return ce("span", { className: "lr-tot", "aria-hidden": true }, shown, fx && gain > 0 && ce("span", { className: "lr-plus" }, "+" + gain));
+}
+function BuyTable({ game, pl, rs, limit, dealer, firstId, many, cards, changeBuy, onScore, setBuyToast, toast, totals, cls, hold }) {
+  const [pop, setPop] = useState(null), [fly, setFly] = useState(null), [bump, setBump] = useState(0), stock = useRef(null), slot = useRef(null), faces = useRef({});
+  const fxKey = game.id + ":" + game.round, last = game.round > 0 ? game.scores[game.round - 1] : null;
+  // Held while Between rounds covers the round, so it plays when the table can see it.
+  const fx = useMemo(() => !hold && !!(totals && last) && !reducedMotion() && !ROUND_FX.has(fxKey), [fxKey, hold]);
+  useEffect(() => { if (fx) ROUND_FX.add(fxKey); }, [fx, fxKey]);
+  // May I?: the stock bumps and a card flies from it to the face that bought; the face pops as it lands.
+  function buy(id) {
+    const f = faces.current[id], from = stock.current && stock.current.offsetParent ? stock.current : slot.current;
+    if (reducedMotion() || !f || !from) { setPop(id); return; }
+    const S = from.getBoundingClientRect(), F = f.getBoundingClientRect(), sx = S.left + S.width / 2, sy = S.top + S.height / 2;
+    setBump(b => b + 1); setFly({ k: Date.now(), id, x: sx, y: sy, dx: F.left + F.width / 2 - sx, dy: F.top + F.height / 2 - sy });
+  }
   const low = totals ? Math.min(...game.players.map(id => totals[id])) : null, leadId = totals && game.players.filter(id => totals[id] === low).length === 1 ? game.players.find(id => totals[id] === low) : null;
   const scoring = game.players.some(id => typeof rs[id] === "number");
   const each = limit === Infinity ? "" : limit === 1 ? " One each." : " " + ["", "One", "Two", "Three", "Four", "Five", "Six"][limit] + " each.";
   return ce("div", { className: "lr-may" + (cls ? " " + cls : "") },
-    ce("div", { className: "lr-mayh" }, ce("img", { src: "art/icons/mayi.webp", alt: "" }), ce("h2", null, scoring ? "This round" : "May I?")),
-    ce("div", { className: "lr-mayslot" }, toast && !scoring
+    ce("div", { className: "lr-mayh" }, ce("img", { ref: stock, key: "b" + bump, className: bump ? "bump" : "", src: "art/icons/mayi.webp", alt: "" }), ce("h2", null, scoring ? "This round" : "May I?")),
+    ce("div", { ref: slot, className: "lr-mayslot" }, toast && !scoring
       ? ce("button", { key: toast.k, type: "button", className: "lr-toast in", "aria-live": "polite", onClick: () => { changeBuy(toast.id, -1); setBuyToast(null); } },
           ce("img", { src: "art/icons/mayi.webp", alt: "" }),
           ce("span", null, ce("b", null, pl(toast.id).name), (limit !== Infinity && toast.n >= limit ? "'s last buy · " : " bought a card · ") + (["", "1st", "2nd", "3rd"][toast.n] || toast.n + "th") + (limit === Infinity ? "" : " of " + limit)),
@@ -1824,14 +1838,16 @@ function BuyTable({ game, pl, rs, limit, dealer, firstId, many, cards, changeBuy
       const spent = !scoring && left <= 0, role = deal ? ", deals, plays last" : first ? ", plays first" : ", plays " + (o + 1) + ordOf(o + 1);
       const label = scoring ? (has ? p.name + (v === 0 ? " went out" : " scored " + v) + ". Change the score" : "Score " + p.name)
         : spent ? p.name + role + " has no buys left" : p.name + role + ". Record a May I? buy. " + n + (limit === Infinity ? " so far" : " of " + limit + " used") + (totals ? ". On " + totals[id] + (id === leadId ? ", in the lead" : "") : "");
-      return ce("li", { key: id }, ce("button", { className: "lr-b" + (spent ? " spent" : "") + (pop === id ? " pop" : "") + (deal ? " deal" : ""), disabled: spent, "aria-label": label,
-          onAnimationEnd: () => setPop(null),
+      const gain = last && typeof last[id] === "number" ? last[id] : null, wentOut = fx && gain === 0;
+      return ce("li", { key: id }, ce("button", { className: "lr-b" + (spent ? " spent" : "") + (pop === id ? " pop" : "") + (deal ? " deal" : "") + (wentOut ? " hop" : ""), disabled: spent, "aria-label": label,
+          onAnimationEnd: e => { if (e.animationName === "k-lmpop") setPop(null); },
           onClick: () => {
             if (scoring) return onScore(k);
-            changeBuy(id, 1); setPop(id); setBuyToast({ id, n: n + 1, k: Date.now() });
+            changeBuy(id, 1); buy(id); setBuyToast({ id, n: n + 1, k: Date.now() });
           } },
         ce("span", { className: "lr-no", "aria-hidden": true }, deal ? "D" : o + 1),
-        ce("span", { className: "lr-t" }, ce(Tok, { p }), id === leadId && ce("img", { className: "lr-crown", src: "art/crown.webp", alt: "" })),
+        ce("span", { className: "lr-t", ref: el => { faces.current[id] = el; } }, ce(Tok, { p }), id === leadId && ce("img", { className: "lr-crown", src: "art/crown.webp", alt: "" }),
+          wentOut && ce("span", { className: "sparks lr-sparks", "aria-hidden": true }, [0, 1, 2, 3, 4, 5, 6, 7].map(j => ce("i", { key: j, style: { "--k": j } })))),
         ce("span", { className: "lr-mid" },
           ce("b", null, p.name),
           ce("span", { className: "lr-sub" },
@@ -1840,8 +1856,10 @@ function BuyTable({ game, pl, rs, limit, dealer, firstId, many, cards, changeBuy
               : limit === Infinity || limit > 6 ? ce("span", { className: "lr-none" }, n ? n + (n === 1 ? " buy" : " buys") : "No buys yet")
               : ce("span", { className: "jp", "aria-hidden": true }, Array.from({ length: limit }, (_, j) => ce("i", { key: j, className: j < n ? "on" : "" }))),
             !scoring && deal && ce("span", { className: "lr-role" }, "Deals " + cards))),
-        totals && ce("span", { className: "lr-tot", "aria-hidden": true }, totals[id])));
-    })));
+        totals && ce(LrTot, { key: fx ? "fx" : "t", total: totals[id], gain, fx })));
+    })),
+    fly && ce("span", { key: fly.k, className: "lr-fly", "aria-hidden": true, style: { left: fly.x, top: fly.y, "--dx": fly.dx + "px", "--dy": fly.dy + "px" },
+      onAnimationEnd: () => { setPop(fly.id); setFly(null); } }));
 }
 const dealerName = (n, c) => n + " deals " + c;
 // Kit parts shared by the rebuilt screens (docs/ui-kit.html).
@@ -1867,46 +1885,6 @@ const SUIT_KEY = { S: "spade", H: "heart", D: "diamond", C: "club" };
 const codeCard = (code, key) => code === "JKR" || code === "JOKER" ? ce(DeckCard, { key, joker: true }) : ce(DeckCard, { key, rank: code.slice(0, -1), suit: SUIT_KEY[code.slice(-1)] });
 function GoalMelds({ r }) {
   return ce("span", { className: "lr-melds" + (r.ex.length > 2 ? " three" : ""), "aria-hidden": true }, r.ex.map((m, i) => ce("span", { key: i, className: "lr-meld" + (m.length > 3 ? " run" : "") }, m.map((c, j) => ce("span", { key: j }, codeCard(c))))));
-}
-function Seat({ i, p, total, isLead, place, isDealer, isFirst, cards, gap, hasAny, buys, limit, value, changeBuy, setBuyToast, onEdit, move }) {
-  const shown = useCount(total), has = typeof value === "number", atLimit = limit !== Infinity && buys >= limit;
-  // Points float up over the total as a score lands.
-  const prev = useRef(value), [plus, setPlus] = useState(null);
-  useEffect(() => { const a = prev.current; prev.current = value;
-    if (a !== value && typeof value === "number" && value > 0 && !reducedMotion()) setPlus({ k: Date.now(), v: value }); }, [value]);
-  // May I?: the button bumps, the next pip lights, and a card flies from the deck to the caller.
-  const [lit, setLit] = useState(-1), [fly, setFly] = useState(null), li = useRef(null), av = useRef(null), btn = useRef(null);
-  function call() {
-    changeBuy(p.id, 1); setLit(buys);
-    if (setBuyToast) setBuyToast({ id: p.id, n: buys + 1, k: Date.now() });
-    if (reducedMotion() || !li.current || !av.current || !btn.current) return;
-    const L = li.current.getBoundingClientRect(), A = av.current.getBoundingClientRect(), B = btn.current.getBoundingClientRect();
-    setFly({ k: Date.now(), x: B.left - L.left + B.width / 2 - 13, y: B.top - L.top + B.height / 2 - 18, dx: A.left + A.width / 2 - (B.left + B.width / 2), dy: A.top + A.height / 2 - (B.top + B.height / 2) });
-  }
-  const ord = ["", "1st", "2nd", "3rd"][place] || "";
-  const roleBit = isDealer ? "Deals " + (cards || 10) + " each" : isFirst ? "Goes first" : "Ready";
-  const status = !hasAny ? roleBit : (isLead ? "Leading" : gap + " behind") + (isDealer ? " · deals" : isFirst ? " · goes first" : "");
-  const many = limit === Infinity || limit > 6;
-  return ce("li", { ref: li, className: "seat" + (isLead ? " lead" : ""), style: { "--i": i } },
-    ce("button", { ref: av, type: "button", className: "seat-av", onClick: onEdit, "aria-label": "Score " + p.name + (ord ? ", " + ord + " place" : "") + (isDealer ? ", dealer" : isFirst ? ", goes first" : "") },
-      ce(Tok, { p }),
-      isLead && ce("img", { className: "seat-crown", src: "art/crown.webp", alt: "" }),
-      place > 0 && ce("img", { key: "m" + place, className: "seat-medal", src: "art/icons/medal" + place + ".webp", alt: "", "data-place": place }),
-      isDealer && ce("span", { className: "dealer", "aria-hidden": true }, "D"),
-      isFirst && ce("span", { className: "fst", "aria-hidden": true }, "1st")),
-    ce("button", { type: "button", className: "seat-main", onClick: onEdit },
-      ce("span", { className: "seat-name-row" },
-        ce("b", null, p.name),
-        has && ce("span", { className: "chip" + (value === 0 ? " out" : "") }, value === 0 && ce("img", { src: "art/icons/out.webp", alt: "" }), value === 0 ? "Out" : "+" + value)),
-      ce("small", null, status, move ? ce("span", { className: "mv " + (move > 0 ? "up" : "down") }, (move > 0 ? " ▲ " : " ▼ ") + Math.abs(move)) : null)),
-    ce("button", { type: "button", className: "seat-total", onClick: onEdit, "aria-label": p.name + ": " + total + " points total. Tap to score" }, shown, plus && ce("span", { key: plus.k, className: "plus", "aria-hidden": true, onAnimationEnd: () => setPlus(null) }, "+" + plus.v)),
-    ce("span", { className: "buy" },
-      buys > 0 && ce("button", { type: "button", className: "buy-undo", onClick: () => changeBuy(p.id, -1), "aria-label": "Take back a May I? from " + p.name }, ce("i", { "aria-hidden": true }, ce(Icon, { n: "minus", size: 12, stroke: 3 }))),
-      ce("button", { ref: btn, type: "button", className: "mayi" + (lit >= 0 ? " bump" : ""), onClick: call, disabled: atLimit, onAnimationEnd: e => { if (e.target === e.currentTarget) setLit(-1); },
-          "aria-label": p.name + " says May I?, " + (buys ? buys + " so far" : "none so far") + (atLimit ? ", at the limit" : "") },
-        "May I?", many ? ce("span", { className: "mpips n" }, buys ? buys + (limit === Infinity ? "" : " of " + limit) : " ")
-          : ce("span", { className: "mpips" }, Array.from({ length: limit }, (_, k) => ce("i", { key: k, className: (k < buys ? "on" : "") + (k === lit ? " lit" : "") }))))),
-    fly && ce("span", { key: fly.k, className: "flycard", "aria-hidden": true, style: { left: fly.x, top: fly.y, "--dx": fly.dx + "px", "--dy": fly.dy + "px" }, onAnimationEnd: () => setFly(null) }));
 }
 function ScorePad({ game, pl, start, round, rs, setScore, onClose, onDone, fixing, noOut, setNoOut, onSure, onRules }) {
   const R = round == null ? game.round : round, rules = game.rules;

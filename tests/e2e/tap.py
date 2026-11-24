@@ -95,7 +95,9 @@ def game(br, n, full):
      print("  buy and undo")
      face = p.locator(".lr-buys .lr-b").nth(1)
      before = face.get_attribute("aria-label") or ""
-     tap(p, face, "buy on " + NAMES[1]); p.wait_for_timeout(300)
+     tap(p, face, "buy on " + NAMES[1]); p.wait_for_timeout(120)
+     if not p.locator(".lr-fly").count(): fail("buy: no card flew from the stock to the face")
+     p.wait_for_timeout(180)
      after = face.get_attribute("aria-label") or ""
      if after == before: fail("buy: face label did not change after a tap (" + before + ")")
      shot(p, "06-after-buy"); fits(p, "after a buy")
@@ -119,7 +121,15 @@ def game(br, n, full):
     if not save.count(): fail("score pad: no save button among " + repr(btns[-6:])); ctx.close(); return
     tap(p, save, "save scores"); p.wait_for_timeout(1200); shot(p, "09-after-save")
     nxt = p.get_by_role("button", name=re.compile("Start round 2|Let's play", re.I))
-    if nxt.count(): tap(p, nxt, "start round 2"); p.wait_for_timeout(1200)
+    if nxt.count(): tap(p, nxt, "start round 2"); p.wait_for_timeout(300)
+    # Round 2 opens telling what round 1 did: totals count up, +N floats off, the out player hops in sparks.
+    if p.get_by_text("Round 2 of 7").count():
+        if not p.locator(".lr-plus").count(): fail("round 2: no +N floating off the totals")
+        if not p.locator(".lr-b.hop .lr-sparks").count(): fail("round 2: the player who went out did not hop with sparks")
+        early = p.locator(".lr-tot").all_inner_texts(); p.wait_for_timeout(900); late = p.locator(".lr-tot").all_inner_texts()
+        if early == late: fail("round 2: totals did not count up " + repr(late))
+        shot(p, "09b-round-2-opens")
+    p.wait_for_timeout(900)
     shot(p, "10-round-2-%d" % n)
     if not p.get_by_text("Round 2 of 7").count(): fail("did not reach round 2")
     else: fits(p, "round 2 with %d" % n)
