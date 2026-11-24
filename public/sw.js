@@ -60,6 +60,16 @@ self.addEventListener("fetch", e => {
   const isSame = url.origin === self.location.origin;
   const isFont = url.hostname === "fonts.googleapis.com" || url.hostname === "fonts.gstatic.com";
   if (!isSame && !isFont) return;
+  // The version file always goes to the network, so the app can tell when a newer version is live.
+  if (isSame && url.pathname.endsWith("/version.json")) return;
+  // The app page itself: network first, so a reload gets the newest version; the saved copy when offline.
+  if (e.request.mode === "navigate" || (isSame && /\/(index\.html)?$/.test(url.pathname))) {
+    e.respondWith(fetch(e.request).then(res => {
+      if (res && res.ok) { const copy = res.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); }
+      return res;
+    }).catch(() => caches.match(e.request).then(m => m || caches.match("./index.html"))));
+    return;
+  }
 
   e.respondWith(
     caches.match(e.request).then(cached => {

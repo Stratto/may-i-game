@@ -120,6 +120,12 @@ Content max 720px. At 900px and up the game shows seats on the left and the roun
 
 ## Files and build
 - `index.html`: the page, the kit styles (`<style id="kit">`, `<style id="kit-app">`) and the SVG sprite. It loads `src/main.jsx`.
+
+**Updates (24 Nov):** each build gets one id (`BUILD` in the Vite config). It's baked into the app as `__BUILD__`, written to `version.json`, and used as the offline cache's name.
+- The app checks `version.json` on opening, when the app comes back to the front, and every 30 minutes.
+- Newer, with no game or sheet open: it reloads at once.
+- During a game: a toast that stays, "New version ready · Refresh". The reload then happens when the table is next on Play.
+- The service worker fetches the app page from the network first and falls back to the saved copy offline. It never caches `version.json`.
 - `src/ClaudeApp.jsx`: the whole React app, with rules, scoring and stats inside it. `src/main.jsx` mounts it and registers the service worker.
 - `art/`: the one folder for images. The app asks for `art/...` at run time; the build copies it as-is.
 - `public/`: icons, `manifest.json` and `sw.js`, copied to the root of the build. Each build gives the service worker a new cache name, so there is nothing to bump by hand.

@@ -1156,10 +1156,31 @@ function App() {
   useLayoutEffect(() => { applyLook(lookNow); }, [lookNow]);
   const [sheet, setSheet] = useState(null), [intro, setIntro] = useState(introDue);
   const [toast, setToast] = useState(null);
-  useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(null), toast.undo ? 6000 : toast.sub ? 3800 : 2800); return () => clearTimeout(t); }, [toast]);
+  useEffect(() => { if (!toast || toast.stay) return; const t = setTimeout(() => setToast(null), toast.undo ? 6000 : toast.sub ? 3800 : 2800); return () => clearTimeout(t); }, [toast]);
   // After something is removed (a game ended, a table deleted), focus lands on Undo, so a screen reader hears what happened and can take it back.
   useEffect(() => { if (!toast || !toast.undo) return; const t = setTimeout(() => { const b = document.querySelector(".toast-undo"); if (b) b.focus({ preventScroll: true }); }, 80); return () => clearTimeout(t); }, [toast]);
   // Destructive actions happen at once and offer Undo, instead of asking twice.
+  // Updates while the app is open (owner, 24 Nov): check version.json on opening, on coming back to the app, and every 30 minutes.
+  // With nothing going on, a newer version reloads straight away (every score is already saved). During a game or with a sheet open,
+  // a toast offers Refresh instead, and the reload waits until the table is back on Play.
+  const upd = useRef({ view, sheet, due: false }); upd.current.view = view; upd.current.sheet = sheet;
+  const busyNow = () => upd.current.view.at === "game" || upd.current.sheet || document.querySelector("body > .kport, body > .kscreen, input:focus, textarea:focus");
+  useEffect(() => {
+    const mine = typeof __BUILD__ !== "undefined" ? __BUILD__ : null;
+    if (!mine || !/^https?:$/.test(location.protocol)) return;
+    let told = false;
+    const check = () => fetch("./version.json?t=" + Date.now(), { cache: "no-store" }).then(r => r.ok ? r.json() : null).then(d => {
+      if (!d || !d.v || d.v === mine) return;
+      upd.current.due = true;
+      if (!busyNow()) { location.reload(); return; }
+      if (!told) { told = true; setToast({ text: "New version ready", sub: "Refresh when it suits the table", stay: true, act: { label: "Refresh", fn: () => location.reload() } }); }
+    }).catch(() => {});
+    check();
+    const onVis = () => { if (document.visibilityState === "visible") check(); };
+    document.addEventListener("visibilitychange", onVis); const iv = setInterval(check, 30 * 60e3);
+    return () => { document.removeEventListener("visibilitychange", onVis); clearInterval(iv); }; }, []);
+  // A waiting update lands once the table is back on Play with nothing open.
+  useEffect(() => { if (upd.current.due && view.at === "home" && !sheet) { const t = setTimeout(() => { if (!busyNow()) location.reload(); }, 400); return () => clearTimeout(t); } }, [view.at, sheet]);
   const withUndo = (text, change) => { const before = s; change(); setToast({ text, undo: () => { api.set(() => before); setToast(null); } }); };
   const startGame = (groupId, players, dealer, rules) => {
     const id = uid();
@@ -1274,7 +1295,8 @@ function App() {
     toast && onTop(ce("div", { key: toast.text, className: "toast" + (toast.undo ? " has-undo" : "") + (toast.art ? " kt" : ""), role: "status" },
       toast.art && ce("img", { src: "art/" + toast.art + ".webp", alt: "" }),
       toast.sub ? ce("span", null, ce("b", null, toast.text), ce("small", null, toast.sub)) : ce("span", null, toast.text),
-      toast.undo && ce("button", { className: "toast-undo", onClick: toast.undo }, "Undo"))));
+      toast.undo && ce("button", { className: "toast-undo", onClick: toast.undo }, "Undo"),
+      toast.act && ce("button", { className: "toast-undo", onClick: toast.act.fn }, toast.act.label))));
 }
 
 // ── Home ──────────────────────────────────────────────────────────
@@ -2892,7 +2914,8 @@ function RoundGuide({ round, level, coach, rules, live, playing }) {
 function RulesSheet({ onClose, round, rules, setRules, level, onLevel, initialTab, live, backTo }) {
   const [tab, setTab] = useState(initialTab === "how" ? "how" : "round");
   const back = backTo || (live ? "Back to the round" : null);
-  return ce(KPage, { title: live && tab === "round" ? "Round guide" : "How to play", onClose, backLabel: back || "Back", foot: back, cls: "kguide", bodyCls: "rg-body" },
+  // No title beside the back arrow: the Basics and Rounds switch says where you are (owner, 24 Nov). Screen readers still hear "How to play".
+  return ce(KPage, { title: "How to play", onClose, backLabel: back || "Back", foot: back, cls: "kguide", bodyCls: "rg-body" },
     ce(RulesBody, { tab, setTab, round, rules, setRules, level, onLevel, live }));
 }
 // A full-screen page over everything, for reading: the Round guide and the cabinet. Back closes it.
