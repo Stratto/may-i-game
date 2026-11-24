@@ -2294,6 +2294,18 @@ html.calm .kit.kport.out > .lr-dim, html.calm .kit.kport.out > .ksheet { animati
 .kit.kround:not(.has-news) .lr-goal .lr-melds.three .lr-meld > span { width: var(--cw); } .kit.kround:not(.has-news) .lr-goal .lr-melds.three .lr-meld > span + span { margin-left: calc(var(--cw) * -.55); } .kit.kround:not(.has-news) .lr-goal .lr-melds.three .lr-meld.run > span + span { margin-left: calc(var(--cw) * -.69); }
 .kit.kguide .rg-hero .lr-meld > span { width: 88px; } .kit.kguide .rg-hero .lr-meld > span + span { margin-left: -46px; } .kit.kguide .rg-hero .lr-meld.run > span + span { margin-left: -52px; }
 .kit.kguide .rg-hero .lr-melds { gap: 14px; row-gap: 14px; }
+/* Flat, labelled melds (owner, 24 Nov): each meld upright with its name under it, so three melds read as three groups. */
+.kit .lr-melds.flat { align-items: flex-start; gap: 14px; }
+.kit .lr-melds.flat .lr-mw { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.kit .lr-melds.flat .lr-meld > span { rotate: none !important; translate: none !important; }
+.kit .lr-melds.flat .lr-ml { font: 800 .74rem/1 var(--label); letter-spacing: .06em; text-transform: uppercase; color: var(--on-bg2); white-space: nowrap; }
+.kit .lr-melds.flat { --cw: 52px; }
+.kit .lr-melds.flat.three, .kit.kround:not(.has-news) .lr-goal .lr-melds.flat.three { --cw: min(50px, calc((100vw - 72px) / 6.6)); gap: 14px; }
+.kit .lr-melds.flat .lr-meld > span { width: var(--cw) !important; }
+.kit .lr-melds.flat .lr-meld > span + span { margin-left: calc(var(--cw) * -.6) !important; }
+.kit .lr-melds.flat .lr-meld.run > span + span { margin-left: calc(var(--cw) * -.62) !important; }
+.kit.kguide .rg-hero .lr-melds.flat { --cw: 72px; gap: 18px; row-gap: 14px; }
+.kit.kround.has-news .lr-melds.flat { --cw: 34px; } .kit.kround.has-news .lr-melds.flat .lr-ml { display: none; }
 
 /* ── Kit sheets in the app: the head is a drag handle; h2 takes the kit's h3 look ── */
 .kit .ksheet .kgrab { touch-action: none; }

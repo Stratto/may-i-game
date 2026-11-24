@@ -1853,7 +1853,7 @@ function GameScreen({ s, api, game, open, go, wide, setToast, level, fixAsk }) {
       ce("span", { className: "lr-rn" }, "Round " + r.n + " of 7", game.round === 6 && ce("span", { className: "lr-last" }, "Last round")),
       ce("h1", { key: r.n }, r.name)),
     ce("button", { key: "g", className: "lr-goal", onClick: () => open("rules", { gameId: game.id }), "aria-label": r.name + ": " + GOAL_LINE[game.round] + " Open the round guide" },
-      ce(GoalMelds, { r }),
+      ce(GoalMelds, { r, round: game.round }),
       ce("span", { className: "lr-rule" }, GOAL_LINE[game.round]),
       ce("span", { className: "lr-more" }, "Round guide", kIcon("chevl")))];
   const newsUndo = () => { haptic(8); upd(g => ({ ...g, round: news.from })); setNews(null); };
@@ -1958,8 +1958,33 @@ const GOAL_LINE = [
 // A card code like "10H" or "JKR" as the illustrated deck card.
 const SUIT_KEY = { S: "spade", H: "heart", D: "diamond", C: "club" };
 const codeCard = (code, key) => code === "JKR" || code === "JOKER" ? ce(DeckCard, { key, joker: true }) : ce(DeckCard, { key, rank: code.slice(0, -1), suit: SUIT_KEY[code.slice(-1)] });
-function GoalMelds({ r }) {
-  return ce("span", { className: "lr-melds" + (r.ex.length > 2 ? " three" : ""), "aria-hidden": true }, r.ex.map((m, i) => ce("span", { key: i, className: "lr-meld" + (m.length > 3 ? " run" : "") }, m.map((c, j) => ce("span", { key: j }, codeCard(c))))));
+// Fresh example hands each time the app opens (owner, 24 Nov): the shape follows the round (3 cards = a set, 4 = a run),
+// the cards are dealt at random. Seeded by round, so the round screen and its guide show the same hand all evening.
+const EX_SEED = (Math.random() * 2 ** 31) | 0;
+const EX_RANKS = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"], EX_SUITS = ["S", "H", "D", "C"];
+function dealEx(round) {
+  let a = (EX_SEED + round * 7919) | 0;
+  const rnd = () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  const pick = list => list.splice(Math.floor(rnd() * list.length), 1)[0];
+  // No rank shows up in two melds, so each example reads as its own group. Three runs use 12 of 13 ranks, so redeal until it fits.
+  const deal = () => {
+    const used = new Set(), runSuits = EX_SUITS.slice(); let ok = true;
+    const hand = ROUNDS[round].ex.map(m => {
+      if (m.length === 3) { const r = pick(EX_RANKS.filter(x => !used.has(x))), su = EX_SUITS.slice(); used.add(r); return [0, 1, 2].map(() => r + pick(su)); }
+      const su = runSuits.length ? pick(runSuits) : EX_SUITS[0], start = Math.floor(rnd() * (EX_RANKS.length - 3));
+      return [0, 1, 2, 3].map(k => { const r = EX_RANKS[start + k]; if (used.has(r)) ok = false; used.add(r); return r + su; });
+    });
+    return ok && hand;
+  };
+  for (let t = 0; t < 200; t++) { const h = deal(); if (h) return h; }
+  return ROUNDS[round].ex;
+}
+// Each meld lies flat with its name under it, so three melds read as three groups, not one pile (owner, 24 Nov).
+function GoalMelds({ r, round }) {
+  const ex = round != null ? dealEx(round) : r.ex, meld = m => ce("span", { className: "lr-meld" + (m.length > 3 ? " run" : "") }, m.map((c, j) => ce("span", { key: j }, codeCard(c))));
+  if (round == null) return ce("span", { className: "lr-melds" + (ex.length > 2 ? " three" : ""), "aria-hidden": true }, ex.map((m, i) => ce(Fragment, { key: i }, meld(m))));
+  return ce("span", { className: "lr-melds flat" + (ex.length > 2 ? " three" : ""), "aria-hidden": true }, ex.map((m, i) => ce("span", { key: i, className: "lr-mw" },
+    meld(m), ce("span", { className: "lr-ml" }, m.length > 3 ? "Run of 4" : "Set of 3"))));
 }
 function ScorePad({ game, pl, start, round, rs, setScore, onClose, onDone, fixing, noOut, setNoOut, onSure, onRules }) {
   const R = round == null ? game.round : round, rules = game.rules;
@@ -2900,7 +2925,7 @@ function RoundGuide({ round, level, coach, rules, live, playing }) {
   return ce(Fragment, null,
     ce("div", { className: "rg-hero" },
       ce("span", { className: "lr-rn" }, "Round " + r.n + (live && round === playing ? " · playing now" : "")),
-      ce("h3", null, r.name), ce(GoalMelds, { r }),
+      ce("h3", null, r.name), ce(GoalMelds, { r, round }),
       ce("p", { className: "rg-goal" }, G.goal),
       ce("div", { className: "rg-facts" }, ce("span", null, ce("b", null, r.cards), "cards dealt"), ce("span", null, ce("b", null, G.inContract), "to lay down"),
         ce("span", null, ce("b", null, r.cards - G.inContract), r.goOut ? "fit in runs" : "left over"))),
