@@ -1147,12 +1147,8 @@ function App() {
   });
   // The look follows the place: a table's page, its games and its results wear the table's look.
   const lookGame = view.gameId && s.games[view.gameId], lookGroup = ["group", "game", "recap"].includes(view.at) && s.groups[view.groupId || (lookGame && lookGame.groupId)];
-  // Settings, Learn and Stats wear the look of the table played last, so they match the game just left (owner, 24 Nov). Play stays the lagoon.
-  const lastGroup = useMemo(() => { const g = Object.values(s.games).filter(x => s.groups[x.groupId]).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))[0];
-    return g ? s.groups[g.groupId] : s.groups[(s.groupOrder || [])[0]]; }, [s.games, s.groups]);
-  const backGame = view.back && view.back.gameId && s.games[view.back.gameId];
-  const tabGroup = ["learn", "stats", "settings"].includes(view.at) && ((backGame && s.groups[backGame.groupId]) || lastGroup);
-  const lookNow = lookGroup ? tableLook(lookGroup) : tabGroup ? tableLook(tabGroup) : "midnight";
+  // Play, Learn, Stats and Settings stay neutral on the lagoon, whatever table was played last (owner, 25 Nov).
+  const lookNow = lookGroup ? tableLook(lookGroup) : "midnight";
   useLayoutEffect(() => { applyLook(lookNow); }, [lookNow]);
   const [sheet, setSheet] = useState(null), [intro, setIntro] = useState(introDue);
   const [toast, setToast] = useState(null);

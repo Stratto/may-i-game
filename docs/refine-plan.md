@@ -174,7 +174,7 @@ Live first: 16be34d (layout pass, round banner, Standings, share preview). Then,
 
 **Owner's answers, 24 Nov:**
 1. Steppers that are always visible for buys (1 to 10, then No limit), Ace points and Joker points.
-2. Settings, Learn and Stats wear the last table's look (Lagoon when there are no tables yet).
+2. Settings, Learn and Stats wear the last table's look (Lagoon when there are no tables yet). *Changed 25 Nov: for now they stay neutral on Lagoon; only a table's page, its games and results wear its look.*
 3. The scanner is turned on from Table settings and the game menu; Settings keeps a short row.
 4. Tip: the Results nudge stays, and Settings gets a short row near the top that opens the tip card.
 5. Stats: a row per player, and a tap opens their page (awards with date and table, their games, what's next).
